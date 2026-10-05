@@ -14,7 +14,7 @@ export function GET() {
 - The agent finds the icon, offers 2-3 concepts, writes one figure file on a fixed engine, photographs and checks it, and hands back isoform-<name>.html.
 
 ## Docs
-- /docs: the figure file, page options (?intensity ?theme ?gl=1 ?t ?at ?w), theme tokens (--iso-*), engine API, accessibility, licence
+- /docs: the figure file, page options (?intensity ?theme ?gl=0 ?style ?stroke ?fill=0 ?t ?at ?w), theme tokens (--iso-*), engine API, accessibility, licence
 - /skill: the six steps, with every example prompt
 
 ## Figures

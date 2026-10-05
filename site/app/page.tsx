@@ -78,7 +78,7 @@ export default function Home() {
           <p className={`${LABEL} absolute right-12 bottom-5 normal-case`}>{f?.lines} lines · plays on its own, hover takes over</p>
           <Axes className="bottom-4 left-5" />
           <div className="relative mx-auto flex h-full max-w-[640px] items-center px-8 py-16">
-            <Figure name={hero} quiet className="w-full" />
+            <Figure name={hero} quiet gl className="w-full" />
           </div>
         </div>
       </section>

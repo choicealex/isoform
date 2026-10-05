@@ -20,7 +20,7 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
   const [tab, setTab] = useState<"solid" | "parts">("solid");
   const [intensity, setIntensity] = useState(0.5);
   const [speed, setSpeed] = useState(1);
-  const [gl, setGl] = useState(false);
+  const [gl, setGl] = useState(true); // effects on by default (owner); the button turns them off
   const [code, setCode] = useState<"prompt" | "html" | "embed">("prompt");
   const [look, setLook] = useState<Look>(LOOK);
   const lp = lookProps(look);
@@ -40,7 +40,7 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
         const next = FIGURES[(i + step + FIGURES.length) % FIGURES.length].name;
         if (linked) window.history.replaceState(null, "", `/figures/${next}`);
         setName(next);
-        setGl(false);
+        setGl(true);
       } else if (e.key === " ") {
         e.preventDefault();
         fig.current?.replay();
@@ -131,7 +131,7 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
           return linked ? (
             <Link key={g.name} href={`/figures/${g.name}`} scroll={false} className={cls} style={inv} aria-current={on ? "page" : undefined}>{cell}</Link>
           ) : (
-            <button key={g.name} type="button" onClick={() => { setName(g.name); setGl(false); }} className={`${cls} text-left`} style={inv} aria-pressed={on}>{cell}</button>
+            <button key={g.name} type="button" onClick={() => { setName(g.name); setGl(true); }} className={`${cls} text-left`} style={inv} aria-pressed={on}>{cell}</button>
           );
         })}
         {/* empty cells to the end of the row: the set is still growing */}

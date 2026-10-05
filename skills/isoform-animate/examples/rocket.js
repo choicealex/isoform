@@ -43,7 +43,7 @@ function mount({ stage, svg, read, src }, climb) {
   let max = climb, label = "";
   /* the hull's lowest point, measured off the drawing (getPointAtLength through the part's own transform): the flame
      starts a hair inside it so the two touch */
-  const nozzle = [201.2, 237.2], ground = 244;
+  const nozzle = [201.2, 237.2], ground = 282; // the ground the plume hits: where the traced flame ends, below the fins
 
   const fx = gl(stage, {
     layer: "under",
@@ -52,22 +52,36 @@ function mount({ stage, svg, read, src }, climb) {
       vec4 effect(vec2 p) {
         if (u_t < 0.02) return vec4(0.0);
         vec2 n = u_noz - vec2(0.0, u_lift);
-        float y = p.y - n.y, len = 14.0 + 46.0 * u_t;
-        float s = clamp(y / len, 0.0, 1.0);
-        float w = mix(3.0, 7.0 + 6.0 * u_t, sqrt(s)) + (noise(vec2(p.x * 0.2, y * 0.15 - u_time * 9.0)) - 0.5) * 2.0 * s;
-        float dx = abs(p.x - n.x);
-        float plume = (1.0 - smoothstep(w * 0.6, w, dx)) * step(0.0, y) * (1.0 - smoothstep(len * 0.6, len, y));
-        float core = (1.0 - smoothstep(0.0, w * 0.3, dx)) * step(0.0, y) * (1.0 - smoothstep(0.0, len * 0.45, y));
-        vec2 g = vec2((p.x - n.x) / (40.0 + 60.0 * u_t), (p.y - u_ground) / 7.0);
-        float dust = smoothstep(1.0, 0.2, length(g)) * smoothstep(0.35, 0.7, fbm(vec2(p.x * 0.05 + sign(p.x - n.x) * u_time, p.y * 0.1)))
-                   * smoothstep(0.25, 0.8, u_t);
+        float gap = max(u_ground - n.y, 4.0);          // nozzle to pad
+        float dx = p.x - n.x, ax = abs(dx), y = p.y - n.y, gy = p.y - u_ground;
+        float tur = fbm(vec2(p.x * 0.11, p.y * 0.1 - u_time * 6.0));
+        /* the column: white-hot from the nozzle down to the pad, nothing below the pad */
+        float w = mix(3.5, 8.0 + 6.0 * u_t, clamp(y / gap, 0.0, 1.0)) * (0.85 + 0.4 * tur);
+        float onPad = smoothstep(gap + 3.0, gap - 1.0, y) * smoothstep(-1.0, 1.5, y);
+        float column = (1.0 - smoothstep(w * 0.5, w, ax)) * onPad;
+        float core = (1.0 - smoothstep(0.0, w * 0.35, ax)) * onPad;
+        /* where it lands: a splash on the pad, and flame tongues racing out along it, flickering */
+        float reach = 22.0 + 95.0 * u_t;
+        float thin = 3.0 + 5.0 * u_t;
+        float tongue = exp(-gy * gy / (thin * thin)) * (1.0 - smoothstep(reach * 0.35, reach, ax + (tur - 0.5) * 30.0))
+                     * smoothstep(0.35, 0.65, fbm(vec2(ax * 0.07 - u_time * 3.0, gy * 0.3 + sign(dx) * 7.0)) + 0.25 * (1.0 - ax / reach));
+        float splash = exp(-(dx * dx) / (90.0 + 400.0 * u_t) - gy * gy / (10.0 + 20.0 * u_t));
+        float flame = clamp(column + tongue * 0.9 + splash * 0.8, 0.0, 1.0) * smoothstep(u_ground + 9.0, u_ground + 2.0, p.y);
+        float hot = clamp(core * 1.3 + splash * 0.7 * u_t, 0.0, 1.0);
+        /* light: a soft orange glow around the splash, falling off smoothly (no edges of its own) */
+        vec2 lg = vec2(dx / (55.0 + 70.0 * u_t), (p.y - u_ground + 4.0) / (26.0 + 22.0 * u_t));
+        float glow = exp(-dot(lg, lg) * 1.6) * 0.6 * smoothstep(0.05, 0.5, u_t);
+        /* smoke: billows thrown out to both sides, rising off the pad */
+        vec2 sg = vec2((ax - reach * 0.75) / (reach * 0.55), (gy + 10.0 + 8.0 * u_t) / (14.0 + 10.0 * u_t));
+        float smoke = smoothstep(1.0, 0.2, length(sg)) * smoothstep(0.42, 0.72, fbm(vec2(p.x * 0.05 + sign(dx) * u_time * 0.9, p.y * 0.07 + u_time * 0.5))) * smoothstep(0.3, 0.9, u_t);
         // the one colour of its own the effect may carry is the phenomenon's (rule 12): burning propellant
-        vec3 flame = vec3(1.0, 0.55, 0.2);
-        vec3 hot = mix(vec3(1.0, 0.8, 0.5), vec3(1.0, 0.97, 0.92), u_dark);
-        vec3 col = mix(flame, hot, clamp(core, 0.0, 1.0));
-        float a = clamp(plume * 0.55 + core * 0.7, 0.0, 1.0) * smoothstep(0.0, 0.3, u_t);
-        float da = dust * 0.35 * (1.0 - a);
-        return vec4(col * a + u_line * da, a + da);
+        vec3 red = vec3(0.92, 0.22, 0.06), orange = vec3(1.0, 0.55, 0.12), white = vec3(1.0, 0.95, 0.82);
+        vec3 col = mix(mix(red, orange, smoothstep(0.1, 0.7, flame)), white, hot);
+        float a = flame * smoothstep(0.0, 0.2, u_t);
+        float ga = glow * (1.0 - a);
+        float sa = smoke * 0.5 * (1.0 - a - ga);
+        vec3 smokeCol = mix(vec3(0.6), vec3(0.34), u_dark);
+        return vec4(col * a + orange * ga + smokeCol * sa, a + ga + sa);
       }`,
   });
   if (fx.on) { fx.set("u_noz", nozzle); fx.set("u_ground", ground); }
@@ -123,7 +137,7 @@ isoform({
   icon: "rocket",
   variant: "rounded-left",
   means: "A rocket flies a loop: it lights, lifts off, hovers and lands. Bring the pointer near to hold the throttle.",
-  effect: "an exhaust plume of burning propellant under the traced flame, throwing dust along the ground",
+  effect: "a white-hot exhaust that hits the pad and splashes out along it as flame, lighting the ground orange while smoke rolls out",
   rules: [1, 5, 8, 11],
   range: [4, 10, 18],
   mount,

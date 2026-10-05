@@ -19,7 +19,7 @@ The first run installs `playwright-core` once into a cache folder of yours, neve
 
 ## The pictures
 
-Five address parameters make them, and work in any browser for a look by hand: `?at=x,y` (hold the pointer), `?w=240` (thumbnail width), `?intensity=` (the slider), `?theme=light|dark`, and `?gl=1` (effects on; they are off by default).
+Five address parameters make them, and work in any browser for a look by hand: `?at=x,y` (hold the pointer), `?w=240` (thumbnail width), `?intensity=` (the slider), `?theme=light|dark`, and `?gl=0` (effects off; they are on by default).
 
 | Shot | Picture |
 | --- | --- |
@@ -29,6 +29,7 @@ Five address parameters make them, and work in any browser for a look by hand: `
 | `low` · `high` | the slider at 0 and at 1, the pointer at `--edge` |
 | `dark` · `light` | both themes, answering |
 | `effect` · `effect-dark` | answering with the WebGL effect on, in both themes |
+| `no-effect` | answering with the effect off (`?gl=0`): the figure must still read |
 | `colour` · `fill-off` | answering in the Colour style (the bright part filled) and with Isocons' fill off (every edge shows) |
 | `story-25` · `story-50` · `story-75` | a story held at a quarter, half and three quarters of its loop (`?t=`) |
 | `poster` | under reduced motion: the poster frame |
@@ -49,7 +50,7 @@ Answer each yes or no. A no is fixed before anything is handed over. `look.mjs` 
 8. **What happens is what the object does** (rule 11). Cover the name and the sentence: would someone who sees `answer` (lines only) say what physical thing is happening? Would it make as much sense on another icon? (If yes, it is decoration.)
 9. **Nothing leaves the frame** (rule 03), in `low` and `high` — the drawing is checked; check the effect by eye.
 10. **Both themes** (rule 12). In `dark` and `light` the effect neither vanishes nor glares; a white core on the white plate still reads.
-11. **The two versions look alike.** Put `answer` and `effect` side by side: the same drawing, the same traces; the effect only adds material under them (water, light, heat), never edges of its own.
+11. **The effect counts, and the figure stands without it.** In `effect` the material and its light are unmistakable, saturated, glowing, the one colour in the scene; in `no-effect` the drawing and its traces still say what happens. The effect never draws edges of its own.
 12. **The page is clean.** No error line under the stage, nothing on the console.
 
 If you are unsure what good looks like, look at an example the same way: `node <skill folder>/look.mjs <skill folder>/examples/bolt.js --at 200,70 --edge 200,40`.

@@ -9,6 +9,7 @@ type Props = {
   name: string;
   intensity?: number;
   speed?: number;
+  /** the WebGL effect (on where the page shows a figure large; thumbnails leave it off to stay under the browser's context limit) */
   gl?: boolean;
   /** hold the story at one moment (ms), as the look's pictures do */
   t?: number;

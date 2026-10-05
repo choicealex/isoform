@@ -172,8 +172,8 @@
   $("fill").addEventListener("click", () => setFill($("fill").getAttribute("aria-pressed") !== "true"));
   /* ?t= holds a story at one moment (ms), for the look's pictures */
   if (q.get("t") != null) stage.dataset.t = q.get("t");
-  /* the effect layer is opt-in: off unless ?gl=1 or the reader presses Effect */
-  stage.dataset.gl = q.get("gl") === "1" ? "on" : "off";
+  /* the effect layer is on by default (owner, after Ryan's compilation); ?gl=0 or the Effect button turns it off */
+  stage.dataset.gl = q.get("gl") === "0" ? "off" : "on";
   $("fx").setAttribute("aria-pressed", String(stage.dataset.gl === "on"));
   const i0 = q.has("intensity") ? Math.min(1, Math.max(0, parseFloat(q.get("intensity")) || 0)) : 0.5;
   slider.value = i0;

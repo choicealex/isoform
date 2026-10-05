@@ -40,7 +40,7 @@ const SHOTS = [
   ["rest", { t: 0 }], ["answer", { t: 0, at }], ["small", { w: 240, t: 0 }], ["small-answer", { w: 240, t: 0, at }],
   ["low", { intensity: 0, t: 0, at: lo }], ["high", { intensity: 1, t: 0, at: hi }],
   ["dark", { theme: "dark", t: 0, at }], ["light", { theme: "light", t: 0, at }], ["effect", { gl: 1, t: 0, at }], ["effect-dark", { gl: 1, theme: "dark", t: 0, at }],
-  ["colour", { style: "colour", t: 0, at }], ["fill-off", { fill: 0, t: 0, at }],
+  ["colour", { style: "colour", t: 0, at }], ["fill-off", { fill: 0, t: 0, at }], ["no-effect", { gl: 0, t: 0, at }],
 ];
 
 const browser = await openBrowser("look");

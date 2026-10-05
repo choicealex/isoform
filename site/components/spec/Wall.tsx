@@ -43,7 +43,7 @@ export function Wall({ filters = false }: { filters?: boolean }) {
           return (
             <div key={f.name} className={`group relative ${inv ? "tile-inv" : "bg-ground"}`}>
               <Link href={`/figures/${f.name}`} className="block px-[12%] pt-14 pb-16" aria-label={`Inspect ${f.title}`}>
-                <Figure name={f.name} quiet className="w-full transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.03]" />
+                <Figure name={f.name} quiet gl={!!f.effect} className="w-full transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.03]" />
               </Link>
               <span className={`${LABEL} pointer-events-none absolute top-4 left-5 normal-case`}>{figNo(f.name)}</span>
               <span className={`${LABEL} pointer-events-none absolute top-4 right-5`}>{f.category} · {f.lines} lines</span>

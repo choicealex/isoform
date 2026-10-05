@@ -79,7 +79,7 @@
  *   t.draw(lines, reveal)              sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it.
  *                                      reveal 0…1 draws the line on along its length (an ink line being drawn)
  *   t.tone(tone)                       changes its tone
- * The effect layer: WebGL, opt-in (the reader turns it on; off by default), one per figure at most. It adds the
+ * The effect layer: WebGL, on by default (the reader can turn it off), one per figure at most. It adds the
  * material under the traces, never replaces them: the figure looks the same with it off, only flatter
  *   gl(stage, {layer, frag, uniforms}) layer "under" (behind the faces: plumes, dust, arcs in the open) or "over" (on top,
  *                                      masked to parts: liquid behind glass, heat in metal); uniforms {name: "float"|"vec2"|"vec3"}
@@ -812,7 +812,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
   function gl(stage, o) {
     const canvas = stage.querySelector(`canvas.${o.layer === "over" ? "over" : "under"}`);
     const off = { on: false, set() {}, mask() {}, draw() {}, dispose() {} };
-    if (!canvas || stage.dataset.gl !== "on") return off; // effects are opt-in: off unless the reader turned them on
+    if (!canvas || stage.dataset.gl !== "on") return off; // the page decides: on unless the reader turned it off
     const c = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false });
     if (!c) return off;
     const sh = (type, src) => {
