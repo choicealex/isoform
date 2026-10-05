@@ -32,9 +32,11 @@
  *                                      Every part (and every run of faces left out of parts) is drawn Hairline's way:
  *                                      a bright silhouette, dim inner edges. Make every part in mount, before the first frame
  *   icon.hit(point)                    the part whose REST shape holds the stage point, topmost first, or null (rule 01)
- *   icon.ink(p)                        the illustration drawing itself (Morph's Draw On): 0 nothing, 1 the icon as drawn.
- *                                      Faces stroke on in paint order, fills come in as each line closes, a pen tip rides
- *                                      the line. Drive it from a story channel with an intro: {intro: {dur, from: {ink: 0}}}
+ *   icon.ink(p)                        the illustration drawing itself, as a hand would: one pen at a constant speed,
+ *                                      longest outline first, then the nearest face; fills come in once every line is drawn
+ *                                      (from 0.86). 0 nothing, 1 the icon as drawn. Drive it from a story channel with an
+ *                                      intro: {intro: {dur, from: {ink: 0}}}. Traces added to the drawing should draw on
+ *                                      last, as the fills come in: t.draw(lines, smooth(0.86, 0.97, ink))
  *   icon.near(point)                   {part, d}: the part whose rest centre is nearest, and how far, in stage units
  *   icon.iso(a, b, c)                  [dx, dy]: the screen offset of a world move, for placing an effect
  *   after(a, b)                        paints part a just after part b, for a part that comes forward
@@ -47,7 +49,7 @@
  *   tween(v, dur)  tset(tw, to, now, delay)  tval(tw, now)  tdone(tw, now)
  *   reducedMotion()                    true when the reader asked for less motion; springs and tweens land at once
  * Stories: an illustration plays on its own; the pointer takes over while it holds
- *   story(stage, {rest, poster, beats, intro}) channels are named numbers. intro {dur, from}: played once, before the
+ *   story(stage, {rest, poster, beats, intro}) channels are named numbers. intro {dur, from, ease}: played once, before the
  *                                      loop, from those values to rest (the draw-in); a negative ?t= is a moment of it. rest: their values at rest; poster: the one frame shown
  *                                      under reduced motion (the most telling moment). beats: [{dur ms, to: {ch: v | [keys…]},
  *                                      ease}] in order; a beat moves the channels it names, the rest hold; it loops.
@@ -93,6 +95,19 @@ var IF = (() => {
   const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
   const rad = (d) => (d * Math.PI) / 180;
   const r2 = (n) => Math.round(n * 100) / 100;
+  /*
+   * A path's length ON SCREEN, in CSS px. Every line here is vector-effect: non-scaling-stroke, which makes the browser
+   * lay dashes out in screen space and ignore pathLength, so a draw-on dash must be measured in screen px: with a
+   * normalised dash the pattern repeats along the path and a line appears in scattered pieces.
+   */
+  const screenLen = (el) => { const m = el.getScreenCTM(); return (el.getTotalLength?.() ?? 0) * (m ? Math.hypot(m.a, m.b) : 1); };
+  /* shows the first q (0…1) of a line, starting `from` (0…1) along it, in screen px */
+  const dashTo = (el, q, from = 0) => {
+    if (q >= 1) { el.style.strokeDasharray = ""; el.style.strokeDashoffset = ""; return; }
+    const L = screenLen(el);
+    el.style.strokeDasharray = `${r2(q * L)} ${r2(L + 1)}`;
+    el.style.strokeDashoffset = String(r2(-from * L));
+  };
 
   /* motion preference */
   let reduced = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -349,8 +364,41 @@ var IF = (() => {
     const ghostOf = new Map();
     /* every face, cut pieces included; paths[i] keeps meaning the i-th face of the icon (after a cut, its first piece) */
     const faces = new Set(paths);
-    let inkList = null, inkDone = false, penTip = null;
-    const inkLen = new Map();
+    let inkPlan = null, inkDone = false, penTip = null, hiddenInk = [];
+    const r4 = (n) => Math.round(n * 10000) / 10000;
+    /* the pen's route over every drawn face, in stage units, measured once at rest */
+    function planInk() {
+      const inv = svg.getScreenCTM().inverse();
+      const all = [...g.querySelectorAll("path, circle, ellipse, rect")].filter((el) =>
+        !el.closest(".ghost, .sil, defs, mask, clipPath") && !el.classList.contains("trace"));
+      /* surfaces made only to be revealed later (face, facet) are hidden at rest: never drawn, they wait for the fills */
+      hiddenInk = all.filter((el) => "revealed" in el.dataset);
+      const els = all.filter((el) => !("revealed" in el.dataset));
+      const items = els.map((el) => {
+        const len = el.getTotalLength?.() ?? 0;
+        const m = inv.multiply(el.getScreenCTM());
+        const at = (frac) => { const q = el.getPointAtLength((((frac % 1) + 1) % 1) * len); return [m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f]; };
+        const n = 64, pts = Array.from({ length: n }, (_, k) => at(k / n));
+        const closed = el.tagName !== "path" || /[zZ]\s*$/.test(el.getAttribute("d") || "");
+        return { el, len: len * Math.hypot(m.a, m.b), pts, n, closed, at };
+      }).filter((f) => f.len > 0.05);
+      const faces = [];
+      let left = items.slice().sort((a, b) => b.len - a.len), pen = null, t = 0;
+      while (left.length) {
+        let best = 0, bk = 0, bd = Infinity;
+        if (pen) left.forEach((f, i) => {
+          const ks = f.closed ? f.pts.map((_, k) => k) : [0];
+          for (const k of ks) { const d = Math.hypot(f.pts[k][0] - pen[0], f.pts[k][1] - pen[1]); if (d < bd) { bd = d; best = i; bk = k; } }
+        });
+        const f = left.splice(best, 1)[0];
+        const start = bk / f.n;
+        t += pen ? Math.min(bd, 120) * 0.35 : 0; // the pen lifts and travels
+        const t0 = t; t += f.len; const t1 = t;
+        faces.push({ el: f.el, start, t0, t1, at: (q) => f.at(start + q) });
+        pen = f.at(start + 1);
+      }
+      return { faces, total: t || 1 };
+    }
     const order = (a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     paths.forEach((p) => { const c = p.cloneNode(true); c.removeAttribute("class"); ghosts.appendChild(c); ghostOf.set(p, c); });
 
@@ -505,6 +553,7 @@ var IF = (() => {
         const p = el.cloneNode(true);
         p.removeAttribute("class");
         p.setAttribute("transform", `translate(${r2(dx / scale)} ${r2(dy / scale)})`);
+        p.dataset.revealed = ""; // hidden at rest under the part it was copied for: the draw-in leaves it out
         const at = before?.g ?? before ?? null;
         if (at) at.before(p); else g.appendChild(p);
         return p;
@@ -516,6 +565,7 @@ var IF = (() => {
       facet(points, before) {
         const d = `M${points.map(([x, y]) => toIcon(x, y).map((n) => Math.round(n * 1000) / 1000).join(" ")).join("L")}Z`;
         const p = mk("path", { d });
+        p.dataset.revealed = ""; // a surface the drawing hides at rest: the draw-in leaves it out
         const at = before?.g ?? before ?? null;
         if (at) at.before(p); else g.appendChild(p);
         faces.add(p);
@@ -523,40 +573,37 @@ var IF = (() => {
         return p;
       },
       /*
-       * The illustration drawing itself, Morph's Draw On: at p (0…1) every face's outline is drawn along its length,
-       * the faces cascading in paint order (each starts a beat after the one before, all draw together: on a small
-       * icon, strictly one after another reads as scattered strokes), and a face's fill comes in as its line closes.
-       * A small pen tip in the accent rides the newest line. p = 1 is the icon as drawn, and costs nothing after.
+       * The illustration drawing itself, the way a hand draws it (Morph's Draw On, re-paced): ONE pen, at a constant
+       * speed, so a long outline takes longer than a sliver. It starts on the longest outline, then always goes to the
+       * nearest face not yet drawn, and begins a closed outline at the point nearest to where it lifted (a closed path
+       * can start anywhere: the dash is shifted along it). Between strokes it lifts and travels, which costs a little
+       * time too. Fills come in only when the whole drawing is done, so no half-drawn line is ever covered.
+       * ink(p): 0 nothing, DRAW (0.86) every line drawn, 1 filled: the icon as drawn. Returns the pen's point.
        */
       ink(p) {
-        if (!inkList) {
-          inkList = [...g.querySelectorAll("path, circle, ellipse, rect")].filter((el) =>
-            !el.closest(".ghost, .sil, defs, mask, clipPath") && !el.classList.contains("trace"));
-          const n = inkList.length;
-          inkList.forEach((el, i) => inkLen.set(el, [n > 1 ? (i / (n - 1)) * 0.45 : 0, el.getTotalLength?.() ?? 0]));
-        }
+        const DRAW = 0.86;
+        if (!inkPlan) inkPlan = planInk();
         const P = clamp(p, 0, 1);
         if (P >= 1 && inkDone) return null;
         inkDone = P >= 1;
+        const D = clamp(P / DRAW, 0, 1) * inkPlan.total, fill = smooth(DRAW, 1, P);
         let tip = null;
-        for (const el of inkList) {
-          const [start, len] = inkLen.get(el);
-          const q = EASES.inOut(clamp((P - start) / 0.55, 0, 1));
-          for (const t of [el, silOf.get(el)]) {
+        for (const el of hiddenInk) {
+          for (const t of [el, silOf.get(el)]) if (t) t.style.strokeOpacity = P >= 1 ? "" : "0";
+          el.style.fillOpacity = P >= 1 ? "" : String(r2(fill));
+        }
+        for (const f of inkPlan.faces) {
+          const q = clamp((D - f.t0) / (f.t1 - f.t0 || 1), 0, 1);
+          for (const t of [f.el, silOf.get(f.el)]) {
             if (!t) continue;
-            if (q >= 1) { t.removeAttribute("pathLength"); t.style.strokeDasharray = ""; t.style.strokeDashoffset = ""; }
-            else { t.setAttribute("pathLength", "1"); t.style.strokeDasharray = "1 1"; t.style.strokeDashoffset = String(1 - q); }
-            /* the pre-roll: a line that has barely started would show its round cap as a dot */
-            t.style.strokeOpacity = q >= 1 ? "" : String(r2(smooth(0, 0.06, q)));
+            dashTo(t, q, f.start);
+            t.style.strokeOpacity = q >= 1 ? "" : q <= 0 ? "0" : String(r2(smooth(0, 0.04, q))); // no cap dot at the start
           }
-          el.style.fillOpacity = q >= 1 ? "" : String(r2(smooth(0.6, 1, q)));
-          if (q > 0 && q < 1 && len) {
-            const pt = el.getPointAtLength(q * len), m = g.getCTM && svg.getScreenCTM().inverse().multiply(el.getScreenCTM());
-            tip = m ? [m.a * pt.x + m.c * pt.y + m.e, m.b * pt.x + m.d * pt.y + m.f] : null;
-          }
+          f.el.style.fillOpacity = P >= 1 ? "" : String(r2(fill));
+          if (q > 0 && q < 1) tip = f.at(q);
         }
         if (!penTip) penTip = mk("circle", { class: "pen", r: "2.2" }, svg);
-        if (tip) { penTip.setAttribute("cx", r2(tip[0])); penTip.setAttribute("cy", r2(tip[1])); penTip.style.display = ""; }
+        if (tip && P < DRAW) { penTip.setAttribute("cx", r2(tip[0])); penTip.setAttribute("cy", r2(tip[1])); penTip.style.display = ""; }
         else penTip.style.display = "none";
         return tip;
       },
@@ -582,18 +629,14 @@ var IF = (() => {
     return {
       el,
       /*
-       * reveal (0…1) draws the line on along its length, the way an ink line is drawn: the dash is normalised
-       * (pathLength 1), so one timing fits a line of any length, and a short opacity pre-roll keeps the round
+       * reveal (0…1) draws the line on along its length, the way an ink line is drawn: the dash is measured in screen
+       * px (see screenLen), so one timing fits a line of any length, and a short opacity pre-roll keeps the round
        * cap from showing as a dot before the line starts. A dashed trace only fades.
        */
       draw(lines, reveal = 1) {
         const list = !lines?.length ? [] : Array.isArray(lines[0][0]) ? lines : [lines];
         const rv = clamp(reveal, 0, 1);
         el.style.opacity = rv >= 1 ? "" : String(r2(Math.min(1, rv / 0.12)));
-        if (!o.dash) {
-          if (rv >= 1) { el.removeAttribute("pathLength"); el.style.strokeDasharray = ""; el.style.strokeDashoffset = ""; }
-          else { el.setAttribute("pathLength", "1"); el.style.strokeDasharray = "1 1"; el.style.strokeDashoffset = String(r2(1 - rv)); }
-        }
         /* points arrive in stage units; a trace inside a moving part is drawn in that part's own space */
         let m = null;
         if (parent !== parent.ownerSVGElement && parent.ownerSVGElement) {
@@ -604,10 +647,12 @@ var IF = (() => {
           const X = m ? m.a * x + m.c * y + m.e : x, Y = m ? m.b * x + m.d * y + m.f : y;
           return `${r2(X)} ${r2(Y)}`;
         }).join("L")}`).join("");
-        if (d === last) return;
-        last = d;
-        el.style.display = d ? "" : "none";
-        if (d) el.setAttribute("d", d);
+        if (d !== last) {
+          last = d;
+          el.style.display = d ? "" : "none";
+          if (d) el.setAttribute("d", d);
+        }
+        if (d && !o.dash) dashTo(el, rv);
       },
       tone(t) { el.setAttribute("class", `trace ${t}${o.dash ? " dash" : ""}`); },
     };
@@ -694,7 +739,7 @@ var IF = (() => {
         const f = fixed();
         /* a negative ?t= is a moment of the intro: -dur is its start, 0 its end */
         const inIntro = intro && (f != null ? f < 0 : !reduced && introT < intro.dur);
-        const k = inIntro ? EASES.inOut(clamp(f != null ? (intro.dur + f) / intro.dur : introT / intro.dur, 0, 1)) : 1;
+        const k = inIntro ? (EASES[intro.ease ?? "inOut"] ?? EASES.inOut)(clamp(f != null ? (intro.dur + f) / intro.dur : introT / intro.dur, 0, 1)) : 1;
         const T = f != null ? (f < 0 ? 0 : f % total) : clock;
         const out = {};
         for (const n of names) {

@@ -5,7 +5,7 @@
  * takes the bottle: its side of the bottle rocks it, and the water stays
  * level. In a product: a fill, a quota, a balance.
  */
-const { icon, spring, stepS, register, pointer, disposer, gl, story, clamp, rad, lerp, SPRING } = IF;
+const { icon, spring, stepS, register, pointer, disposer, gl, story, clamp, smooth, rad, lerp, SPRING } = IF;
 
 function mount({ stage, svg, read, src }, lean) {
   const bag = disposer();
@@ -25,7 +25,7 @@ function mount({ stage, svg, read, src }, lean) {
     /* pour and spill run 0 → 1 → 2: the stream's head draws on to 1, then its tail follows it off at 2 */
     rest: { fill: 0.35, cap: 0, rock: 0, pour: 0, spill: 0, ink: 1 },
     poster: { fill: 0.6, cap: 1, rock: 0, pour: 1, spill: 0, ink: 1 },
-    intro: { dur: 6600, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
+    intro: { dur: 6600, from: { ink: 0 }, ease: "linear" }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 500 },
       { dur: 450, to: { cap: 1 }, ease: "out" },                             // the cap comes off, set aside
@@ -88,7 +88,7 @@ function mount({ stage, svg, read, src }, lean) {
       const dx = px - e[0];
       line.push([px, e[1] + dx * (dx < 0 ? su : sv) + dx * sl + Math.sin(dx * 0.12 + time * 5) * 7.2 * Math.abs(sl)]);
     }
-    water.draw(v.ink < 1 ? [] : line);
+    water.draw(line, smooth(0.86, 0.97, v.ink)); // the last stroke of the drawing, as the fills come in
     water.tone(v.pour > 0.1 || v.spill > 0.1 || Math.abs(sl) > 0.01 || refill.held ? "hi" : "edge");
 
 

@@ -26,7 +26,7 @@ function mount({ stage, svg, read, src }, climb) {
   const flight = story(stage, {
     rest: { thrust: 0, lift: 0, ink: 1 },
     poster: { thrust: 1, lift: 0.7, ink: 1 },
-    intro: { dur: 6000, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
+    intro: { dur: 6000, from: { ink: 0 }, ease: "linear" }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 600 },
       { dur: 700, to: { thrust: 0.45 }, ease: "out" },          // ignition

@@ -38,7 +38,7 @@ function mount({ stage, svg, read, src }, reach) {
   const charge = story(stage, {
     rest: { gap: 0, ink: 1 },
     poster: { gap: 1, ink: 1 },
-    intro: { dur: 5400, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
+    intro: { dur: 5400, from: { ink: 0 }, ease: "linear" }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 700 },
       { dur: 450, to: { gap: 1 }, ease: "out" },              // the halves part
