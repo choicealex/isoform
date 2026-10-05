@@ -22,24 +22,20 @@ Checks: `node skills/isoform-animate/validate.mjs <page>` → ok for all three �
 three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mobile or touch.
 
 ## In Progress
-Nothing — clean stopping point.
+Nothing mid-edit. **Unpushed:** GitHub had an incident on 2026-10-06 ("Disruption with some GitHub services");
+`git push` was rejected (Internal Server Error) from `b4f7142` onward — push before anything else.
+
+## State (2026-10-06)
+- Site (`site/`, dark default, Specimen + Wall): / · /figures · /icons (all 1,007 with prompts + sweep notes) · /skill ·
+  /docs · /inspo · llms.txt. Header: FX (bold/subtle/off, E), theme (M). 8 figures incl. ABC (dogfood, owner's pick
+  "Sort") is NOT on the site yet; Cart: push is.
+- Skill: styles (line/plain/colour/glass/heavy/isocons, granular stroke, fill), effects on by default at bold/subtle,
+  reduced motion holds still, all six Isocons views (axes banded + overridable), sweep warnings in inspect.mjs,
+  concepts per category. `node scripts/sweep.mjs` re-sweeps all 6,041 drawings in ~1.5s.
 
 ## Next
-1. **Dogfood figures, owner-reviewed 2026-10-05:** key fixed (`8ff0120`); car beams → cones, cart → "a box drops
-   in" (needed a new kernel `trace({solid})`); gas station kept as is. Owner hasn't seen the car/cart rework yet. Pick
-   which become the site's "What it draws" examples. A second dogfood round on the fixed skill is still worth doing.
-2. **Touch** — hover takeover has no touch equivalent yet (proposal: press-and-hold takes over). Test at 390px.
-3. **Website** like hairline.lucasmarkes.com (home hero drawing in, /figures catalogue + drawer, /skill, /docs,
-   /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.
-4. **Repo:** `choicealex/isoform` created PRIVATE 2026-10-05 (owner: "get a repo"). The raw.githubusercontent fallback in
-   `build.mjs`/`find.mjs` and `npx skills add` only work once it is public — ask before flipping. Deploy only when asked.
-5. **Website v2 — Specimen + Wall, dark default** (`c3eb689`; v1 rejected by owner). Lab of 5 mockups kept at /lab.
-   Research: `research/{animateicons,animateicons-deep,site-survey,vercel-font,foundries-a,foundries-b}.md`. Tier 2
-   desktop dark + light; 390px has no overflow (not touch-tested). Open: owner review; touch takeover; Biome hook cwd
-   (a nested biome.json fails when the hook runs from a parent dir — fix is in the global hook, ask first).
-6. **Dogfood round 2 (2026-10-05):** delete, shield-lock, partly-cloudy-day. Round-1 mechanics held (no blank shots, parts
-   picture + find worked); taste didn't — delete and cloudy fail their own look, shield-lock weak at 240px. None on the
-   site. Their friction (object entering a container, curved-face geometry, `--at` picks the extreme) → next skill pass.
+1. Push. 2. Owner: ABC onto the site? its speed? 3. Touch takeover (hover-only) + 390px real-device check.
+4. Repo public (needed for `npx skills add`) — owner's call. Deploy only when asked.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
