@@ -1,0 +1,4 @@
+story     5.0s loop; pictures at 25, 50, 75% and the poster
+readout   rest=rest  answer=shackle +12  small=rest  small-answer=shackle +12  low=shackle +8  high=shackle +18  dark=shackle +12  light=shackle +12  effect=shackle +12  effect-dark=shackle +12  story-25=shackle +12  story-50=shackle +12  story-75=rest  poster=shackle +12
+still     every picture came to rest
+/Users/mac/Documents/Claude code Workspce/isoform/dogfood/shield-lock/isoform-shield-lock-look.png

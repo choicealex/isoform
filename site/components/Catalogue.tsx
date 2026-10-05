@@ -13,8 +13,8 @@ export function Catalogue() {
   const count = (c: string) => FIGURES.filter((f) => f.category === c).length;
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 sm:px-6 md:grid-cols-[200px_1fr]">
-      <aside className="md:sticky md:top-24 md:self-start">
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 sm:px-6 md:grid-cols-[200px_minmax(0,1fr)]">
+      <aside className="min-w-0 md:sticky md:top-24 md:self-start">
         <h1 className="mb-1 text-2xl font-medium tracking-[-0.03em]">Figures</h1>
         <p className="mb-6 text-sm text-muted">Each made by the skill from one prompt.</p>
         <nav className="flex gap-1 overflow-x-auto pb-1 text-sm md:flex-col md:overflow-visible">
@@ -65,7 +65,7 @@ function Card({ f }: { f: FigureMeta }) {
         <div className="absolute inset-x-4 top-1/2 flex translate-y-[-20%] items-center gap-1 opacity-0 transition-all duration-200 group-hover:-translate-y-1/2 group-hover:opacity-100 group-focus-within:-translate-y-1/2 group-focus-within:opacity-100">
           <span className="mr-auto truncate font-mono text-[11px] text-faint">{f.name}</span>
           <CopyButton text={() => fetch(html).then((r) => r.text())} label={`Copy ${f.title} as one HTML file`} />
-          <CopyButton text={f.prompt} label="Copy the prompt that made it" glyph="/" />
+          {f.prompt && <CopyButton text={f.prompt} label="Copy the prompt that made it" glyph="/" />}
           <Link href={`/figures/${f.name}`} scroll={false} aria-label={`Open ${f.title}`} className="grid size-7 place-items-center rounded-full bg-ink text-ground">
             <svg viewBox="0 0 16 16" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" /></svg>
           </Link>

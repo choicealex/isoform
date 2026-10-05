@@ -33,9 +33,12 @@ Nothing — clean stopping point.
    /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.
 4. **Repo:** `choicealex/isoform` created PRIVATE 2026-10-05 (owner: "get a repo"). The raw.githubusercontent fallback in
    `build.mjs`/`find.mjs` and `npx skills add` only work once it is public — ask before flipping. Deploy only when asked.
-5. **Website — owner confirmed the approach brief 2026-10-05:** Next.js + Tailwind v4 in `isoform/site/`; light default +
-   dark theme; Geist + Geist Mono with one italic serif word; Hairline structure + animateicons interactions
-   (`research/animateicons.md` §5); all dogfood figures in, more Isocons may be added.
+5. **Website — v1 built locally** (`site/`, `npm run dev` → :3412): / (hero, playground, in-product tiles), /figures +
+   /figures/[name] drawer, /skill, /docs (engine index read from kernel.js), /inspo, llms.txt. Tier 2 desktop light+dark;
+   390px checked for overflow + drawer. NOT deployed. Open: touch takeover (hover-only), owner review of the site.
+6. **Dogfood round 2 (2026-10-05):** delete, shield-lock, partly-cloudy-day. Round-1 mechanics held (no blank shots, parts
+   picture + find worked); taste didn't — delete and cloudy fail their own look, shield-lock weak at 240px. None on the
+   site. Their friction (object entering a container, curved-face geometry, `--at` picks the extreme) → next skill pass.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and

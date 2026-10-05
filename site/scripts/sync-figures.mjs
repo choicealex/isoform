@@ -6,6 +6,7 @@
  * public/iso/figures/<name>.js  each figure, as written by the skill
  * public/iso/html/isoform-<name>.html  each figure's standalone page (build.mjs), for copy and download
  * lib/figures.json              what the pages need to list and mount them, icon markup included
+ * lib/kernel-index.txt          the engine's API index, as written at the top of kernel.js
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -23,7 +24,11 @@ const list = (src, k) => {
   return m ? m[1].split(",").map((n) => Number(n.trim())).filter((n) => !Number.isNaN(n)) : [];
 };
 
-writeFileSync(out("public/iso/kernel.js"), readFileSync(join(site, "../skills/isoform-animate/kernel.js")));
+const kernel = readFileSync(join(site, "../skills/isoform-animate/kernel.js"), "utf8");
+writeFileSync(out("public/iso/kernel.js"), kernel);
+/* the engine's own index (the comment above var IF), for /docs: the docs never drift from the code */
+const index = kernel.slice(kernel.indexOf("/*"), kernel.indexOf("var IF")).replace(/^\/\*\s*|\s*\*\/\s*$/g, "").split("\n").map((l) => l.replace(/^ \* ?/, "")).join("\n");
+writeFileSync(out("lib/kernel-index.txt"), `${index.trim().replace(/^\* /, "")}\n`);
 const manifest = [];
 for (const f of FIGURES) {
   const src = readFileSync(join(site, f.file), "utf8");

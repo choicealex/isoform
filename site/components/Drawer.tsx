@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { FigureMeta } from "@/lib/iso";
+import { EXAMPLE_NOTE, type FigureMeta } from "@/lib/iso";
 import { CopyButton } from "./Copy";
 import { Figure, type FigureControls } from "./Figure";
 
@@ -29,7 +29,7 @@ export function Drawer({ f }: { f: FigureMeta }) {
   const close = () => { setOpen(false); setTimeout(() => router.push("/figures", { scroll: false }), 260); };
 
   const code = {
-    prompt: f.prompt,
+    prompt: f.prompt ?? EXAMPLE_NOTE,
     html: `isoform-${f.name}.html   (${f.lines} lines of figure + the engine, one file)`,
     embed: `<iframe src="isoform-${f.name}.html" title="${f.title}" style="border:0;width:100%;aspect-ratio:5/4"></iframe>`,
   }[tab];
