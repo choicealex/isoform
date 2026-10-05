@@ -50,7 +50,7 @@ const H = ({ id, children }: { id: string; children: React.ReactNode }) => (
   <h2 id={id} className="scroll-mt-24 pt-12 text-2xl font-medium tracking-[-0.025em] first:pt-0">{children}</h2>
 );
 const Table = ({ rows, mono = 1 }: { rows: string[][]; mono?: number }) => (
-  <div className="mt-4 overflow-x-auto rounded-2xl border border-rule">
+  <div className="mt-4 overflow-x-auto rounded-xl border border-rule">
     <table className="w-full text-left text-sm">
       <tbody>
         {rows.map((r) => (
@@ -65,7 +65,7 @@ const Table = ({ rows, mono = 1 }: { rows: string[][]; mono?: number }) => (
   </div>
 );
 const Code = ({ children, title }: { children: string; title?: string }) => (
-  <div className="mt-4 overflow-hidden rounded-2xl border border-rule">
+  <div className="mt-4 overflow-hidden rounded-xl border border-rule">
     <div className="flex items-center border-b border-rule bg-ground py-1 pr-1 pl-4">
       <span className="font-mono text-[11px] text-faint">{title ?? "shell"}</span>
       <CopyButton text={children} className="ml-auto" />
@@ -86,7 +86,7 @@ export default function DocsPage() {
       </nav>
 
       <article className="max-w-[46rem] min-w-0 text-[15px] leading-relaxed">
-        <h1 className="mb-3 text-4xl font-medium tracking-[-0.035em]">Docs</h1>
+        <h1 className="mb-6 text-[clamp(3rem,8vw,7rem)] leading-[0.85] font-semibold tracking-[-0.06em]">Docs<span className="text-accent">.</span></h1>
         <p className="mb-0 text-pretty text-muted">Everything a figure is and takes. The engine's API below is read from the engine itself, so it cannot fall behind.</p>
 
         <H id="start">Getting started</H>

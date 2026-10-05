@@ -47,10 +47,9 @@ export default function InspoPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6">
       <section className="pt-14 pb-12">
-        <p className="mb-4 font-mono text-xs text-accent">The making of</p>
-        <h1 className="text-[clamp(2.2rem,4.6vw,3.4rem)] leading-[1.04] font-medium tracking-[-0.035em] text-balance">
-          Seven steps, and the <span className="font-serif font-normal text-accent">pushback</span> that shaped them
-        </h1>
+        <p className="mb-4 font-mono text-[12px] text-muted">The making of</p>
+        <h1 className="text-[clamp(3rem,8vw,7rem)] leading-[0.85] font-semibold tracking-[-0.06em]">Inspo<span className="text-accent">.</span></h1>
+        <p className="mt-6 max-w-xl text-[17px] text-pretty text-muted">Seven steps, and the pushback that shaped them.</p>
       </section>
       <ol className="relative grid gap-12 border-l border-rule pl-8">
         {STEPS.map((s, i) => (
@@ -58,7 +57,7 @@ export default function InspoPage() {
             <span className="absolute top-1 -left-[41px] grid size-5 place-items-center rounded-full border border-rule bg-ground font-mono text-[10px] text-faint">{i + 1}</span>
             <h2 className="text-xl font-medium tracking-[-0.02em]">{s.t}</h2>
             <p className="mt-2 max-w-2xl text-pretty text-muted">{s.b}</p>
-            {s.quote && <p className="mt-3 border-l-2 border-accent pl-3 font-serif text-lg text-ink">“{s.quote}”</p>}
+            {s.quote && <p className="mt-3 border-l-2 border-accent pl-3 text-[17px] text-ink">“{s.quote}”</p>}
             {s.fig && (
               <div className="plus-grid mt-5 max-w-md overflow-hidden rounded-2xl border border-rule">
                 <Figure name={s.fig} quiet className="w-full" />

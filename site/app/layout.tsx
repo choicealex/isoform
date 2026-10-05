@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Footer, Header } from "@/components/Chrome";
 import { themeScript } from "@/components/ThemeToggle";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-/* one italic serif word per headline, nothing else */
-const serif = Instrument_Serif({ variable: "--font-serif-italic", subsets: ["latin"], weight: "400", style: "italic" });
 
 export const metadata: Metadata = {
   title: { default: "Isoform: isometric icons that draw themselves", template: "%s · Isoform" },
@@ -17,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${serif.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed one-line theme read, before paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

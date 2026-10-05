@@ -2,16 +2,25 @@
 
 import { useEffect, useState } from "react";
 
-/* Light is the default; the choice is remembered. The figures' effects pick up the new colours on isoform:theme. */
+/* Dark is the default; the choice is remembered. The figures' effects pick up the new colours on isoform:theme. */
 export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => { setDark(document.documentElement.dataset.theme === "dark"); }, []);
+  const [dark, setDark] = useState(true);
+  useEffect(() => { setDark(document.documentElement.dataset.theme !== "light"); }, []);
+  /* M flips it from anywhere but a text field */
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key.toLowerCase() === "m" && !e.metaKey && !e.ctrlKey && !t.closest("input, textarea, [contenteditable]")) flip();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  });
   const flip = () => {
-    const next = !dark;
+    const next = document.documentElement.dataset.theme === "light";
     setDark(next);
-    if (next) document.documentElement.dataset.theme = "dark";
-    else delete document.documentElement.dataset.theme;
-    try { localStorage.setItem("isoform-theme", next ? "dark" : "light"); } catch {}
+    if (next) delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = "light";
+    try { localStorage.setItem("isoform-theme-v2", next ? "dark" : "light"); } catch {}
     window.IsoHost?.theme();
   };
   return (
@@ -35,5 +44,5 @@ export function ThemeToggle() {
   );
 }
 
-/* set before paint, so a dark reader never sees a light flash */
-export const themeScript = `try{if(localStorage.getItem("isoform-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+/* set before paint, so a light reader never sees a dark flash */
+export const themeScript = `try{if(localStorage.getItem("isoform-theme-v2")==="light")document.documentElement.dataset.theme="light"}catch(e){}`;

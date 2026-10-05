@@ -1,39 +1,43 @@
 @import "tailwindcss";
 
-/* Light by default (owner's call), dark as a full theme on <html data-theme="dark">. The --iso-* tokens are the
-   skill's own (bench.html): the drawing is neutral ink, the acting part and its traces take Isocons' blue. */
+/* Dark by default (owner's call, 2026-10-05), light as a full theme on <html data-theme="light">. Specimen palette:
+   near-black ground, hairline rules, pale drawing, Isocons blue as the one accent. --iso-* are the skill's own tokens. */
 :root {
+  color-scheme: dark;
+  --ground: #0a0a0a;
+  --surface: #0f0f0f;
+  --ink: #ededed;
+  --muted: #8f8f8f;
+  --faint: #5e5e5e;
+  --rule: #1f1f1f;
+  --grid: rgba(237, 237, 237, 0.07);
+  --accent: #4da3ff;
+  --tag: #ededed;
+  --tag-ink: #0a0a0a;
+  --iso-plate: #0a0a0a;
+  --iso-face: #0a0a0a;
+  --iso-edge: #a1a1a1;
+  --iso-lo: #2e2e2e;
+  --iso-hi: #4da3ff;
+  --iso-stroke: 0.9;
+}
+:root[data-theme="light"] {
   color-scheme: light;
-  --ground: #fafaf9;
+  --ground: #fafafa;
   --surface: #ffffff;
-  --ink: #18181b;
-  --muted: #71717a;
-  --faint: #a1a1aa;
-  --rule: #e7e5e4;
-  --grid: rgba(24, 24, 27, 0.09);
+  --ink: #171717;
+  --muted: #6f6f6f;
+  --faint: #a3a3a3;
+  --rule: #ebebeb;
+  --grid: rgba(23, 23, 23, 0.08);
   --accent: #229eff;
-  --iso-plate: #ffffff;
+  --tag: #171717;
+  --tag-ink: #fafafa;
+  --iso-plate: #fafafa;
   --iso-face: #ffffff;
   --iso-edge: #8e8e97;
   --iso-lo: #d7d7dc;
   --iso-hi: #229eff;
-  --iso-stroke: 0.9;
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --ground: #09090b;
-  --surface: #0f0f12;
-  --ink: #ececef;
-  --muted: #8b8b94;
-  --faint: #5c5c66;
-  --rule: #232327;
-  --grid: rgba(236, 236, 239, 0.07);
-  --accent: #4da3ff;
-  --iso-plate: #0f0f12;
-  --iso-face: #0f0f12;
-  --iso-edge: #7a7a84;
-  --iso-lo: #2a2a30;
-  --iso-hi: #4da3ff;
 }
 
 @theme inline {
@@ -44,9 +48,10 @@
   --color-faint: var(--faint);
   --color-rule: var(--rule);
   --color-accent: var(--accent);
+  --color-tag: var(--tag);
+  --color-tag-ink: var(--tag-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-serif-italic);
 }
 
 body {
@@ -109,3 +114,31 @@ input[type="range"].hairline::-webkit-slider-thumb { -webkit-appearance: none; w
 input[type="range"].hairline::-moz-range-track { height: 1px; background: var(--faint); }
 input[type="range"].hairline::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--ink); background: var(--surface); }
 input[type="range"].hairline:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 2px; }
+
+/* the Specimen slider: a 1px track, filled in ink up to the thumb, a ring thumb (Displaay) */
+input[type="range"].spec-range {
+  height: 22px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; min-width: 0;
+}
+input[type="range"].spec-range::-webkit-slider-runnable-track {
+  height: 1px; background: linear-gradient(to right, var(--ink) var(--p, 50%), var(--rule) var(--p, 50%));
+}
+input[type="range"].spec-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; margin-top: -6.5px; border-radius: 50%;
+  border: 1px solid var(--ink); background: var(--ground);
+}
+input[type="range"].spec-range::-moz-range-track { height: 1px; background: var(--rule); }
+input[type="range"].spec-range::-moz-range-progress { height: 1px; background: var(--ink); }
+input[type="range"].spec-range::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--ink); background: var(--ground); }
+input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+
+/* an inverted tile: light on the dark page, dark on the light page. It redefines the tokens, so everything inside
+   (labels, buttons, the figure) follows */
+.tile-inv {
+  --ground: #f5f5f4; --surface: #ffffff; --ink: #171717; --muted: #6f6f6f; --faint: #a3a3a3; --rule: #e2e2e2;
+  --iso-plate: #f5f5f4; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #d7d7dc; --iso-hi: #229eff;
+  background: var(--ground); color: var(--ink);
+}
+:root[data-theme="light"] .tile-inv {
+  --ground: #0e0e0e; --surface: #141414; --ink: #ededed; --muted: #8f8f8f; --faint: #5e5e5e; --rule: #262626;
+  --iso-plate: #0e0e0e; --iso-face: #0e0e0e; --iso-edge: #a1a1a1; --iso-lo: #2e2e2e; --iso-hi: #4da3ff;
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Drawer } from "@/components/Drawer";
+import { Inspector } from "@/components/spec/Inspector";
 import { FIGURES, figureByName } from "@/lib/iso";
 
 export const generateStaticParams = () => FIGURES.map((f) => ({ name: f.name }));
@@ -12,7 +13,15 @@ export async function generateMetadata({ params }: PageProps<"/figures/[name]">)
 }
 
 export default async function FigurePage({ params }: PageProps<"/figures/[name]">) {
-  const f = figureByName((await params).name);
-  if (!f) notFound();
-  return <Drawer f={f} />;
+  const { name } = await params;
+  if (!figureByName(name)) notFound();
+  return (
+    <>
+      <div className="flex items-center gap-3 px-4 pt-8 pb-5 font-mono text-[12px] text-muted sm:px-8">
+        <Link href="/figures" className="hover:text-ink">← All figures</Link>
+        <span className="ml-auto">Inspect · ← → to step, Space to replay</span>
+      </div>
+      <Inspector name={name} linked />
+    </>
+  );
 }
