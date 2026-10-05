@@ -186,7 +186,8 @@ var IF = (() => {
       let again = false;
       /* data-speed on the stage plays it faster or slower (a host's speed control); springs and stories scale with it */
       try { again = e.tick(dt * (Number(e.stage.dataset.speed) || 1), now); } catch (err) { console.error(err); }
-      e.awake = !!again;
+      /* under reduced motion a figure draws once and holds, effect included, until something wakes it (the pointer) */
+      e.awake = reduced ? false : !!again;
       more = more || e.awake;
     }
     if (more) raf = requestAnimationFrame(frame); else last = 0;

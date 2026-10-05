@@ -47,3 +47,4 @@ next-env.d.ts
 /public/iso/icons/
 /lib/figures.json
 /lib/kernel-index.txt
+/.next-prod/

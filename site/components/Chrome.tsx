@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Key } from "./spec/Parts";
+import { FxToggle } from "./FxToggle";
 import { ThemeToggle } from "./ThemeToggle";
 
 /* numbered sections, after Commit Mono's header; the active one is inverted, after vercel.com/font's switcher */
@@ -35,6 +36,7 @@ export function Header() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <FxToggle />
           <ThemeToggle />
           <Link href="/skill" className="rounded-full bg-accent px-4 py-2 text-[14px] font-medium text-[#05121f] transition-transform hover:-translate-y-px">
             Get the skill
@@ -72,6 +74,7 @@ export function Footer() {
         <span className="flex items-center gap-1.5"><Key>←</Key><Key>→</Key> figure</span>
         <span className="flex items-center gap-1.5"><Key>Space</Key> replay</span>
         <span className="flex items-center gap-1.5"><Key>M</Key> light / dark</span>
+        <span className="flex items-center gap-1.5"><Key>E</Key> effects on / off</span>
         <a href="/llms.txt" className="ml-auto font-mono hover:text-ink">llms.txt</a>
       </div>
       <div className="grid gap-6 px-4 py-10 text-[14px] text-muted sm:grid-cols-3 sm:px-8">

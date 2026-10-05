@@ -5,7 +5,13 @@ import { useEffect, useState } from "react";
 /* Dark is the default; the choice is remembered. The figures' effects pick up the new colours on isoform:theme. */
 export function ThemeToggle() {
   const [dark, setDark] = useState(true);
-  useEffect(() => { setDark(document.documentElement.dataset.theme !== "light"); }, []);
+  /* re-apply the saved theme once mounted: hydration resets <html>'s attributes to the server's (dark) */
+  useEffect(() => {
+    let light = false;
+    try { light = localStorage.getItem("isoform-theme-v2") === "light"; } catch {}
+    if (light) document.documentElement.dataset.theme = "light";
+    setDark(!light);
+  }, []);
   /* M flips it from anywhere but a text field */
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -43,6 +49,3 @@ export function ThemeToggle() {
     </button>
   );
 }
-
-/* set before paint, so a light reader never sees a dark flash */
-export const themeScript = `try{if(localStorage.getItem("isoform-theme-v2")==="light")document.documentElement.dataset.theme="light"}catch(e){}`;

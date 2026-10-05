@@ -2,6 +2,7 @@
 
 import { type Ref, useEffect, useImperativeHandle, useRef } from "react";
 import { figureByName, type IsoHandle, iso } from "@/lib/iso";
+import { useFx } from "./FxToggle";
 
 export type FigureControls = { replay(): void };
 
@@ -23,6 +24,8 @@ type Props = {
 
 /** One live figure. The skill's engine draws it; this only gives it a stage and passes the controls on. */
 export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet, className, ref, onStage }: Props) {
+  const fx = useFx();
+  gl = gl && fx; // the reader's site-wide switch wins
   const stage = useRef<HTMLDivElement>(null);
   const handle = useRef<IsoHandle | null>(null);
   const meta = figureByName(name);
