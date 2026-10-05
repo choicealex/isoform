@@ -1,0 +1,12 @@
+# FRICTION log
+- find.mjs padlock -> "no match: try a broader word, or --all". OK message. `find lock` returned clock-* icons (substring match) ranked among real locks; noise.
+- Step 1: no padlock icon; `find.mjs lock` mixes clock-* with locks and shows no "padlock-like" hint. Only shield-lock, vpn-lock, sync-lock. Took `key` (4 faces, one is a hole disc). Doc could say: when no object icon exists, a lock-less key is a valid answer; imply nothing about a lock plate.
+- inspect.mjs writes isoform-<id>-parts.html but no PNG; I could not open file:// via the browser MCP (blocked), had to shell out to headless Chrome for a screenshot of the parts page. SKILL.md could say "open the parts html (or screenshot it)". The numbered faces image was essential.
+- Concept: with only the key and no lock, any "unlocking" needs a lock traced from scratch; concepts.md has no example of a trace that stands for an absent object (plug ring). Decided: ring trace `under`.
+- look.mjs run 1: exit 0, but `answer`, `small-answer`, low, high, dark, light, effect pictures were BLANK except a stray arc, readout "drawing". Cause (my reading): pointer held from load while the ink intro had not played; story clock stopped at intro start (ink 0). look.mjs printed "still every picture came to rest" and exit 0 -> a blank picture passes. look.md/SKILL.md should say: with hover held the intro must be handled (e.g. pass ink in live), and look.mjs should flag read-out "drawing" in answer shots.
+- Also: look.md says look.mjs answers Q3 (readout), but it reported "drawing" as fine.
+- sed -i on macOS needs '' (used python instead); not a skill issue.
+- Run 2: exit 0. Honest read of sheet: the key slides and swings, but the plug ring (under trace) is mostly hidden behind the blade; the turn arc and click ticks are not visible in any picture, so "unlocking" reads as "key wobbles". Q8 weak. Not fixed (time-boxed dogfood). Kernel gap: no way to draw a trace in front of AND behind the part (a plug the blade passes through).
+- Missing: no doc on how to find a plug/centre point; I guessed `ic.pt(296,248)` from a screenshot whose scale differs from inspect's stage units (box 73..329 vs pixels), cost a guess.
+- Worked well: SKILL.md step list, bolt.js as template (compiled first try, validate ok), look.mjs sheet, `?at` readouts, tilt/move API, error-free build.
+- Doc gap: the intro `ink` + hover-from-load case (above) is the top issue; example bolt.js does not pass ink in live, so copying it blindly reproduces the blank answer pictures.
