@@ -5,13 +5,15 @@
  *
  * Prints one line per path, in paint order: its index, which way the face looks
  * (top, left, right, or curved), its box in stage units at the default placement
- * (h 220, centred on 200,166), and its centre. Writes isoform-<id>-parts.html,
- * the icon with every path numbered and tinted, to look at when the lines are
- * not enough. Paths that touch and paint one after another usually belong to
+ * (h 220, centred on 200,166), and its centre. Writes isoform-<id>-parts.png
+ * (and the .html it is taken from): the icon with every path numbered and tinted
+ * over a grid in stage units, to look at when the lines are not enough. Paths that touch and paint one after another usually belong to
  * one part; a part is always a run of consecutive indices.
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { browser } from "./browser.mjs";
 import { iconOf } from "./build.mjs";
 
 const [id, variant = "rounded-left"] = process.argv.slice(2);
@@ -98,8 +100,23 @@ const labels = rows.map(({ k, box }) => {
   return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="${hue(k)}" text-anchor="middle" dominant-baseline="middle" style="font:700 9px ui-monospace,monospace;paint-order:stroke;stroke:#fff;stroke-width:3px">${k}</text>`;
 }).join("");
 const g = `<g transform="translate(${200 - (vb[0] + vb[2] / 2) * scale} ${166 - (vb[1] + vb[3] / 2) * scale}) scale(${scale})">${tinted.replace(/^<svg[^>]*>|<\/svg>$/g, "")}</g>`;
+/* a grid in stage units, so a point read off the picture is a point to pass to icon.pt */
+let grid = "";
+for (let x = 0; x <= 400; x += 20) grid += `<line x1="${x}" y1="0" x2="${x}" y2="320" stroke="${x % 100 ? "#f2f2f2" : "#d8d8d8"}" stroke-width="0.5"/>`;
+for (let y = 0; y <= 320; y += 20) grid += `<line x1="0" y1="${y}" x2="400" y2="${y}" stroke="${y % 100 ? "#f2f2f2" : "#d8d8d8"}" stroke-width="0.5"/>`;
+for (let x = 0; x < 400; x += 50) grid += `<text x="${x + 1}" y="7" fill="#999" style="font:5px ui-monospace,monospace">${x}</text>`;
+for (let y = 50; y < 320; y += 50) grid += `<text x="1" y="${y - 1}" fill="#999" style="font:5px ui-monospace,monospace">${y}</text>`;
 const html = `<!doctype html><meta charset="utf-8"><title>${icon.id} parts</title><body style="margin:0;display:grid;place-items:center;min-height:100vh;background:#fff">
-<svg viewBox="0 0 400 320" style="width:min(100vw,960px);border:1px solid #eee">${g}${labels}</svg>`;
+<svg viewBox="0 0 400 320" style="width:min(100vw,960px);border:1px solid #eee">${grid}${g}${labels}</svg>`;
 const file = resolve(`isoform-${icon.id}-parts.html`);
 writeFileSync(file, html);
-console.log(file);
+/* the picture to look at: an agent's browser often cannot open a file: page, and the page is long to read as text */
+const b = await browser("inspect");
+if (b) {
+  const p = await b.newPage({ viewport: { width: 960, height: 768 } });
+  await p.goto(pathToFileURL(file).href);
+  const png = file.replace(/\.html$/, ".png");
+  await p.locator("svg").screenshot({ path: png });
+  await b.close();
+  console.log(`${png}   (look at this picture; do not read the .html)`);
+} else console.log(`${file}   (open it in a browser; do not read it as text)`);

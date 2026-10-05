@@ -18,7 +18,7 @@ If the person named an icon, find its id: `node find.mjs <words>`. If they gave 
 
 `node inspect.mjs <id> [variant]`
 
-It prints every face in paint order with which way it looks, its box and its corners, in stage units, and writes `isoform-<id>-parts.html` with the faces numbered. Variants are `rounded-left` (use a rounded one: Hairline's soft corners), `rounded-top`, `rounded-right`, and `sharp-left`, `sharp-top`, `sharp-right`.
+It prints every face in paint order with which way it looks, its box and its corners, in stage units, and writes `isoform-<id>-parts.png`: the faces numbered and tinted over a grid in stage units. Look at that picture to tell which face is which and to read points off it; do not read the `.html` it is made from. Variants are `rounded-left` (use a rounded one: Hairline's soft corners), `rounded-top`, `rounded-right`, and `sharp-left`, `sharp-top`, `sharp-right`.
 
 ## 2. Concept
 
@@ -41,12 +41,12 @@ One figure, one idea. An effect that would suit any icon is not a concept yet.
    - `effect`: one sentence naming the physical thing the effect adds under the traces. Leave it out if there is no effect.
    - Draw what happens with `trace` / `part.trace` first; the effect sits under those lines and only when `fx.on`.
    - `rules`: the numbers of the rules it leans on most.
-   - `range`: the one number the slider drives, at intensity 0, 0.5 and 1, moving one way. `mount`'s `value` and `set(value)` get this number.
+   - `range`: the one number the slider drives, at intensity 0, 0.5 and 1, moving one way. `mount`'s `value` and `set(value)` get this number. It is in whatever unit the figure uses it in (stage units of travel, a 0…1 share, arcs): `[2, 4, 7]` is fine.
 5. Assemble: `node build.mjs <name>.js` writes `isoform-<name>.html`.
 
 ## 4. Check
 
-1. `node look.mjs <name>.js --at x,y --edge x,y`, as `look.md` says. It validates, takes the nine pictures, and prints what failed. Fix every failure and run it again until it exits 0.
+1. `node look.mjs <name>.js --at x,y --edge x,y`, as `look.md` says. It validates, takes the pictures, and prints what failed. Fix every failure and run it again until it exits 0.
 2. Read `look.md`, then the sheet, and answer its twelve questions. Fix what fails, then go back to 1.
 
 Without a browser: `node validate.mjs isoform-<name>.html` after each build, and the look from the code as `look.md` says. Without Node: answer the checks at the top of `validate.mjs` from your code.
@@ -78,6 +78,8 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | drawing the phenomenon only in the shader | trace it in hairline first; the effect adds material under the trace (rule 11) |
 | mapping the pointer's height to a big move | answer nearness, a few units at the default (rule 03) |
 | a read-out in percent | name the state: `rest`, `ignition`, `liftoff`, `arc ×2`, `tip +4°` |
+| a trace worked out from speed (dust while it moves, a wake) | it never shows in a still, so not in the look or the poster: drive it from a story channel |
+| a level in a container (water, fuel, a meter) | follow `water-bottle.js`: `part.trace({ clip: true })` keeps the line inside the part; it runs level in the world, along u on one face and v on the other, its height a channel |
 | a figure that waits for the pointer | illustrations play on their own: a `story`; hover only takes over |
 | a dashed line for a stream, dust or a guide | a solid line that draws on and retracts (`t.draw(lines)` with a head and tail), or nothing |
 | a loop that jumps back to the start | the last beats return every channel to `rest` |

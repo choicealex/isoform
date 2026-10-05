@@ -3,3 +3,4 @@ node_modules/
 /isoform-*.html
 /isoform-*.png
 .next/
+dogfood/**/isoform-*

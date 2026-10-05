@@ -53,10 +53,12 @@
  *                                      loop, from those values to rest (the draw-in); a negative ?t= is a moment of it. rest: their values at rest; poster: the one frame shown
  *                                      under reduced motion (the most telling moment). beats: [{dur ms, to: {ch: v | [keys…]},
  *                                      ease}] in order; a beat moves the channels it names, the rest hold; it loops.
+ *                                      [keys…] passes through each value in turn within the beat: {tip: [-0.05, 0]} nudges and returns
  *                                      ease: "inOut" (default, a story's pace), "out", "in", "linear"
  *   s.step(dt)                         call in tick; returns whether it still needs frames
  *   s.values(live)                     the channels now; live: {ch: v} for those the pointer drives, blended in while held
- *   s.hold(on)                         the pointer takes over (the clock stops) or lets go (it carries on)
+ *   s.hold(on)                         the pointer takes over the loop (its clock stops) or lets go (it carries on); the intro
+ *                                      draws on to the end either way, so `ink` never needs to be in live
  *   SPRING.settle | hero | float | hand  {k, c}: settle 200/25, no overshoot (the default for small gestures); hero 400/10,
  *                                      the one part that carries the meaning; float 50/10, water and slow drift; hand 100/18
  *   EASES.inOut | out | in | linear    the curves beats use
@@ -731,10 +733,12 @@ var IF = (() => {
       /* advances the story's clock unless it is held, fixed or reduced; returns whether anything is still moving */
       step(dt) {
         const blending = stepS(w, dt);
-        const free = !held && fixed() == null && !reduced;
-        if (free && intro && introT < intro.dur) introT += dt * 1000;
-        else if (free) clock = (clock + dt * 1000) % total;
-        return blending || free;
+        const play = fixed() == null && !reduced;
+        /* the intro always draws to the end: a pointer that arrives mid-drawing takes over the loop, not the pen */
+        const drawing = play && intro && introT < intro.dur;
+        if (drawing) introT += dt * 1000;
+        else if (play && !held) clock = (clock + dt * 1000) % total;
+        return blending || drawing || (play && !held);
       },
       /* the channels now: the story's, with the pointer's live values blended in while it holds */
       values(live = {}) {

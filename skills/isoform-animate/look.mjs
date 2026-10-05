@@ -2,7 +2,7 @@
 /**
  * Looks at a figure: `node look.mjs <name>.js|isoform-<name>.html --at x,y [--edge x,y [--edge x,y]] [--zoom shot]`.
  *
- * Builds and validates the page, then opens nine pictures of it in one browser,
+ * Builds and validates the page, then opens ten pictures of it in one browser,
  * each once its drawing holds still, and writes them on one sheet,
  * isoform-<name>-look.png. --at is the stage point (400 × 320) the answering
  * pictures hold the pointer at; --edge the point for the slider's two ends.
@@ -10,16 +10,12 @@
  * nothing leaves the frame, the console is clean, the drawing comes to rest.
  * Exits 0, 1 when a check fails, 2 when it cannot run a browser.
  *
- * playwright-core is installed once into a cache folder of yours
- * (~/Library/Caches/isoform-look, %LOCALAPPDATA%\isoform-look or ~/.cache/isoform-look;
- * ISOFORM_LOOK_CACHE moves it), never into the skill or the working directory.
+ * The browser comes from browser.mjs (playwright-core, installed once into a cache folder).
  */
-import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { homedir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { browser as openBrowser } from "./browser.mjs";
 import { build } from "./build.mjs";
 import { check } from "./validate.mjs";
 
@@ -38,29 +34,16 @@ const edges = flag("--edge");
 const lo = edges[0] ?? at, hi = edges[1] ?? edges[0] ?? at;
 if (!at) console.log("answer    no --at: the answering pictures are taken at rest; that is not a finished look");
 const q = (o) => { const s = new URLSearchParams(Object.entries(o).filter(([, v]) => v != null)).toString(); return s ? `?${s}` : ""; };
-/* a story is held at a moment with ?t=, so every picture can hold still: rest is its first frame */
+/* a story is held at a moment with ?t=, so every picture can hold still: rest is its first frame. t=0 is also
+   after the intro, so the answering pictures show the drawn figure, not the pen half way */
 const SHOTS = [
-  ["rest", { t: 0 }], ["answer", { at }], ["small", { w: 240, t: 0 }], ["small-answer", { w: 240, at }],
-  ["low", { intensity: 0, at: lo }], ["high", { intensity: 1, at: hi }],
-  ["dark", { theme: "dark", at }], ["light", { theme: "light", at }], ["effect", { gl: 1, at }],
+  ["rest", { t: 0 }], ["answer", { t: 0, at }], ["small", { w: 240, t: 0 }], ["small-answer", { w: 240, t: 0, at }],
+  ["low", { intensity: 0, t: 0, at: lo }], ["high", { intensity: 1, t: 0, at: hi }],
+  ["dark", { theme: "dark", t: 0, at }], ["light", { theme: "light", t: 0, at }], ["effect", { gl: 1, t: 0, at }], ["effect-dark", { gl: 1, theme: "dark", t: 0, at }],
 ];
 
-/* playwright-core, once, in a cache folder */
-const cache = process.env.ISOFORM_LOOK_CACHE ?? (process.platform === "darwin" ? join(homedir(), "Library/Caches/isoform-look")
-  : process.platform === "win32" ? join(process.env.LOCALAPPDATA ?? homedir(), "isoform-look") : join(homedir(), ".cache/isoform-look"));
-const req = createRequire(join(cache, "noop.js"));
-let pw;
-try { pw = req("playwright-core"); } catch {
-  mkdirSync(cache, { recursive: true });
-  if (!existsSync(join(cache, "package.json"))) writeFileSync(join(cache, "package.json"), "{\"private\":true}\n");
-  console.log(`look      installing playwright-core into ${cache} (once)`);
-  const r = spawnSync("npm", ["install", "--silent", "--no-audit", "--no-fund", "playwright-core@1"], { cwd: cache, stdio: "inherit", shell: process.platform === "win32" });
-  if (r.status !== 0) { console.log("look      could not install playwright-core: do the look as look.md says under \"Without a browser\""); process.exit(2); }
-  pw = req("playwright-core");
-}
-let browser;
-for (const opts of [{ channel: "chrome" }, {}]) { try { browser = await pw.chromium.launch(opts); break; } catch {} }
-if (!browser) { console.log("look      no Chrome or Chromium: run  npx playwright install chromium  then look again"); process.exit(2); }
+const browser = await openBrowser("look");
+if (!browser) { console.log("look      do the look as look.md says under \"Without a browser\""); process.exit(2); }
 
 /* a figure that tells a story also gets three moments of it and its poster, the frame reduced motion shows */
 {
@@ -124,7 +107,8 @@ for (const r of results) {
 }
 const rest = results.find((r) => r.shot === "rest");
 if (rest.read !== "rest") { failed = true; console.log(`readout   FAIL rest reads "${rest.read}", not "rest"`); }
-for (const r of results) if (["answer", "high", "dark", "light", "effect"].includes(r.shot) && at && r.read === "rest") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
+for (const r of results) if (r.read === "drawing") { failed = true; console.log(`readout   FAIL ${r.shot} reads "drawing": the picture caught the intro half drawn; ?t= and the answering pictures must show the drawn figure`); }
+for (const r of results) if (["answer", "high", "dark", "light", "effect", "effect-dark"].includes(r.shot) && at && r.read === "rest") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
 console.log(`readout   ${results.map((r) => `${r.shot}=${r.read}`).join("  ")}`);
 const moving = results.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");

@@ -8,11 +8,11 @@ From the person's working directory:
 
 `node <skill folder>/look.mjs <name>.js --at x,y --edge x,y`
 
-It builds `isoform-<name>.html`, validates it (and stops there if the validator rejects it), opens nine pictures in one browser, waits for each drawing to hold still, and writes them on one sheet: `isoform-<name>-look.png`. It prints every picture's read-out and the checks it can make itself. It exits 1 when one fails, 2 when it cannot run a browser, 0 otherwise.
+It builds `isoform-<name>.html`, validates it (and stops there if the validator rejects it), opens ten pictures in one browser, waits for each drawing to hold still, and writes them on one sheet: `isoform-<name>-look.png`. It prints every picture's read-out and the checks it can make itself. It exits 1 when one fails, 2 when it cannot run a browser, 0 otherwise.
 
-- `--at x,y` is a stage point (400 × 320, from the top-left) where the answering pictures hold the pointer: a point on the part that should answer, or the height that opens it. Take it from `part.rest` or from `inspect.mjs` (through `icon.pt` if you moved the icon).
-- `--edge x,y` is the point for the slider's two ends; give it twice for a point per end. Without it, the ends use `--at`.
-- `--zoom <shot>` also writes that picture's stage at full resolution, for a crease or a thin arc.
+- `--at x,y` is a stage point (400 × 320, from the top-left) where the answering pictures hold the pointer: a point on the part that should answer, or the height that opens it. Take it from `part.rest` or read it off `inspect.mjs`'s parts picture, whose grid is in stage units (through `icon.pt` if you moved the icon).
+- `--edge x,y` is the point for the slider's two ends; give it twice for a point per end (`--edge 200,40 --edge 200,90`: `low`, then `high`). Without it, the ends use `--at`.
+- `--zoom <shot>` also writes that picture's stage at full resolution, for a crease or a thin arc. The sheet shrinks every picture: for a figure with an effect, always add `--zoom effect` and judge the traces there.
 - In place of `<name>.js` it takes a built page.
 
 The first run installs `playwright-core` once into a cache folder of yours, never into the skill or the working directory. It drives your Chrome, or Playwright's Chromium.
@@ -28,7 +28,7 @@ Five address parameters make them, and work in any browser for a look by hand: `
 | `small` · `small-answer` | 240px, at rest and answering |
 | `low` · `high` | the slider at 0 and at 1, the pointer at `--edge` |
 | `dark` · `light` | both themes, answering |
-| `effect` | answering with the WebGL effect on |
+| `effect` · `effect-dark` | answering with the WebGL effect on, in both themes |
 | `story-25` · `story-50` · `story-75` | a story held at a quarter, half and three quarters of its loop (`?t=`) |
 | `poster` | under reduced motion: the poster frame |
 

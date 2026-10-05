@@ -23,11 +23,17 @@ if (args[0] === "--all") {
   process.exit(0);
 }
 const words = args.join(" ").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-const scored = index.map((x) => {
-  const hay = `${x.id} ${x.title}`.toLowerCase();
-  const hits = words.filter((w) => hay.includes(w)).length;
-  const exact = words.some((w) => x.id === w || x.id.split("-").includes(w)) ? 0.5 : 0;
-  return { x, s: hits + exact };
+/* a whole word counts most, the start of a word less; "lock" inside "clock" or "car" inside "card" only when nothing else matches */
+const score = (inside) => index.map((x) => {
+  const toks = `${x.id} ${x.title}`.toLowerCase().split(/[^a-z0-9]+/);
+  let s = 0;
+  for (const w of words) s += toks.includes(w) ? 1 : toks.some((t) => t.startsWith(w) || (w.length > 3 && w.startsWith(t) && t.length > 3)) ? 0.6 : inside && toks.some((t) => t.includes(w)) ? 0.3 : 0;
+  return { x, s };
 }).filter((r) => r.s > 0).sort((a, b) => b.s - a.s || a.x.id.length - b.x.id.length);
-if (!scored.length) { console.log("no match: try a broader word, or --all"); process.exit(1); }
+let scored = score(false);
+if (!scored.length) {
+  scored = score(true);
+  if (scored.length) console.log(`no icon has the word "${words.join(" ")}"; these only contain it inside a word:`);
+}
+if (!scored.length) { console.log(`no match: Isocons may not have this object. Try what it is made of or does (padlock → lock, key), or --all`); process.exit(1); }
 for (const { x } of scored.slice(0, 20)) console.log(`${x.id} · ${x.title} · ${x.categoryName}`);
