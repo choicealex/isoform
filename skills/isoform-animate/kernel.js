@@ -13,7 +13,9 @@
  * units, so a part slides along its own edges.
  *
  * The icon
- *   icon(svg, src, {cx, cy, h})        places the icon's markup src in the stage, centred on (cx, cy), h units tall;
+ *   icon(svg, src, {cx, cy, h, u, v})  places the icon's markup src in the stage, centred on (cx, cy), h units tall (by
+ *                                      default 220 tall or 300 wide, whichever is smaller); u, v override the measured axes
+ *                                      when inspect.mjs shows them wrong (a top or right view can mislead the measure);
  *                                      returns {g, paths, u, v, scale, iso, cut, face, part, hit, near}
  *   icon.pt(x, y)                      a point as inspect.mjs prints it (default placement) -> this placement. Pass every
  *                                      point you read off inspect through it, unless you kept the default placement
@@ -279,6 +281,12 @@ var IF = (() => {
     /* u runs down-right, v down-left */
     const down = (w) => (w[1] < 0 ? [-w[0], -w[1]] : w);
     u = down(u); v = down(v);
+    /* a top view can have a horizontal axis (Isocons' top views do), and "down" says nothing about which way a
+       horizontal line points: if both now point the same side, turn the flatter one round */
+    if (Math.sign(u[0]) === Math.sign(v[0]) && Math.min(Math.abs(u[1]), Math.abs(v[1])) < 0.15) {
+      if (Math.abs(u[1]) < Math.abs(v[1])) u = [-u[0], -u[1]];
+      else v = [-v[0], -v[1]];
+    }
     if (u[0] < v[0]) [u, v] = [v, u];
     if (!(u[0] > 0) || !(v[0] < 0)) { u = [0.866, 0.5]; v = [-0.866, 0.5]; } // a flat icon: fall back to true isometric
     return { u, v };
@@ -296,8 +304,9 @@ var IF = (() => {
     const doc = new DOMParser().parseFromString(src, "image/svg+xml");
     const root = doc.documentElement;
     const vb = (root.getAttribute("viewBox") || "0 0 100 100").split(/[\s,]+/).map(Number);
-    const h = o.h ?? 220, cx = o.cx ?? 200, cy = o.cy ?? 166;
-    const scale = h / vb[3];
+    const cx = o.cx ?? 200, cy = o.cy ?? 166;
+    /* by default the icon is 220 tall, or 300 wide if that is smaller (Isocons' top views are wide) */
+    const scale = o.h ? o.h / vb[3] : Math.min(220 / vb[3], 300 / vb[2]);
     const g = mk("g", { class: "icon" }, svg);
     g.setAttribute("transform", `translate(${r2(cx - (vb[0] + vb[2] / 2) * scale)} ${r2(cy - (vb[1] + vb[3] / 2) * scale)}) scale(${r2(scale * 1000) / 1000})`);
     const ghosts = mk("g", { class: "ghost", "aria-hidden": "true" }, g);
@@ -310,7 +319,9 @@ var IF = (() => {
       g.appendChild(p);
       paths.push(p);
     }
-    const ax = axes(paths.flatMap((p) => (p.tagName === "path" ? [p] : [...p.querySelectorAll("path")])));
+    const measured = axes(paths.flatMap((p) => (p.tagName === "path" ? [p] : [...p.querySelectorAll("path")])));
+    /* a figure may state its axes: Isocons' views are not all one projection, and a top or right view can fool the measure */
+    const ax = { u: o.u ?? measured.u, v: o.v ?? measured.v };
     const toStage = (x, y) => [cx + (x - vb[0] - vb[2] / 2) * scale, cy + (y - vb[1] - vb[3] / 2) * scale];
     const toIcon = (x, y) => [(x - cx) / scale + vb[0] + vb[2] / 2, (y - cy) / scale + vb[1] + vb[3] / 2];
     /* inspect.mjs prints stage points at the default placement (200, 166, h 220): pt moves one to this placement */

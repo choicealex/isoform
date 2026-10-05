@@ -18,7 +18,7 @@ If the person named an icon, find its id: `node find.mjs <words>`. If they gave 
 
 `node inspect.mjs <id> [variant]`
 
-Isocons draws every icon six ways: three sides (`left`, `top`, `right`) and two edges (`rounded`, `sharp`). They are different drawings with different faces, so a figure is built for one of them, the `variant`. Ask which view the person wants (default `rounded-left`, Hairline's soft corners); for another view, make another figure.
+Isocons draws every icon six ways: three sides (`left`, `top`, `right`) and two edges (`rounded`, `sharp`). They are different drawings with different faces, so a figure is built for one of them, the `variant`. Ask which view the person wants (default `rounded-left`, Hairline's soft corners); for another view, make another figure. Isocons' views are not all one projection (a top view can have a level edge, a right view a steep one), so read the `axes` line `inspect.mjs` prints: if it says they were not measured, or they disagree with the corners, pass the two edge directions yourself, `icon(svg, src, { u, v })`. Wide views (most top views) are placed 300 wide instead of 220 tall.
 
 It prints every face in paint order with which way it looks, its box and its corners, in stage units, and writes `isoform-<id>-parts.png`: the faces numbered and tinted over a grid in stage units. Look at that picture to tell which face is which and to read points off it; do not read the `.html` it is made from. Variants are `rounded-left` (use a rounded one: Hairline's soft corners), `rounded-top`, `rounded-right`, and `sharp-left`, `sharp-top`, `sharp-right`.
 
@@ -73,6 +73,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 
 | If you catch yourself | Do this instead |
 | --- | --- |
+| a part sliding off its own edges on a top or right view | the axes were mis-measured: check `inspect.mjs`'s `axes` line and pass `{ u, v }` to `icon` |
 | moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |
 | reading corners off `inspect.mjs` and the cut lands in the wrong place | you placed the icon elsewhere: pass every point through `icon.pt` |

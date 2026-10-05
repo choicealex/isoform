@@ -20,7 +20,7 @@ const [id, variant = "rounded-left"] = process.argv.slice(2);
 if (!id) { console.error("usage: node inspect.mjs <icon-id> [variant]"); process.exit(2); }
 const icon = await iconOf(id, variant);
 const vb = /viewBox="([^"]+)"/.exec(icon.svg)[1].split(/[\s,]+/).map(Number);
-const scale = 220 / vb[3];
+const scale = Math.min(220 / vb[3], 300 / vb[2]); // the kernel's default placement
 const st = (x, y) => [200 + (x - vb[0] - vb[2] / 2) * scale, 166 + (y - vb[1] - vb[3] / 2) * scale];
 
 /** Every on-curve point and every straight segment of a path. */
@@ -91,6 +91,34 @@ shapes.forEach((m, k) => {
     if (corners.length <= 16) console.log(`       corners ${corners.map(([x, y]) => st(x, y).map((n) => Math.round(n)).join(",")).join("  ")}`);
   }
 });
+
+/* the axes the kernel will measure, the same way (the two strongest non-vertical edge directions), so a wrong one is
+   seen before a figure moves along it. Isocons' top and right views are not all one projection */
+{
+  const bins = new Float64Array(180);
+  for (const m of shapes) {
+    const d = /\bd="([^"]+)"/.exec(m[0])?.[1];
+    if (!d) continue;
+    for (const [x0, y0, x1, y1] of walk(d).segs) {
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      if (len < 1) continue;
+      const a = ((Math.round((Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI) % 180) + 180) % 180;
+      if (a > 80 && a < 100) continue;
+      bins[a] += len;
+    }
+  }
+  const peak = (skip) => { let best = -1, at = 0; for (let a = 0; a < 180; a++) { if (skip != null && Math.min(Math.abs(a - skip), 180 - Math.abs(a - skip)) < 20) continue; const w = bins[a] + bins[(a + 1) % 180] + bins[(a + 179) % 180]; if (w > best) { best = w; at = a; } } return at; };
+  const a1 = peak(), a2 = peak(a1);
+  const vec = (a) => [Math.cos((a * Math.PI) / 180), Math.sin((a * Math.PI) / 180)];
+  const down = (w) => (w[1] < 0 ? [-w[0], -w[1]] : w);
+  let u = down(vec(a1)), v = down(vec(a2));
+  if (Math.sign(u[0]) === Math.sign(v[0]) && Math.min(Math.abs(u[1]), Math.abs(v[1])) < 0.15) { if (Math.abs(u[1]) < Math.abs(v[1])) u = [-u[0], -u[1]]; else v = [-v[0], -v[1]]; }
+  if (u[0] < v[0]) [u, v] = [v, u];
+  const ok = u[0] > 0 && v[0] < 0;
+  const f = (w) => w.map((n) => n.toFixed(2)).join(", ");
+  console.log(ok ? `axes   u ${f(u)}   v ${f(v)}   (measured; check them against the corners above)`
+    : "axes   NOT measured: the kernel falls back to true isometric. Read two edge directions off the corners and pass icon(svg, src, { u: [x, y], v: [x, y] })");
+}
 
 const hue = (k) => `hsl(${(k * 137.5) % 360} 70% 50%)`;
 let n = 0;
