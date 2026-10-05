@@ -1,4 +1,4 @@
-# Session Checkpoint — 2026-10-05 (Isoform: skill + engine + three illustrations)
+# Session Checkpoint — 2026-10-05 (Isoform: skill dogfooded by four stranger runs)
 
 Isoform works end to end locally: the `isoform-animate` skill, its engine and checks, and three example
 illustrations that draw themselves in and loop a story. Tree clean. Not on GitHub, not deployed.
@@ -6,8 +6,8 @@ illustrations that draw themselves in and loop a story. Tree clean. Not on GitHu
 > **What this file is for.** Only what `git log` can't tell you — what shipped and why is in the commit
 > bodies (`git show <sha>`). When work is committed, its prose here collapses to its SHA.
 
-## Shipped — 11 commits, `8020bc3` → `1789a1c`
-`git log --oneline 8020bc3~1..1789a1c` · `git show <sha>` for reasoning.
+## Shipped — 13 commits, `8020bc3` → `60efb52`
+`git log --oneline 8020bc3~1..60efb52` · `git show <sha>` for reasoning.
 
 | What | Commits |
 |---|---|
@@ -16,6 +16,7 @@ illustrations that draw themselves in and loop a story. Tree clean. Not on GitHu
 | Motion research (heroicons-animated, starred repos) → `research/00-motion-plan.md` | `4dd8013` |
 | Illustration-first: `story` loops, hover takeover, Isocons-blue accent, poster frame | `ea99d0e` |
 | Draw-in (one pen, screen-px dashes, full ink then settle), no dashed add-ons, flame anchored | `d39e71d` `6a8b5d5` `8944825` `9be528c` `1789a1c` |
+| Dogfood: 4 fresh Sonnet agents ran the skill (cart, key, car, gas station) → fixes: intro draws on while held, parts PNG + grid, word-first find, effect-dark shot, docs | `8c04c40` `60efb52` |
 
 Checks: `node skills/isoform-animate/validate.mjs <page>` → ok for all three · `look.mjs` → exit 0 for all
 three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mobile or touch.
@@ -24,9 +25,11 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 Nothing — clean stopping point.
 
 ## Next
-1. **Dogfood the skill** — run 3–4 new icons (shopping cart, padlock, car, lightbulb) through `/isoform-animate`
-   using ONLY `SKILL.md` + rules + tools (a subagent is a fair stand-in for a stranger's agent). Fix the docs/kernel
-   wherever it struggles; the runs become the site's "What it draws" examples.
+1. **Owner review of the 4 dogfood figures** (`dogfood/*/isoform-*.html`, rebuild with build.mjs). By the agents' own
+   look, Q8 is weak on key (lock plug hidden behind the blade, reads as wobble) and car (beams read as planks). Then
+   pick which become the site's "What it draws" examples. Still open from the logs: a trace can't sit both in front
+   of and behind a part (key-in-plug); no recipe for light cones in hairline. A second dogfood round on the fixed
+   skill would confirm the fixes held for a stranger (only re-verified by me on the 3 examples).
 2. **Touch** — hover takeover has no touch equivalent yet (proposal: press-and-hold takes over). Test at 390px.
 3. **Website** like hairline.lucasmarkes.com (home hero drawing in, /figures catalogue + drawer, /skill, /docs,
    /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.
