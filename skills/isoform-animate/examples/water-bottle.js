@@ -1,5 +1,5 @@
 /*
- * Water bottle. On its own it refills: the cap comes off and is set aside, a
+ * Water bottle. It draws itself in, then refills: the cap comes off and is set aside, a
  * stream pours in and the level rises, the cap goes back on, a shake sloshes
  * the water, then it tips and pours out back down to where it began. Hover
  * takes the bottle: its side of the bottle rocks it, and the water stays
@@ -17,24 +17,27 @@ function mount({ stage, svg, read, src }, lean) {
   const cap = ic.part("cap", [capSide, 1]);
   cap.hi(true); // the eye starts at the cap
 
-  /* in the figure's own hairline: the water's surface, kept inside the body; the stream in and the stream out, dashed */
+  /* in the figure's own hairline: the water's surface, kept inside the body; the stream in and the stream out, each a
+     line that draws on from where the water leaves and retracts after it, the way the illustration itself is drawn */
   const water = body.trace({ clip: true });
-  const stream = trace(svg, { dash: true, tone: "hi" });
-  const spillLine = trace(svg, { dash: true, tone: "hi" });
+  const stream = trace(svg, { tone: "hi" });
+  const spillLine = trace(svg, { tone: "hi" });
 
   const refill = story(stage, {
-    rest: { fill: 0.35, cap: 0, rock: 0, pour: 0, spill: 0 },
-    poster: { fill: 0.6, cap: 1, rock: 0, pour: 1, spill: 0 },
+    /* pour and spill run 0 → 1 → 2: the stream's head draws on to 1, then its tail follows it off at 2 */
+    rest: { fill: 0.35, cap: 0, rock: 0, pour: 0, spill: 0, ink: 1 },
+    poster: { fill: 0.6, cap: 1, rock: 0, pour: 1, spill: 0, ink: 1 },
+    intro: { dur: 2400, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 500 },
       { dur: 450, to: { cap: 1 }, ease: "out" },                             // the cap comes off, set aside
-      { dur: 1700, to: { fill: 0.62, pour: [1, 1, 1, 1, 0] } },              // a stream pours in, the level rises
+      { dur: 1700, to: { fill: 0.62, pour: [1, 1, 1, 2] } },                 // a stream pours in, the level rises
       { dur: 450, to: { cap: [-0.05, 0] }, ease: "out" },                    // the cap goes back on, pressed home
       { dur: 1300, to: { rock: [0.8, -0.55, 0.3, 0] } },                     // a shake: the water sloshes
       { dur: 600 },
       { dur: 400, to: { cap: 1 }, ease: "out" },
-      { dur: 1500, to: { rock: -1.5, fill: 0.35, spill: [1, 1, 1, 0] } },    // it tips and pours out
-      { dur: 700, to: { rock: 0 } },
+      { dur: 1500, to: { rock: -1.5, fill: 0.35, spill: [1, 1, 1, 2] } },    // it tips and pours out
+      { dur: 700, to: { rock: 0, pour: 0, spill: 0 } },
       { dur: 450, to: { cap: [-0.05, 0] }, ease: "out" },
       { dur: 800 },
     ],
@@ -71,12 +74,13 @@ function mount({ stage, svg, read, src }, lean) {
   const loop = register(stage, (dt, now) => {
     const a = refill.step(dt), b = stepS(hand, dt);
     const v = refill.values(refill.held ? { rock: hand.x } : {});
+    ic.ink(v.ink);
     const deg = v.rock * max;
     slosh.v += (deg - lastDeg) * 0.2; // a change in the rocking is a push on the water
     lastDeg = deg;
     const c = stepS(slosh, dt);
     /* the cap lifts and is set aside along -u, off the mouth, so the stream has somewhere to go */
-    cap.move(-16 * Math.max(0, v.cap), 0, 14 * v.cap).tilt(deg, pivot);
+    cap.move(-44 * Math.max(0, v.cap), 0, 10 * v.cap).tilt(deg, pivot);
     body.tilt(deg, pivot);
 
     /* the surface keeps its height where it meets the turned front edge, and stays level in the world */
@@ -86,20 +90,22 @@ function mount({ stage, svg, read, src }, lean) {
       const dx = px - e[0];
       line.push([px, e[1] + dx * (dx < 0 ? su : sv) + dx * sl + Math.sin(dx * 0.12 + time * 5) * 7.2 * Math.abs(sl)]);
     }
-    water.draw(line);
+    water.draw(v.ink < 1 ? [] : line);
     water.tone(v.pour > 0.1 || v.spill > 0.1 || Math.abs(sl) > 0.01 || refill.held ? "hi" : "edge");
 
-    /* the streams: falling straight into the mouth, and arcing out of it as it tips; the dashes flow */
-    const mouth = turn([206, 101], deg), flow = (now * 0.06) % 5;
-    stream.draw(v.pour > 0.02 ? [[mouth[0], 18 + flow], [mouth[0], lerp(18, mouth[1] - 3, v.pour)]] : []);
+    /* the streams: falling straight into the mouth, and arcing out of it as it tips */
+    const mouth = turn([206, 101], deg);
+    /* a stream is drawn from its head back to its tail: head = min(1, c), tail = max(0, c - 1) */
+    const span = (c, n, at) => {
+      const head = Math.min(1, c), tail = Math.max(0, c - 1);
+      return c <= 0.01 || head - tail < 0.01 ? [] : Array.from({ length: n }, (_, i) => at(lerp(tail, head, i / (n - 1))));
+    };
+    stream.draw(span(v.pour, 2, (s) => [mouth[0], lerp(18, mouth[1] - 3, s)]));
     /* out of the tipped mouth: thrown up and over the shoulder first, then falling clear of the bottle's side */
-    spillLine.draw(v.spill > 0.02 ? Array.from({ length: 16 }, (_, i) => {
-      const s = (i / 15) * v.spill;
-      return [mouth[0] - 6 - 96 * s - flow * 0.4, mouth[1] - 26 * s + 170 * s * s];
-    }) : []);
+    spillLine.draw(span(v.spill, 16, (s) => [mouth[0] - 6 - 96 * s, mouth[1] - 26 * s + 170 * s * s]));
 
     const shown = refill.held ? (Math.abs(deg) < 0.5 ? "level" : `tip ${deg > 0 ? "+" : "−"}${Math.round(Math.abs(deg))}°`)
-      : v.pour > 0.1 ? `fill ${Math.round(v.fill * 100)}%` : v.spill > 0.1 ? "pour" : Math.abs(sl) > 0.02 ? "slosh"
+      : v.ink < 1 ? "drawing" : v.pour > 0.1 && v.pour < 1.9 ? `fill ${Math.round(v.fill * 100)}%` : v.spill > 0.1 && v.spill < 1.9 ? "pour" : Math.abs(sl) > 0.02 ? "slosh"
       : v.cap > 0.05 ? "open" : Math.abs(v.fill - 0.35) < 0.01 ? "rest" : "sealed";
     if (shown !== label) { read.textContent = shown; label = shown; }
     if (fx.on) { fx.set("u_e", e); fx.set("u_slosh", sl); fx.mask([body]); fx.draw(now); }

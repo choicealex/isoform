@@ -32,6 +32,9 @@
  *                                      Every part (and every run of faces left out of parts) is drawn Hairline's way:
  *                                      a bright silhouette, dim inner edges. Make every part in mount, before the first frame
  *   icon.hit(point)                    the part whose REST shape holds the stage point, topmost first, or null (rule 01)
+ *   icon.ink(p)                        the illustration drawing itself (Morph's Draw On): 0 nothing, 1 the icon as drawn.
+ *                                      Faces stroke on in paint order, fills come in as each line closes, a pen tip rides
+ *                                      the line. Drive it from a story channel with an intro: {intro: {dur, from: {ink: 0}}}
  *   icon.near(point)                   {part, d}: the part whose rest centre is nearest, and how far, in stage units
  *   icon.iso(a, b, c)                  [dx, dy]: the screen offset of a world move, for placing an effect
  *   after(a, b)                        paints part a just after part b, for a part that comes forward
@@ -44,7 +47,8 @@
  *   tween(v, dur)  tset(tw, to, now, delay)  tval(tw, now)  tdone(tw, now)
  *   reducedMotion()                    true when the reader asked for less motion; springs and tweens land at once
  * Stories: an illustration plays on its own; the pointer takes over while it holds
- *   story(stage, {rest, poster, beats}) channels are named numbers. rest: their values at rest; poster: the one frame shown
+ *   story(stage, {rest, poster, beats, intro}) channels are named numbers. intro {dur, from}: played once, before the
+ *                                      loop, from those values to rest (the draw-in); a negative ?t= is a moment of it. rest: their values at rest; poster: the one frame shown
  *                                      under reduced motion (the most telling moment). beats: [{dur ms, to: {ch: v | [keys…]},
  *                                      ease}] in order; a beat moves the channels it names, the rest hold; it loops.
  *                                      ease: "inOut" (default, a story's pace), "out", "in", "linear"
@@ -311,6 +315,7 @@ var IF = (() => {
       morph.setAttribute("radius", String(r2(((w * 0.5 + 0.35) / ppu) * 100) / 100));
     };
     let masks = 0;
+    const silOf = new Map();
     const outline = (grp, own) => {
       const id = `${uid}-m${masks++}`;
       const mask = mk("mask", { id, maskUnits: "userSpaceOnUse", x: "-9999", y: "-9999", width: "19998", height: "19998" }, defs);
@@ -318,7 +323,7 @@ var IF = (() => {
       const shape = mk("g", { filter: `url(#${uid}-erode)` }, mask);
       for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); c.setAttribute("fill", "black"); c.setAttribute("stroke", "none"); shape.appendChild(c); }
       const sil = mk("g", { class: "sil", mask: `url(#${id})`, "aria-hidden": "true" });
-      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); }
+      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); silOf.set(p, c); }
       grp.appendChild(sil);
     };
     queueMicrotask(fitErode);
@@ -344,6 +349,8 @@ var IF = (() => {
     const ghostOf = new Map();
     /* every face, cut pieces included; paths[i] keeps meaning the i-th face of the icon (after a cut, its first piece) */
     const faces = new Set(paths);
+    let inkList = null, inkDone = false, penTip = null;
+    const inkLen = new Map();
     const order = (a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     paths.forEach((p) => { const c = p.cloneNode(true); c.removeAttribute("class"); ghosts.appendChild(c); ghostOf.set(p, c); });
 
@@ -515,6 +522,44 @@ var IF = (() => {
         const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);
         return p;
       },
+      /*
+       * The illustration drawing itself, Morph's Draw On: at p (0…1) every face's outline is drawn along its length,
+       * the faces cascading in paint order (each starts a beat after the one before, all draw together: on a small
+       * icon, strictly one after another reads as scattered strokes), and a face's fill comes in as its line closes.
+       * A small pen tip in the accent rides the newest line. p = 1 is the icon as drawn, and costs nothing after.
+       */
+      ink(p) {
+        if (!inkList) {
+          inkList = [...g.querySelectorAll("path, circle, ellipse, rect")].filter((el) =>
+            !el.closest(".ghost, .sil, defs, mask, clipPath") && !el.classList.contains("trace"));
+          const n = inkList.length;
+          inkList.forEach((el, i) => inkLen.set(el, [n > 1 ? (i / (n - 1)) * 0.45 : 0, el.getTotalLength?.() ?? 0]));
+        }
+        const P = clamp(p, 0, 1);
+        if (P >= 1 && inkDone) return null;
+        inkDone = P >= 1;
+        let tip = null;
+        for (const el of inkList) {
+          const [start, len] = inkLen.get(el);
+          const q = EASES.inOut(clamp((P - start) / 0.55, 0, 1));
+          for (const t of [el, silOf.get(el)]) {
+            if (!t) continue;
+            if (q >= 1) { t.removeAttribute("pathLength"); t.style.strokeDasharray = ""; t.style.strokeDashoffset = ""; }
+            else { t.setAttribute("pathLength", "1"); t.style.strokeDasharray = "1 1"; t.style.strokeDashoffset = String(1 - q); }
+            /* the pre-roll: a line that has barely started would show its round cap as a dot */
+            t.style.strokeOpacity = q >= 1 ? "" : String(r2(smooth(0, 0.06, q)));
+          }
+          el.style.fillOpacity = q >= 1 ? "" : String(r2(smooth(0.6, 1, q)));
+          if (q > 0 && q < 1 && len) {
+            const pt = el.getPointAtLength(q * len), m = g.getCTM && svg.getScreenCTM().inverse().multiply(el.getScreenCTM());
+            tip = m ? [m.a * pt.x + m.c * pt.y + m.e, m.b * pt.x + m.d * pt.y + m.f] : null;
+          }
+        }
+        if (!penTip) penTip = mk("circle", { class: "pen", r: "2.2" }, svg);
+        if (tip) { penTip.setAttribute("cx", r2(tip[0])); penTip.setAttribute("cy", r2(tip[1])); penTip.style.display = ""; }
+        else penTip.style.display = "none";
+        return tip;
+      },
       near(pt) {
         let best = null, d = Infinity;
         for (const p of parts) { const e = Math.hypot(pt[0] - p.rest.cx, pt[1] - p.rest.cy); if (e < d) { d = e; best = p; } }
@@ -629,6 +674,9 @@ var IF = (() => {
       return v;
     };
     let clock = 0, held = false;
+    /* intro: played once, the first time the figure is on screen, before the loop: {dur, from: {ch: v}} */
+    const intro = o.intro ?? null;
+    let introT = intro ? 0 : Infinity;
     const w = spring(0, SPRING.settle);
     const fixed = () => (stage.dataset.t != null && stage.dataset.t !== "" ? Number(stage.dataset.t) : null);
     return {
@@ -636,16 +684,22 @@ var IF = (() => {
       /* advances the story's clock unless it is held, fixed or reduced; returns whether anything is still moving */
       step(dt) {
         const blending = stepS(w, dt);
-        if (!held && fixed() == null && !reduced) clock = (clock + dt * 1000) % total;
-        return blending || (!held && fixed() == null && !reduced);
+        const free = !held && fixed() == null && !reduced;
+        if (free && intro && introT < intro.dur) introT += dt * 1000;
+        else if (free) clock = (clock + dt * 1000) % total;
+        return blending || free;
       },
       /* the channels now: the story's, with the pointer's live values blended in while it holds */
       values(live = {}) {
         const f = fixed();
-        const T = f != null ? ((f % total) + total) % total : clock;
+        /* a negative ?t= is a moment of the intro: -dur is its start, 0 its end */
+        const inIntro = intro && (f != null ? f < 0 : !reduced && introT < intro.dur);
+        const k = inIntro ? EASES.inOut(clamp(f != null ? (intro.dur + f) / intro.dur : introT / intro.dur, 0, 1)) : 1;
+        const T = f != null ? (f < 0 ? 0 : f % total) : clock;
         const out = {};
         for (const n of names) {
-          const s = reduced && f == null ? (o.poster?.[n] ?? at(n, T)) : at(n, T);
+          let s = reduced && f == null ? (o.poster?.[n] ?? at(n, T)) : at(n, T);
+          if (inIntro && n in intro.from) s = lerp(intro.from[n], s, k);
           out[n] = n in live ? lerp(s, live[n], w.x) : s;
         }
         return out;

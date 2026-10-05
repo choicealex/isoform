@@ -1,5 +1,5 @@
 /*
- * Bolt. On its own it charges: the halves part at the seam, current arcs
+ * Bolt. It draws itself in, then charges: the halves part at the seam, current arcs
  * across the gap for a moment, and they snap shut. Bring the pointer near the
  * seam and you hold it open: the nearer, the wider. In a product: a
  * connection, live.
@@ -36,8 +36,9 @@ function mount({ stage, svg, read, src }, reach) {
   let hopDrawn = -1;
 
   const charge = story(stage, {
-    rest: { gap: 0 },
-    poster: { gap: 1 },
+    rest: { gap: 0, ink: 1 },
+    poster: { gap: 1, ink: 1 },
+    intro: { dur: 1800, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 700 },
       { dur: 450, to: { gap: 1 }, ease: "out" },              // the halves part
@@ -74,13 +75,15 @@ function mount({ stage, svg, read, src }, reach) {
 
   const loop = register(stage, (dt, now) => {
     const a = charge.step(dt), b = stepS(hand, dt);
-    const g = charge.values(charge.held ? { gap: hand.x } : {}).gap * max;
+    const v = charge.values(charge.held ? { gap: hand.x } : {});
+    ic.ink(v.ink);
+    const g = v.gap * max;
     high.move(0, 0, g);
     low.move(0, 0, -g * 0.25); // the lower half gives a little too: they push apart, not one lifts off
     const n = g < 1.5 ? 0 : Math.min(3, 1 + Math.floor(g / 5));
     const hop = Math.floor(now / 111);
     if (n === 0) { arcs.draw([]); hopDrawn = -1; } else if (hop !== hopDrawn || a || b) { arcs.draw(strike(hop, n, g)); hopDrawn = hop; }
-    const shown = g < 0.3 ? "rest" : n ? `arc ×${n}` : "charged";
+    const shown = v.ink < 1 ? "drawing" : g < 0.3 ? "rest" : n ? `arc ×${n}` : "charged";
     if (shown !== label) { read.textContent = shown; label = shown; }
     if (fx.on) { fx.set("u_gap", g * 1.25); fx.set("u_n", n); fx.set("u_t", [0, 1, 2].map((i) => 0.15 + 0.7 * rnd(hop, i * 7.3))); fx.draw(now); }
     return a || b || n > 0;

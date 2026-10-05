@@ -82,10 +82,10 @@ Identity is geometry. Names go to the read-out in the corner, in a few character
 
 What happens shows what this object would do if it were real and you did this to it: water sloshes, a rocket burns, current arcs across a gap, a kettle steams. It is never a generic glow, sparkle, confetti, or particles that could sit on any icon.
 
-It is drawn twice, and the two look alike. First, always, as **traces** in the figure's hairline: the water's surface, the arcs, the flame's edge, dust as a dashed run along the ground. Then, only when the reader turns effects on, as a **WebGL effect** that adds the material under those same lines: the body of the water, the light of the current, the heat of the flame. The effect never draws its own edges and never replaces a trace.
+It is drawn twice, and the two look alike. First, always, as **traces** in the figure's hairline: the water's surface, the arcs, the flame's edge. Anything added to the drawing (a stream, a spark, a wire) is a solid line that **draws on** along its length and retracts after it, the same way the illustration draws itself in (`icon.ink`). Never dashed lines: they read as construction guides, not as the thing. Then, only when the reader turns effects on, as a **WebGL effect** that adds the material under those same lines: the body of the water, the light of the current, the heat of the flame. The effect never draws its own edges and never replaces a trace.
 
 - **Keep it:** `trace(svg, …)` or `part.trace({clip: true})` for the line, driven by the same numbers as the effect; `gl(stage, …)` for the material, which returns `on: false` unless the reader asked. Declare the effect in one sentence (`effect:`) naming the physical thing. It starts and stops with the gesture or the state it belongs to: under the faces for the open (`layer: "under"`), masked inside parts for what fills them (`layer: "over"`, `mask([parts])`).
-- **Sent back when:** the phenomenon exists only in the effect (no trace); the effect draws edges the traces should; the two versions do not look alike; the effect would make as much sense on another icon; it runs at rest without the object being in a running state.
+- **Sent back when:** an addition is drawn dashed; the phenomenon exists only in the effect (no trace); the effect draws edges the traces should; the two versions do not look alike; the effect would make as much sense on another icon; it runs at rest without the object being in a running state.
 
 ## 12 · palette: the effect borrows the icon's colours
 

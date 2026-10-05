@@ -35,7 +35,7 @@ One figure, one idea. An effect that would suit any icon is not a concept yet.
 1. Read `rules.md`. The twelve rules are not advice: a figure that breaks one is not finished.
 2. Read the index at the top of `kernel.js`, down to `var IF`. It lists everything you may call. Do not read the code under it.
 3. Read the nearest example: `water-bottle.js` for a long story with several parts and an effect inside the object, `bolt.js` for a short one with a break and an effect in the gap, `rocket.js` for the whole object moving with an effect in the open. All three use `story` for the loop and hand it to the pointer the same way.
-4. Write `<name>.js` in the shape of the examples: take what you need from `IF`; make the story with `story(stage, {rest, poster, beats})`; in `tick`, step it and read `values(live)`; on pointer move `hold(true)` and drive the live channels with a `SPRING.hand` spring, on leave `hold(false)`; define `mount({ stage, svg, read, src }, value)` returning `{ set, destroy }`; end the file with `isoform({ name, icon, variant, means, effect, rules, range, mount })`.
+4. Write `<name>.js` in the shape of the examples: take what you need from `IF`; make the story with `story(stage, {rest, poster, beats, intro})`, with an `ink` channel (rest 1, intro from 0) passed to `icon.ink` so the illustration draws itself in the first time it is seen; in `tick`, step it and read `values(live)`; on pointer move `hold(true)` and drive the live channels with a `SPRING.hand` spring, on leave `hold(false)`; define `mount({ stage, svg, read, src }, value)` returning `{ set, destroy }`; end the file with `isoform({ name, icon, variant, means, effect, rules, range, mount })`.
    - `icon`, `variant`: the Isocons id and variant. `build.mjs` inlines that SVG.
    - `means`: one sentence, at most 140 characters, saying what the figure shows.
    - `effect`: one sentence naming the physical thing the effect adds under the traces. Leave it out if there is no effect.
@@ -79,6 +79,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | mapping the pointer's height to a big move | answer nearness, a few units at the default (rule 03) |
 | a read-out in percent | name the state: `rest`, `ignition`, `liftoff`, `arc ×2`, `tip +4°` |
 | a figure that waits for the pointer | illustrations play on their own: a `story`; hover only takes over |
+| a dashed line for a stream, dust or a guide | a solid line that draws on and retracts (`t.draw(lines)` with a head and tail), or nothing |
 | a loop that jumps back to the start | the last beats return every channel to `rest` |
 | a poster that is the rest pose | the poster is the most telling moment |
 | giving the effect a colour of its own | palette uniforms; one physical colour only, with a comment (rule 12) |
