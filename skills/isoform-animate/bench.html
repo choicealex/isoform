@@ -44,6 +44,9 @@
     vector-effect: non-scaling-stroke; transition: stroke 0.26s ease;
   }
   .icon .sil > * { fill: none; stroke: var(--iso-edge); }
+  /* drawing in: a line just drawn shows in full ink, then the inner ones settle to dim as the fills arrive */
+  .icon.inking path, .icon.inking circle, .icon.inking ellipse, .icon.inking rect { stroke: var(--iso-edge); transition: stroke 0.9s ease; }
+  .icon.inking .hi > path, .icon.inking .hi > .sil > * { stroke: var(--iso-hi); }
   .icon .hi > .sil > * { stroke: var(--iso-hi); }
   .icon .dim > .sil > * { stroke: var(--iso-lo); }
   .icon .ghost { visibility: hidden; }

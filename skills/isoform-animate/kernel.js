@@ -587,6 +587,8 @@ var IF = (() => {
         if (P >= 1 && inkDone) return null;
         inkDone = P >= 1;
         const D = clamp(P / DRAW, 0, 1) * inkPlan.total, fill = smooth(DRAW, 1, P);
+        /* every line shows in full ink as the pen leaves it; the inner edges settle to their dim tone with the fills */
+        g.classList.toggle("inking", P < DRAW + 0.04);
         let tip = null;
         for (const el of hiddenInk) {
           for (const t of [el, silOf.get(el)]) if (t) t.style.strokeOpacity = P >= 1 ? "" : "0";
