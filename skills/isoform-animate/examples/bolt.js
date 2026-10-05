@@ -52,26 +52,50 @@ function mount({ stage, svg, read, src }, reach) {
 
   const fx = gl(stage, {
     layer: "over",
-    uniforms: { u_a: "vec2", u_b: "vec2", u_gap: "float", u_n: "float", u_t: "vec3" },
+    uniforms: { u_gap: "float", u_k: "vec2", u_x: "vec3", u_y: "vec3", u_o0: "vec3", u_o1: "vec3", u_o2: "vec3", u_o3: "vec3",
+      u_o4: "vec3", u_o5: "vec3", u_o6: "vec3", u_u: "vec2" },
     frag: `
-      // the light of the current around the traced arcs: the figure passes where they struck (u_t)
+      // the traced arcs' own kinks (u_o*, 7 per arc), so the hot core sits exactly on the hairline
+      float kink(int j) {
+        vec3 v = j < 3 ? u_o0 : j < 6 ? u_o1 : j < 9 ? u_o2 : j < 12 ? u_o3 : j < 15 ? u_o4 : j < 18 ? u_o5 : u_o6;
+        int r = j - 3 * (j / 3);
+        return r == 0 ? v.x : r == 1 ? v.y : v.z;
+      }
       vec4 effect(vec2 p) {
         if (u_gap < 1.5) return vec4(0.0);
-        float halo = 0.0;
+        float on = smoothstep(1.5, 7.0, u_gap);
+        float flash = exp(-u_k.y * 6.0) * (0.5 + 0.5 * hash(vec2(u_k.x, 3.0))); // each strike flares, then sags
+        float flick = 0.8 + 0.2 * noise(vec2(u_time * 60.0, 1.0));
+        float d = 1e3, face = 0.0, air = 0.0;
         for (int i = 0; i < 3; i++) {
-          float fi = float(i);
-          if (fi >= u_n) break;
-          float t = i == 0 ? u_t.x : i == 1 ? u_t.y : u_t.z;
-          vec2 base = mix(u_a, u_b, t) + vec2(0.0, u_gap * 0.2);
-          halo += exp(-seg(p, base, base - vec2(0.0, u_gap)) * 0.28) * 0.32;
+          float bx = i == 0 ? u_x.x : i == 1 ? u_x.y : u_x.z, by = i == 0 ? u_y.x : i == 1 ? u_y.y : u_y.z;
+          if (bx < 0.0) break;                                              // fewer arcs struck this hop
+          vec2 q = vec2(bx, by);
+          for (int k = 1; k <= 8; k++) {
+            vec2 r = vec2(bx + (k == 8 ? 0.0 : kink(i * 7 + k - 1)), by - float(k) / 8.0 * u_gap);
+            d = min(d, seg(p, q, r));
+            q = r;
+          }
+          vec2 e = p - vec2(bx, by - u_gap * 0.5), n = vec2(-u_u.y, u_u.x);
+          float along = dot(e, u_u) / (26.0 + 12.0 * flash), across = dot(e, n) / (0.5 * u_gap + 10.0 + 6.0 * flash);
+          face += exp(-along * along - across * across);                    // light thrown on both faces, along the break
+          air += exp(-along * along * 2.0 - across * across * 4.0);
         }
-        float a = clamp(halo, 0.0, 0.8) * smoothstep(1.5, 4.0, u_gap) * (0.8 + 0.2 * hash(vec2(floor(u_time * 9.0), 1.0)));
-        // the one colour of its own the effect may carry is the phenomenon's (rule 12): an arc's blue-white light
-        vec3 light = mix(vec3(0.42, 0.6, 1.0), vec3(0.82, 0.9, 1.0), u_dark);
-        return vec4(light * a, a);
+        float core = exp(-d * d / 1.3);
+        float glow = exp(-d / (3.0 + 2.0 * flash)) * 0.6 + exp(-d * d / 150.0) * 0.25;
+        float lit = mask(p) * min(face, 1.0) * (0.45 + 0.5 * flash);
+        air = (1.0 - mask(p)) * min(air, 1.0) * (0.12 + 0.3 * flash); // the ionised air in the gap
+        float hot = core * (0.8 + 0.3 * flash) * flick;
+        float a = clamp(hot + (glow + lit * 0.7 + air) * (1.0 - hot), 0.0, 0.95) * on;
+        // the one colour of its own the effect may carry is the phenomenon's (rule 12): an arc's blue-white light;
+        // on a white plate the core keeps some blue, or it reads as a hole
+        vec3 blue = mix(vec3(0.16, 0.42, 1.0), vec3(0.3, 0.55, 1.0), u_dark);
+        vec3 white = mix(vec3(0.55, 0.75, 1.0), vec3(0.94, 0.97, 1.0), u_dark);
+        vec3 col = mix(blue, white, clamp(hot * 1.2 + flash * 0.15, 0.0, 1.0));
+        a += (hash(p + fract(u_time)) - 0.5) / 255.0;                     // dither, so the falloff never bands
+        return vec4(col * a, a);
       }`,
   });
-  if (fx.on) { fx.set("u_a", left); fx.set("u_b", seam); }
 
   const loop = register(stage, (dt, now) => {
     const a = charge.step(dt), b = stepS(hand, dt);
@@ -82,10 +106,18 @@ function mount({ stage, svg, read, src }, reach) {
     low.move(0, 0, -g * 0.25); // the lower half gives a little too: they push apart, not one lifts off
     const n = g < 1.5 ? 0 : Math.min(3, 1 + Math.floor(g / 5));
     const hop = Math.floor(now / 111);
-    if (n === 0) { arcs.draw([]); hopDrawn = -1; } else if (hop !== hopDrawn || a || b) { arcs.draw(strike(hop, n, g)); hopDrawn = hop; }
+    const struck = n ? strike(hop, n, g) : [];
+    if (n === 0) { arcs.draw([]); hopDrawn = -1; } else if (hop !== hopDrawn || a || b) { arcs.draw(struck); hopDrawn = hop; }
     const shown = v.ink < 1 ? "drawing" : g < 0.3 ? "rest" : n ? `arc ×${n}` : "charged";
     if (shown !== label) { read.textContent = shown; label = shown; }
-    if (fx.on) { fx.set("u_gap", g * 1.25); fx.set("u_n", n); fx.set("u_t", [0, 1, 2].map((i) => 0.15 + 0.7 * rnd(hop, i * 7.3))); fx.draw(now); }
+    if (fx.on) {
+      if (n) fx.mask([low, high]); // the faces either side of the gap, where they are now: the arcs light them
+      const at = (i, k) => struck[i] ? struck[i][k] : [-1, 0];
+      const o = Array.from({ length: 21 }, (_, j) => { const i = Math.floor(j / 7); return struck[i] ? struck[i][j % 7 + 1][0] - struck[i][0][0] : 0; });
+      fx.set("u_x", [0, 1, 2].map((i) => at(i, 0)[0])); fx.set("u_y", [0, 1, 2].map((i) => at(i, 0)[1]));
+      for (let j = 0; j < 7; j++) fx.set(`u_o${j}`, o.slice(j * 3, j * 3 + 3));
+      fx.set("u_u", [ic.u[0] / Math.hypot(...ic.u), ic.u[1] / Math.hypot(...ic.u)]); fx.set("u_gap", g * 1.25); fx.set("u_k", [hop % 997, (now % 111) / 111]); fx.draw(now);
+    }
     return a || b || n > 0;
   });
 
@@ -111,7 +143,7 @@ isoform({
   icon: "bolt",
   variant: "rounded-left",
   means: "A bolt in two halves charges: they part, current arcs across, they snap shut. Hold the seam to keep it open.",
-  effect: "current arcing across the gap lights it, flickering each time the arcs re-strike",
+  effect: "blue-white current arcs across the gap, flashing at each re-strike and lighting the two broken faces either side",
   rules: [1, 3, 6, 11],
   range: [8, 14, 22],
   mount,
