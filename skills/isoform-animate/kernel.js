@@ -495,11 +495,28 @@ var IF = (() => {
         } else {
           const len = el.getTotalLength(), n = clamp(Math.ceil(len / 0.25), 48, 2400);
           const all = Array.from({ length: n }, (_, k) => { const p = el.getPointAtLength((k / n) * len); return [p.x, p.y]; });
-          /* keep a point only where the outline turns, so straight runs stay one segment and curves stay smooth */
-          poly = all.filter((p, k) => {
-            const a = all[(k + n - 1) % n], b = all[(k + 1) % n];
-            return Math.abs((p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0])) > 1e-3;
-          });
+          /* simplify to within 0.01 icon units of the true outline (Ramer-Douglas-Peucker): straight runs become one
+             segment, curves keep every point they need. (A per-point turn test dropped gentle curves, radius > ~16
+             units, and drew them as straight chords: the kinks on cut faces.) */
+          const rdp = (pts, eps) => {
+            const keep = new Uint8Array(pts.length);
+            keep[0] = keep[pts.length - 1] = 1;
+            const stack = [[0, pts.length - 1]];
+            while (stack.length) {
+              const [i0, i1] = stack.pop();
+              const [ax, ay] = pts[i0], [bx, by] = pts[i1], L = Math.hypot(bx - ax, by - ay) || 1;
+              let far = -1, fd = eps;
+              for (let k = i0 + 1; k < i1; k++) {
+                const dd = Math.abs((bx - ax) * (ay - pts[k][1]) - (ax - pts[k][0]) * (by - ay)) / L;
+                if (dd > fd) { fd = dd; far = k; }
+              }
+              if (far > 0) { keep[far] = 1; stack.push([i0, far], [far, i1]); }
+            }
+            return pts.filter((_, k) => keep[k]);
+          };
+          /* split the closed loop at its farthest point from the start, so neither half starts and ends together */
+          const far = all.reduce((m, p, k) => (Math.hypot(p[0] - all[0][0], p[1] - all[0][1]) > Math.hypot(all[m][0] - all[0][0], all[m][1] - all[0][1]) ? k : m), 0);
+          poly = [...rdp(all.slice(0, far + 1), 0.01), ...rdp([...all.slice(far), all[0]], 0.01).slice(1, -1)];
         }
         const [ix, iy] = toIcon(at[0], at[1]);
         const dir = axis === "up" ? [0, -1] : axis === "v" ? ax.v : ax.u;

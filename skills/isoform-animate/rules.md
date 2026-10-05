@@ -66,7 +66,7 @@ A story moves on beats eased in-out (`(.65, 0, .35, 1)`), 300ms–2s each, a who
 
 ## 09 · faces: move them, never redraw them
 
-The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes. The kernel draws every part Hairline's way, a bright silhouette and dim inner edges, so nothing reads first by accident; use the `rounded-*` variants, which round every corner.
+The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes. The kernel draws every part Hairline's way, a bright silhouette and lighter inner edges, so nothing reads first by accident; the inner edges stay clearly drawn, as in the Isocons set, a step down from the outline and never close to the ground; use the `rounded-*` variants, which round every corner.
 
 - **Keep it:** `part.move(a, b, c)` moves along `u`, `v` and up as `IF.icon` measured them; `icon.cut(i, point, axis)` with axis `"u"`, `"v"` or `"up"`; `part.tilt` stays under 15°, because a flat drawing turned further stops being a solid.
 - **Sent back when:** the figure edits a face's path, draws a face freehand off the axes, scales a part, or turns one far enough to read as a flat shape.

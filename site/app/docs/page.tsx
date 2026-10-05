@@ -40,7 +40,7 @@ const PARAMS = [
 const TOKENS = [
   ["--iso-hi", "#229eff", "the acting part and its traces: the one accent"],
   ["--iso-edge", "#8e8e97", "outlines and traces"],
-  ["--iso-lo", "#d7d7dc", "inner edges, the quietest line"],
+  ["--iso-lo", "#a9a9b1", "inner edges: a step down from the outline, still clearly drawn"],
   ["--iso-face", "#ffffff", "face fill, and solid traces"],
   ["--iso-plate", "#ffffff", "the stage behind the drawing"],
   ["--iso-stroke", "0.9", "line width in screen px, for every line"],

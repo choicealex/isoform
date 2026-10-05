@@ -17,7 +17,7 @@
   --iso-plate: #0a0a0a;
   --iso-face: #0a0a0a;
   --iso-edge: #a1a1a1;
-  --iso-lo: #2e2e2e;
+  --iso-lo: #5a5a5f;
   --iso-hi: #4da3ff;
   --iso-stroke: 0.9;
 }
@@ -36,7 +36,7 @@
   --iso-plate: #fafafa;
   --iso-face: #ffffff;
   --iso-edge: #8e8e97;
-  --iso-lo: #d7d7dc;
+  --iso-lo: #a9a9b1;
   --iso-hi: #229eff;
 }
 
@@ -135,12 +135,12 @@ input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent);
    (labels, buttons, the figure) follows */
 .tile-inv {
   --ground: #f5f5f4; --surface: #ffffff; --ink: #171717; --muted: #6f6f6f; --faint: #a3a3a3; --rule: #e2e2e2;
-  --iso-plate: #f5f5f4; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #d7d7dc; --iso-hi: #229eff;
+  --iso-plate: #f5f5f4; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #a9a9b1; --iso-hi: #229eff;
   background: var(--ground); color: var(--ink);
 }
 :root[data-theme="light"] .tile-inv {
   --ground: #0e0e0e; --surface: #141414; --ink: #ededed; --muted: #8f8f8f; --faint: #5e5e5e; --rule: #262626;
-  --iso-plate: #0e0e0e; --iso-face: #0e0e0e; --iso-edge: #a1a1a1; --iso-lo: #2e2e2e; --iso-hi: #4da3ff;
+  --iso-plate: #0e0e0e; --iso-face: #0e0e0e; --iso-edge: #a1a1a1; --iso-lo: #5a5a5f; --iso-hi: #4da3ff;
 }
 
 /* an Isocons view inlined as drawn, restyled to the theme's line */
