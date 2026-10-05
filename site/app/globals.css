@@ -142,3 +142,8 @@ input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent);
   --ground: #0e0e0e; --surface: #141414; --ink: #ededed; --muted: #8f8f8f; --faint: #5e5e5e; --rule: #262626;
   --iso-plate: #0e0e0e; --iso-face: #0e0e0e; --iso-edge: #a1a1a1; --iso-lo: #2e2e2e; --iso-hi: #4da3ff;
 }
+
+/* an Isocons view inlined as drawn, restyled to the theme's line */
+.iso-view path, .iso-view circle, .iso-view ellipse, .iso-view rect {
+  fill: var(--iso-face); stroke: var(--iso-edge); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round;
+}

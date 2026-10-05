@@ -6,15 +6,12 @@ import { CopyButton } from "@/components/Copy";
 import { Figure, type FigureControls } from "@/components/Figure";
 import { EXAMPLE_NOTE, FIGURES, figureByName } from "@/lib/iso";
 import { LABEL, figNo } from "@/lib/spec";
+import { Axes, Lattice } from "./Icon";
 import { Hairline } from "./Parts";
 
-/* the figure's intensity scale as a type specimen's metric lines: intensity 1, 0.5, 0, each tagged with the value the
-   figure takes there, in its own unit (range[2], [1], [0]) */
-const METRICS: [string, number, number][] = [["Intensity 1", 0.2, 2], ["Intensity 0.5", 0.5, 1], ["Intensity 0", 0.84, 0]];
-
 /**
- * The inspector (after Inter's glyph view and vercel.com/font's Solid / Anchors): one figure large on labelled
- * metric lines with Solid / Parts, its controls and code; beside it every figure as a ruled cell, the selected one
+ * The inspector (after Inter's glyph view): one figure large on its isometric construction grid with Solid / Parts,
+ * its controls and code; beside it every figure as a ruled cell, the selected one
  * inverted. `linked`: cells are links to /figures/<name> (the figure pages); otherwise they switch in place.
  */
 export function Inspector({ name: start, linked = false }: { name: string; linked?: boolean }) {
@@ -67,17 +64,14 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
             </button>
           ))}
         </div>
-        <div className="relative px-6 py-10 sm:px-14">
-          {METRICS.map(([k, y, r]) => (
-            <div key={k} className="pointer-events-none absolute inset-x-0 flex items-center" style={{ top: `${y * 100}%` }}>
-              <span className={`${LABEL} absolute -top-5 left-3`}>{k}</span>
-              <span className="w-full border-t border-dashed border-rule" />
-              <span className="absolute right-0 bg-tag px-1.5 font-mono text-[11px] text-tag-ink">
-                {f.range[r]}
-              </span>
-            </div>
-          ))}
-          <div className={tab === "parts" ? "[&_.iso-stage_.icon_*]:!stroke-[var(--iso-hi)] [&_.iso-stage_.icon_*]:!fill-[color-mix(in_srgb,var(--iso-hi)_7%,transparent)]" : ""}>
+        {/* the figure on its isometric construction grid, labelled at the corners like a plate */}
+        <div className="relative px-6 py-14 sm:px-16">
+          <Lattice id="inspector-lattice" />
+          <p className={`${LABEL} absolute top-4 left-5 normal-case`}>{figNo(f.name)}</p>
+          <p className={`${LABEL} absolute top-4 right-5`}>{f.icon} · {f.variant}</p>
+          <p className={`${LABEL} absolute right-5 bottom-4 normal-case`}>intensity {intensity.toFixed(2)} → {Math.round((f.range[0] + (intensity <= 0.5 ? (f.range[1] - f.range[0]) * intensity * 2 : (f.range[1] - f.range[0]) + (f.range[2] - f.range[1]) * (intensity - 0.5) * 2)) * 100) / 100}</p>
+          <Axes className="bottom-2 left-3" />
+          <div className={`relative ${tab === "parts" ? "[&_.iso-stage_.icon_*]:!stroke-[var(--iso-hi)] [&_.iso-stage_.icon_*]:!fill-[color-mix(in_srgb,var(--iso-hi)_7%,transparent)]" : ""}`}>
             <Figure key={`${f.name}-${tab}-${gl}`} ref={fig} name={f.name} intensity={intensity} speed={speed} gl={gl} t={tab === "parts" ? 0 : undefined} className="w-full" />
           </div>
         </div>

@@ -16,15 +16,17 @@ type Props = {
   quiet?: boolean;
   className?: string;
   ref?: Ref<FigureControls>;
+  /** called with the stage once the figure is mounted (its story length is on stage.dataset.storyTotal) */
+  onStage?: (stage: HTMLElement) => void;
 };
 
 /** One live figure. The skill's engine draws it; this only gives it a stage and passes the controls on. */
-export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet, className, ref }: Props) {
+export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet, className, ref, onStage }: Props) {
   const stage = useRef<HTMLDivElement>(null);
   const handle = useRef<IsoHandle | null>(null);
   const meta = figureByName(name);
-  const live = useRef({ intensity, speed });
-  live.current = { intensity, speed };
+  const live = useRef({ intensity, speed, onStage });
+  live.current = { intensity, speed, onStage };
 
   /* a new figure, effect or held moment is a new mount, on a stage of its own: a mount that resolves late (React
      mounts twice in development) clears only its own stage, never the live one */
@@ -40,7 +42,10 @@ export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet,
         if (gone) return;
         const h = await host.mount(el, name, { src: meta.svg, intensity: live.current.intensity, speed: live.current.speed, gl, t });
         if (gone) h.destroy();
-        else handle.current = h;
+        else {
+          handle.current = h;
+          live.current.onStage?.(el);
+        }
       })
       .catch((err) => { if (!gone) console.error(err); });
     return () => {

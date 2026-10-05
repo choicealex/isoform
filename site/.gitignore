@@ -44,5 +44,6 @@ next-env.d.ts
 /public/iso/kernel.js
 /public/iso/figures/
 /public/iso/html/
+/public/iso/icons/
 /lib/figures.json
 /lib/kernel-index.txt

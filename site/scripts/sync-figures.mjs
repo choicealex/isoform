@@ -5,6 +5,7 @@
  * public/iso/kernel.js          the engine, as the skill ships it
  * public/iso/figures/<name>.js  each figure, as written by the skill
  * public/iso/html/isoform-<name>.html  each figure's standalone page (build.mjs), for copy and download
+ * public/iso/icons/<id>/<view>.svg    the icon's six Isocons views, as drawn
  * lib/figures.json              what the pages need to list and mount them, icon markup included
  * lib/kernel-index.txt          the engine's API index, as written at the top of kernel.js
  */
@@ -36,6 +37,9 @@ for (const f of FIGURES) {
   if (!name || !id) throw new Error(`${f.file}: no isoform({ name, icon }) declaration`);
   const icon = await iconOf(id, variant ?? "rounded-left");
   writeFileSync(out(`public/iso/figures/${name}.js`), src);
+  /* all six Isocons views of the icon (sharp and rounded, left, top, right), for the specimen's views row */
+  const views = ["sharp-left", "sharp-top", "sharp-right", "rounded-left", "rounded-top", "rounded-right"];
+  for (const v of views) writeFileSync(out(`public/iso/icons/${id}/${v}.svg`), (await iconOf(id, v)).svg);
   writeFileSync(out(`public/iso/html/isoform-${name}.html`), assemble(src, icon));
   manifest.push({
     name, icon: id, variant: icon.variant, title: icon.title, category: icon.category,

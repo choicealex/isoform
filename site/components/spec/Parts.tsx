@@ -5,8 +5,7 @@
  * key caps, mono labels. After vercel.com/font (ruled grid, crosshairs), Displaay (bracket frames, slider row),
  * Commit Mono (key caps). Colours come from the theme tokens, so they work dark and light.
  */
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Figure } from "@/components/Figure";
+import type { ReactNode } from "react";
 
 export function Cross({ className = "" }: { className?: string }) {
   return (
@@ -51,32 +50,4 @@ export function Hairline({ label, value, min = 0, max = 1, step = 0.01, show, on
 
 export function Key({ children }: { children: ReactNode }) {
   return <kbd className="inline-grid h-[20px] min-w-[20px] place-items-center rounded-[4px] border border-rule px-1 font-mono text-[11px] text-muted">{children}</kbd>;
-}
-
-/** A live loupe: the same figure, magnified, clipped to a circle over the point that matters. */
-export function Loupe({ name, at, zoom = 2.6, size = 112 }: { name: string; at: [number, number]; zoom?: number; size?: number }) {
-  const box = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(0);
-  useEffect(() => {
-    const el = box.current?.parentElement;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setW(el.clientWidth));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const W = w * zoom, H = W * 0.8;
-  return (
-    <div
-      ref={box}
-      aria-hidden="true"
-      className="pointer-events-none absolute overflow-hidden rounded-full border border-muted bg-[var(--iso-plate)] shadow-[0_0_0_6px_var(--ground)]"
-      style={{ width: size, height: size, left: `calc(${at[0] * 100}% - ${size / 2}px)`, top: `calc(${at[1] * 100}% - ${size / 2}px)` }}
-    >
-      {w > 0 && (
-        <div className="absolute" style={{ width: W, height: H, left: size / 2 - at[0] * W, top: size / 2 - at[1] * H }}>
-          <Figure name={name} quiet className="w-full" />
-        </div>
-      )}
-    </div>
-  );
 }
