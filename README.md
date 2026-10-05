@@ -2,7 +2,7 @@
 
 Isocons icons, taken apart, that answer the pointer the way the real object would.
 
-Isoform is a skill for coding agents. Name an [Isocons](https://isocons.app) icon (or an idea) and it splits the icon along its own edges into parts that move under the pointer, adds an optional WebGL effect showing what the real object physically does (water sloshes, a plume burns, current arcs across a gap), checks the result against twelve rules and in a browser, and hands it over as one HTML file with no dependencies.
+Isoform is a skill for coding agents. Name an [Isocons](https://isocons.app) icon (or an idea) and it splits the icon along its own edges into parts that answer the pointer coming near, draws what the real object would do in the same hairline (a water line, arcs, a flame's edge), and, when the reader turns it on, adds a WebGL effect for the material under those lines (the water, the light, the heat). Both versions look alike. It checks the result against twelve rules and in a browser, and hands it over as one HTML file with no dependencies.
 
 ## Install
 
@@ -30,11 +30,11 @@ scripts/                 extract-isocons.mjs: how data/ was made from the Isocon
 
 ## The examples
 
-| Figure | The pointer | The effect |
-| --- | --- | --- |
-| `water-bottle` | height unscrews the cap; a sweep sloshes the water | water inside, level along the icon's axes, ringing and settling |
-| `bolt` | height pries the bolt apart at its step | arcs across the gap, re-striking as they flicker |
-| `rocket` | height is the throttle; lift-off past a third | a plume with shock diamonds, dust thrown along the ground |
+| Figure | The pointer | In line | With the effect on |
+| --- | --- | --- | --- |
+| `water-bottle` | its side rocks the bottle a few degrees | the water line stays level, sloshes, settles | the body of water under it |
+| `bolt` | nearness parts the halves at the seam | one to three arcs, re-struck | the current's blue-white light |
+| `rocket` | nearness lights the engine; close in it lifts off | the flame's edge, core and shock diamonds; dashed dust | the flame's heat, the dust cloud |
 
 Build one: `node skills/isoform-animate/build.mjs skills/isoform-animate/examples/bolt.js`, then open `isoform-bolt.html`.
 

@@ -1,6 +1,8 @@
 # The twelve rules
 
-An Isoform figure is an Isocons icon taken apart and made to answer the pointer, with, when it earns one, an effect showing what the real object would do. Each rule says what it means, how the kernel keeps it, and what gets a figure sent back.
+An Isoform figure is an Isocons icon taken apart and made to answer the pointer, the way the real object would. It is drawn in one hairline: the icon's faces, and traces for what happens (a water line, an arc, a flame's edge). A WebGL effect may add the material under those lines, water, light, heat, but only when the reader turns it on, and the figure looks the same either way, only flatter.
+
+Above all twelve: **alive without moving much.** The answer is a few units, not a leap; it settles into a designed rest; the reader notices late that the figure has been listening. Each rule says what it means, how the kernel keeps it, and what gets a figure sent back.
 
 ## 01 · hit: test the rest shape
 
@@ -20,14 +22,14 @@ When several parts answer, the one nearest the pointer moves first and the rest 
 
 Every movement is clamped, and at the slider's far end the figure is still a composition inside the frame. That includes the effect.
 
-- **Keep it:** `clamp` every lift, gap and tilt; place the icon (`icon(svg, src, {cx, cy, h})`) so the most extreme pose, and the effect's extent, fit the 400 × 320 stage at intensity 1.
-- **Sent back when:** at intensity 1 a part or the effect leaves the frame or a part passes through another.
+- **Keep it:** `clamp` every lift, gap and tilt; place the icon (`icon(svg, src, {cx, cy, h})`) so the most extreme pose, and the effect's extent, fit the 400 × 320 stage at intensity 1. At the default intensity, keep moves to a few units (a lift of 6–14, a tilt of 3–6°); the slider's far end is where the big answer lives. Prefer nearness to a part's rest position (`1 - smooth(near, far, distance)`) over mapping the pointer's x or y to a value: the object answers the hand coming close, it is not a slider.
+- **Sent back when:** at intensity 1 a part or the effect leaves the frame or a part passes through another; at the default the figure leaps; the gesture reads as a control ("raise the pointer to…") instead of an answer.
 
 ## 04 · accent: the stroke is the only highlight
 
 On the drawing, emphasis is the stroke changing from the line colour to the bright one, nothing else. One place is bright at a time.
 
-- **Keep it:** `part.hi(on)` and `part.dim(on)` are the whole palette. At rest one part is bright, where the eye should start; when the pointer chooses, the bright moves to what it chose.
+- **Keep it:** `part.hi(on)` and `part.dim(on)` are the whole palette; a trace takes `tone: "hi"` when it is what answers. At rest one part is bright, where the eye should start; when the pointer chooses, the bright moves to what it chose (a water line, an arc).
 - **Sent back when:** the figure sets a colour, fill, opacity, filter or stroke width on the drawing; two unrelated places are bright at once.
 
 ## 05 · rest: the icon, as drawn
@@ -60,7 +62,7 @@ A discrete choice gets a 700ms ease-out on `(.32, .72, 0, 1)`; a continuous inpu
 
 ## 09 · faces: move them, never redraw them
 
-The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes.
+The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes. The kernel draws every part Hairline's way, a bright silhouette and dim inner edges, so nothing reads first by accident; use the `rounded-*` variants, which round every corner.
 
 - **Keep it:** `part.move(a, b, c)` moves along `u`, `v` and up as `IF.icon` measured them; `icon.cut(i, point, axis)` with axis `"u"`, `"v"` or `"up"`; `part.tilt` stays under 15°, because a flat drawing turned further stops being a solid.
 - **Sent back when:** the figure edits a face's path, draws a face freehand off the axes, scales a part, or turns one far enough to read as a flat shape.
@@ -72,18 +74,20 @@ Identity is geometry. Names go to the read-out in the corner, in a few character
 - **Keep it:** write `read.textContent` and nothing else that holds text.
 - **Sent back when:** the stage holds text, digits, arrows or logos; the read-out is a sentence.
 
-## 11 · physics: the effect is what the object does
+## 11 · physics: draw what the object does, in line first
 
-The effect shows what this object would do if it were real and you did this to it: water sloshes, a rocket burns, current arcs across a gap, a kettle steams, a bulb heats. It is never a generic glow, sparkle, confetti, or particles that could sit on any icon.
+What happens shows what this object would do if it were real and you did this to it: water sloshes, a rocket burns, current arcs across a gap, a kettle steams. It is never a generic glow, sparkle, confetti, or particles that could sit on any icon.
 
-- **Keep it:** declare the effect in one plain sentence (`effect:` in the declaration) naming the physical thing. The effect starts and stops with the gesture or with the state it belongs to, and is drawn where it would really be: under the faces for what happens in the open (`layer: "under"`), masked to the parts it fills for what happens inside (`layer: "over"`, `mask([parts])`). The figure still works and still makes sense with effects off (`fx.on` false).
-- **Sent back when:** the effect would make as much sense on a different icon; it is decoration rather than consequence; it runs at rest without the object being in a running state; the figure breaks or means nothing with effects off.
+It is drawn twice, and the two look alike. First, always, as **traces** in the figure's hairline: the water's surface, the arcs, the flame's edge, dust as a dashed run along the ground. Then, only when the reader turns effects on, as a **WebGL effect** that adds the material under those same lines: the body of the water, the light of the current, the heat of the flame. The effect never draws its own edges and never replaces a trace.
+
+- **Keep it:** `trace(svg, …)` or `part.trace({clip: true})` for the line, driven by the same numbers as the effect; `gl(stage, …)` for the material, which returns `on: false` unless the reader asked. Declare the effect in one sentence (`effect:`) naming the physical thing. It starts and stops with the gesture or the state it belongs to: under the faces for the open (`layer: "under"`), masked inside parts for what fills them (`layer: "over"`, `mask([parts])`).
+- **Sent back when:** the phenomenon exists only in the effect (no trace); the effect draws edges the traces should; the two versions do not look alike; the effect would make as much sense on another icon; it runs at rest without the object being in a running state.
 
 ## 12 · palette: the effect borrows the icon's colours
 
 The effect is drawn in the palette's colours (`u_line`, `u_hi`, `u_face`, `u_plate`), so it sits in both themes. The single exception is the one colour the phenomenon really has, flame, ember, molten metal, named in a comment where it is used.
 
-- **Keep it:** mix from the palette uniforms; check both themes; on a white plate a white core reads as a hole, so it keeps some of its colour (`u_dark`).
+- **Keep it:** mix from the palette uniforms; check both themes; on a white plate a white core reads as a hole, so it keeps some of its colour (`u_dark`). Light is never the palette's highlight: `u_hi` is near black on a white plate, and a glow in it reads as soot; give light its physical colour (an arc's blue-white, a flame's orange).
 - **Sent back when:** the effect carries colours of its own beyond that one; it vanishes or glares in one theme.
 
 ## The frame

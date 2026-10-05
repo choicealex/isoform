@@ -41,7 +41,7 @@ const q = (o) => { const s = new URLSearchParams(Object.entries(o).filter(([, v]
 const SHOTS = [
   ["rest", {}], ["answer", { at }], ["small", { w: 240 }], ["small-answer", { w: 240, at }],
   ["low", { intensity: 0, at: lo }], ["high", { intensity: 1, at: hi }],
-  ["dark", { theme: "dark", at }], ["light", { theme: "light", at }], ["no-effect", { gl: 0, at }],
+  ["dark", { theme: "dark", at }], ["light", { theme: "light", at }], ["effect", { gl: 1, at }],
 ];
 
 /* playwright-core, once, in a cache folder */

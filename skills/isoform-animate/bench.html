@@ -6,23 +6,27 @@
 <title>Isoform figure</title>
 <link rel="icon" href="data:,">
 <style>
+  /* ink: the default, neutral like a technical drawing. isocons: the set's own blue, by ?palette=isocons */
   :root {
     color-scheme: light;
-    --ground: #ffffff; --ink: #1d1d24; --muted: #75758c; --rule: #e6e9ef;
-    --iso-plate: #ffffff; --iso-face: #f5fbff; --iso-line: #229eff; --iso-dim: #a9d8ff; --iso-hi: #0050d8; --iso-stroke: 1;
+    --ground: #ffffff; --ink: #18181b; --muted: #71717a; --rule: #e4e4e7;
+    --iso-plate: #ffffff; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #d7d7dc; --iso-hi: #18181b; --iso-stroke: 0.9;
   }
+  :root[data-palette="isocons"] { --iso-face: #f5fbff; --iso-edge: #229eff; --iso-lo: #b4dcff; --iso-hi: #0050d8; }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --ground: #0c0c12; --ink: #e4e4ec; --muted: #75758c; --rule: #23232e;
-      --iso-plate: #0c0c12; --iso-face: #191924; --iso-line: #585869; --iso-dim: #34343f; --iso-hi: #4da3ff;
+      --ground: #0a0a0c; --ink: #ececef; --muted: #8b8b94; --rule: #232327;
+      --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #f4f4f5;
     }
+    :root[data-palette="isocons"]:not([data-theme="light"]) { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --ground: #0c0c12; --ink: #e4e4ec; --muted: #75758c; --rule: #23232e;
-    --iso-plate: #0c0c12; --iso-face: #191924; --iso-line: #585869; --iso-dim: #34343f; --iso-hi: #4da3ff;
+    --ground: #0a0a0c; --ink: #ececef; --muted: #8b8b94; --rule: #232327;
+    --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #f4f4f5;
   }
+  :root[data-theme="dark"][data-palette="isocons"] { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
@@ -33,14 +37,22 @@
   .plate { position: relative; aspect-ratio: 5 / 4; border: 1px solid var(--rule); border-radius: 24px; overflow: hidden; background: var(--iso-plate); touch-action: none; }
   .plate svg, .plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .plate canvas { pointer-events: none; }
+  /* faces: filled, dim inner edges. .sil: the copy under them whose outer half is the silhouette */
   .icon path, .icon circle, .icon ellipse, .icon rect, .icon polygon, .icon line {
-    fill: var(--iso-face); stroke: var(--iso-line); stroke-width: var(--iso-stroke); stroke-linejoin: round;
+    fill: var(--iso-face); stroke: var(--iso-lo); stroke-width: var(--iso-stroke); stroke-linejoin: round; stroke-linecap: round;
     vector-effect: non-scaling-stroke; transition: stroke 0.26s ease;
   }
-  .icon .dim, .icon .dim * { stroke: var(--iso-dim); }
-  .icon .hi, .icon .hi * { stroke: var(--iso-hi); }
+  /* three widths: the face on top covers the inner one and a half, leaving one full stroke of silhouette outside */
+  .icon .sil > * { stroke: var(--iso-edge); stroke-width: calc(var(--iso-stroke) * 3); }
+  .icon .hi > .sil > * { stroke: var(--iso-hi); }
+  .icon .dim > .sil > * { stroke: var(--iso-lo); }
   .icon .ghost { visibility: hidden; }
-  .tag, .label, output, button { font: 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.02em; text-transform: uppercase; }
+  /* traces: the phenomenon in the figure's own line, above the faces */
+  #stage path.trace { fill: none; stroke: var(--iso-edge); stroke-width: var(--iso-stroke); stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  #stage path.trace.hi { stroke: var(--iso-hi); }
+  #stage path.trace.lo { stroke: var(--iso-lo); }
+  #stage path.trace.dash { stroke-dasharray: 2 3; }
+  .tag, .label, output, button { font: 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.02em; }
   .tag { position: absolute; top: 14px; z-index: 1; color: var(--muted); pointer-events: none; }
   #name { left: 18px; }
   #read { right: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -76,7 +88,7 @@
     <label class="label" for="intensity">Intensity</label>
     <input id="intensity" type="range" min="0" max="1" step="0.01" value="0.5">
     <output id="value" for="intensity">0.50</output>
-    <button id="fx" type="button" aria-pressed="true">Effect</button>
+    <button id="fx" type="button" aria-pressed="false">Effect</button>
     <button id="theme" type="button">Theme</button>
   </div>
   <p id="means"></p>
@@ -104,7 +116,10 @@
   if (q.get("w")) document.querySelector("main").style.maxWidth = `${parseInt(q.get("w"), 10)}px`;
   const theme = q.get("theme");
   if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
-  if (q.get("gl") === "0") { stage.dataset.gl = "off"; $("fx").setAttribute("aria-pressed", "false"); }
+  if (q.get("palette") === "isocons") document.documentElement.dataset.palette = "isocons";
+  /* the effect layer is opt-in: off unless ?gl=1 or the reader presses Effect */
+  stage.dataset.gl = q.get("gl") === "1" ? "on" : "off";
+  $("fx").setAttribute("aria-pressed", String(stage.dataset.gl === "on"));
   const i0 = q.has("intensity") ? Math.min(1, Math.max(0, parseFloat(q.get("intensity")) || 0)) : 0.5;
   slider.value = i0;
 

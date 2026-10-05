@@ -17,7 +17,7 @@
  *   readout   it writes read.textContent
  *   handle    mount returns { set, destroy }
  *   declare   the file ends with isoform({ name, icon, variant, means, rules, range, mount }), effect when it uses gl
- *   physics   the effect sentence names a physical thing, not a decoration (rule 11)
+ *   physics   the effect sentence names a physical thing, not a decoration; an effect has traces under it (rule 11)
  *   length    at most 180 lines
  */
 import { spawnSync } from "node:child_process";
@@ -121,6 +121,7 @@ export function check(html) {
     say("physics", `"${effect}" is a decoration: name what the real object does (rule 11)`);
   }
   if (usesGl && !/\.on\b/.test(js)) say("physics", "the figure never reads fx.on: it must work with effects off (rule 11)");
+  if (usesGl && !/\btrace\s*\(/.test(js)) say("physics", "the effect has no trace: draw what happens in hairline first, the effect only adds material under it (rule 11)");
   if (glsl && /vec3\s*\(\s*(0?\.\d+|1\.0|1)\s*,/.test(glsl) && !/rule 12|one colour|physical colour/i.test(figure)) {
     say("physics", "the effect carries a colour of its own without saying why: palette uniforms, or one physical colour with a comment (rule 12)");
   }

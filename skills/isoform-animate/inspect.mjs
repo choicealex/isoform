@@ -14,7 +14,7 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { iconOf } from "./build.mjs";
 
-const [id, variant = "sharp-left"] = process.argv.slice(2);
+const [id, variant = "rounded-left"] = process.argv.slice(2);
 if (!id) { console.error("usage: node inspect.mjs <icon-id> [variant]"); process.exit(2); }
 const icon = await iconOf(id, variant);
 const vb = /viewBox="([^"]+)"/.exec(icon.svg)[1].split(/[\s,]+/).map(Number);

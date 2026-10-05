@@ -31,7 +31,7 @@ function local() {
 }
 
 /** The icon's markup and title. */
-export async function iconOf(id, variant = "sharp-left") {
+export async function iconOf(id, variant = "rounded-left") {
   const dir = local();
   let index, svg;
   if (dir) {
@@ -63,7 +63,7 @@ export async function build(src, out) {
   const figure = readFileSync(src, "utf8");
   const d = declared(figure);
   if (!d.icon) throw new Error(`${src}: the isoform({ … }) call names no icon`);
-  const icon = await iconOf(d.icon, d.variant ?? "sharp-left");
+  const icon = await iconOf(d.icon, d.variant ?? "rounded-left");
   const file = resolve(out ?? `isoform-${d.name ?? "figure"}.html`);
   writeFileSync(file, assemble(figure, icon));
   return file;

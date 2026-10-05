@@ -28,7 +28,9 @@
  *   part.rest                          {cx, cy, x0, y0, x1, y1}: its box at rest, in stage units, measured once
  *   part.move(a, b, c)                 places the part at that offset from rest; the same offset again does nothing
  *   part.tilt(deg, [px, py])           a small screen-plane turn about a stage point, for a wobble or a hinge; keep it under 15°
- *   part.hi(on)  part.dim(on)          the bright stroke, the dim stroke: the whole palette
+ *   part.hi(on)  part.dim(on)          the part's silhouette in the bright stroke, or the dim one: the whole palette.
+ *                                      Every part (and every run of faces left out of parts) is drawn Hairline's way:
+ *                                      a bright silhouette, dim inner edges. Make every part in mount, before the first frame
  *   icon.hit(point)                    the part whose REST shape holds the stage point, topmost first, or null (rule 01)
  *   icon.near(point)                   {part, d}: the part whose rest centre is nearest, and how far, in stage units
  *   icon.iso(a, b, c)                  [dx, dy]: the screen offset of a world move, for placing an effect
@@ -46,7 +48,14 @@
  *                                      gives {wake, unregister}. The loop sleeps offscreen and when every tick returns false
  *   pointer(stage, {move, down, leave}) points in stage units; returns its disposer
  *   disposer()                         {add, on, dispose}: collects tear-down, so destroy is bag.dispose
- * The effect layer: WebGL, opt-in, one per figure at most
+ * Traces: what happens, drawn in the figure's own hairline. Every figure draws its phenomenon this way first
+ *   trace(svg, {tone, dash, under})    a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
+ *                                      under puts it behind the icon (dust on the ground, a wake)
+ *   part.trace({tone, dash, clip})     a hairline inside a part: it moves with the part; clip keeps it inside its faces
+ *   t.draw(lines)                      sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it
+ *   t.tone(tone)                       changes its tone
+ * The effect layer: WebGL, opt-in (the reader turns it on; off by default), one per figure at most. It adds the
+ * material under the traces, never replaces them: the figure looks the same with it off, only flatter
  *   gl(stage, {layer, frag, uniforms}) layer "under" (behind the faces: plumes, dust, arcs in the open) or "over" (on top,
  *                                      masked to parts: liquid behind glass, heat in metal); uniforms {name: "float"|"vec2"|"vec3"}
  *                                      returns {on, set(name, value), mask(parts), draw(now), dispose}
@@ -271,6 +280,34 @@ var IF = (() => {
     const s0 = 220 / vb[3];
     const pt = (x, y) => toStage((x - 200) / s0 + vb[0] + vb[2] / 2, (y - 166) / s0 + vb[1] + vb[3] / 2);
     const parts = [];
+    /*
+     * Line weight, Hairline's way: every solid gets a bright silhouette and dim inner edges. A copy of a group's faces
+     * is painted under them with a triple-width stroke in the edge colour; the faces on top cover its inner part and
+     * every shared edge, so only the outline of the whole group shows, outside, at one stroke's width.
+     */
+    const outline = (grp, own) => {
+      const sil = mk("g", { class: "sil", "aria-hidden": "true" });
+      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); }
+      grp.insertBefore(sil, grp.firstChild);
+    };
+    /* faces left out of every part are outlined in runs, keeping the paint order: once, after mount has made its parts */
+    let finished = false;
+    queueMicrotask(() => {
+      finished = true;
+      let run = [];
+      const flush = () => {
+        if (!run.length) return;
+        const sg = mk("g", { class: "still" });
+        run[0].before(sg);
+        for (const p of run) sg.appendChild(p);
+        outline(sg, run);
+        run = [];
+      };
+      for (const el of [...g.children]) {
+        if (faces.has(el)) run.push(el); else if (!el.classList.contains("ghost")) flush();
+      }
+      flush();
+    });
     const ghostOf = new Map();
     /* every face, cut pieces included; paths[i] keeps meaning the i-th face of the icon (after a cut, its first piece) */
     const faces = new Set(paths);
@@ -292,7 +329,9 @@ var IF = (() => {
         /* the part paints where its last face did, unless it says first: a part on top keeps covering what it covered */
         const anchor = o.paint === "first" ? own[0] : own[own.length - 1];
         anchor.before(pg);
+        if (finished) throw new Error(`part ${name}: make every part in mount, before the first frame`);
         for (const p of own) pg.appendChild(p);
+        outline(pg, own);
         let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         for (const p of own) {
           const b = ghostOf.get(p).getBBox();
@@ -313,8 +352,20 @@ var IF = (() => {
             turn = Math.abs(deg) < 0.01 ? "" : ` rotate(${r2(deg)} ${r2(ix)} ${r2(iy)})`;
             apply(); return part;
           },
-          hi(on) { for (const p of own) p.classList.toggle("hi", !!on); return part; },
-          dim(on) { for (const p of own) p.classList.toggle("dim", !!on); return part; },
+          /* a hairline that belongs to the part: it moves with it, and with {clip: true} stays inside its faces */
+          trace(o = {}) {
+            const t = makeTrace(pg, o);
+            if (o.clip) {
+              const defs = svg.querySelector("defs") ?? mk("defs", {}, svg);
+              const id = `if-clip-${name}-${Math.random().toString(36).slice(2, 7)}`;
+              const cp = mk("clipPath", { id }, defs);
+              for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); cp.appendChild(c); }
+              t.el.setAttribute("clip-path", `url(#${id})`);
+            }
+            return t;
+          },
+          hi(on) { pg.classList.toggle("hi", !!on); return part; },
+          dim(on) { pg.classList.toggle("dim", !!on); return part; },
         };
         parts.push(part);
         return part;
@@ -348,8 +399,13 @@ var IF = (() => {
           poly = [];
           for (const [x0, y0] of segments(d)) poly.push([x0, y0]);
         } else {
-          const len = el.getTotalLength(), n = clamp(Math.ceil(len / 0.75), 24, 600);
-          poly = Array.from({ length: n }, (_, k) => { const p = el.getPointAtLength((k / n) * len); return [p.x, p.y]; });
+          const len = el.getTotalLength(), n = clamp(Math.ceil(len / 0.25), 48, 2400);
+          const all = Array.from({ length: n }, (_, k) => { const p = el.getPointAtLength((k / n) * len); return [p.x, p.y]; });
+          /* keep a point only where the outline turns, so straight runs stay one segment and curves stay smooth */
+          poly = all.filter((p, k) => {
+            const a = all[(k + n - 1) % n], b = all[(k + 1) % n];
+            return Math.abs((p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0])) > 1e-3;
+          });
         }
         const [ix, iy] = toIcon(at[0], at[1]);
         const dir = axis === "up" ? [0, -1] : axis === "v" ? ax.v : ax.u;
@@ -421,6 +477,45 @@ var IF = (() => {
 
   function after(a, b) { b.g.after(a.g); }
 
+  /*
+   * A trace: one hairline path in the palette, set from stage points, for drawing what happens (a water line, an arc,
+   * a flame's edge) in the figure's own line. lines is a polyline [[x, y], …] or a list of them; [] hides it.
+   */
+  function makeTrace(parent, o = {}) {
+    const el = mk("path", { class: `trace ${o.tone ?? "edge"}${o.dash ? " dash" : ""}`, d: "M0 0" }, parent);
+    el.style.display = "none";
+    let last = "";
+    return {
+      el,
+      draw(lines) {
+        const list = !lines?.length ? [] : Array.isArray(lines[0][0]) ? lines : [lines];
+        /* points arrive in stage units; a trace inside a moving part is drawn in that part's own space */
+        let m = null;
+        if (parent !== parent.ownerSVGElement && parent.ownerSVGElement) {
+          const svgEl = parent.ownerSVGElement;
+          m = svgEl.getScreenCTM().inverse().multiply(parent.getScreenCTM()).inverse();
+        }
+        const d = list.filter((l) => l.length > 1).map((l) => `M${l.map(([x, y]) => {
+          const X = m ? m.a * x + m.c * y + m.e : x, Y = m ? m.b * x + m.d * y + m.f : y;
+          return `${r2(X)} ${r2(Y)}`;
+        }).join("L")}`).join("");
+        if (d === last) return;
+        last = d;
+        el.style.display = d ? "" : "none";
+        if (d) el.setAttribute("d", d);
+      },
+      tone(t) { el.setAttribute("class", `trace ${t}${o.dash ? " dash" : ""}`); },
+    };
+  }
+  /* a trace over the whole stage, not tied to a part */
+  function trace(svg, o = {}) {
+    /* {under: true}: behind the icon, for what happens on the ground or behind the object (dust, a shadow, a wake) */
+    const cls = o.under ? "ink-under" : "ink";
+    let ink = svg.querySelector(`g.${cls}`);
+    if (!ink) { ink = mk("g", { class: cls }); if (o.under) svg.insertBefore(ink, svg.firstChild); else svg.appendChild(ink); }
+    return makeTrace(ink, o);
+  }
+
   /* palette, read from the page's custom properties */
   function rgb(css) {
     const c = document.createElement("canvas").getContext("2d");
@@ -434,7 +529,7 @@ var IF = (() => {
     const s = getComputedStyle(stage);
     const v = (n) => rgb(s.getPropertyValue(n));
     const plate = v("--iso-plate");
-    return { line: v("--iso-line"), hi: v("--iso-hi"), face: v("--iso-face"), plate, dark: plate[0] + plate[1] + plate[2] < 1.2 ? 1 : 0 };
+    return { line: v("--iso-edge"), hi: v("--iso-hi"), face: v("--iso-face"), plate, dark: plate[0] + plate[1] + plate[2] < 1.2 ? 1 : 0 };
   }
 
   /* the effect layer */
@@ -455,7 +550,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
   function gl(stage, o) {
     const canvas = stage.querySelector(`canvas.${o.layer === "over" ? "over" : "under"}`);
     const off = { on: false, set() {}, mask() {}, draw() {}, dispose() {} };
-    if (!canvas || stage.dataset.gl === "off") return off;
+    if (!canvas || stage.dataset.gl !== "on") return off; // effects are opt-in: off unless the reader turned them on
     const c = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false });
     if (!c) return off;
     const sh = (type, src) => {
@@ -559,7 +654,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
     clamp, lerp, smooth, rad, r2,
     spring, stepS, tween, tset, tval, tdone, bezier, EASE, reducedMotion,
     disposer, register, pointer,
-    icon, after, mk, segments, axes,
+    icon, after, mk, segments, axes, trace,
     gl, palette,
   };
 })();
