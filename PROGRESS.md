@@ -25,11 +25,9 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 Nothing — clean stopping point.
 
 ## Next
-1. **Owner review of the 4 dogfood figures** (`dogfood/*/isoform-*.html`, rebuild with build.mjs). By the agents' own
-   look, Q8 is weak on key (lock plug hidden behind the blade, reads as wobble) and car (beams read as planks). Then
-   pick which become the site's "What it draws" examples. Still open from the logs: a trace can't sit both in front
-   of and behind a part (key-in-plug); no recipe for light cones in hairline. A second dogfood round on the fixed
-   skill would confirm the fixes held for a stranger (only re-verified by me on the 3 examples).
+1. **Dogfood figures, owner-reviewed 2026-10-05:** key fixed (`8ff0120`); car beams → cones, cart → "a box drops
+   in" (needed a new kernel `trace({solid})`); gas station kept as is. Owner hasn't seen the car/cart rework yet. Pick
+   which become the site's "What it draws" examples. A second dogfood round on the fixed skill is still worth doing.
 2. **Touch** — hover takeover has no touch equivalent yet (proposal: press-and-hold takes over). Test at 390px.
 3. **Website** like hairline.lucasmarkes.com (home hero drawing in, /figures catalogue + drawer, /skill, /docs,
    /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.

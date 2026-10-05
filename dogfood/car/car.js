@@ -19,12 +19,24 @@ function mount({ stage, svg, read, src }, reach) {
 
   /* lamp centres, read off inspect.mjs: left (148, 164), right (215, 202) */
   const lampPts = [[148, 164], [215, 202]];
-  const beam = trace(svg, { tone: "hi" });
-  /* each beam is one open outline: top edge out, the far lip across, bottom edge back. The beam goes out along the
-     car's front normal (v), dropping toward the road: the top edge a little, the bottom edge more */
-  const outline = (c, L) => {
-    const at = (b, up) => { const o = ic.iso(0, b, up); return [c[0] + o[0], c[1] + o[1]]; };
-    return [at(0, 5), at(L * 0.5, 5.5 - L * 0.05), at(L, 6 - L * 0.1), at(L, -6 - L * 0.32), at(L * 0.5, -5.5 - L * 0.16), at(0, -5)];
+  /* each beam is a cone of light leaving the whole lamp: a circle of the lamp's radius on the front face (the lamps
+     measure r 12.5), carried out along the front normal (v), dipping a little toward the road and spreading as it
+     goes. Drawn as its two silhouette edges, lamp rim to far rim, and the far rim in the quietest tone: light has no
+     hard end */
+  const edges = trace(svg, { tone: "hi" });
+  const mouth = trace(svg, { tone: "lo" });
+  const R0 = 12, DIP = 0.12, SPREAD = 0.2;
+  const ring = (c, L, r) => Array.from({ length: 49 }, (_, i) => {
+    const a = (i / 48) * Math.PI * 2, o = ic.iso(r * Math.cos(a), L, -L * DIP + r * Math.sin(a));
+    return [c[0] + o[0], c[1] + o[1]];
+  });
+  const cone = (c, L) => {
+    const near = ring(c, 0, R0), far = ring(c, L, R0 + L * SPREAD);
+    /* the silhouette: the pair of matching rim points furthest out either side of the axis on screen */
+    const ax = ic.iso(0, 1, -DIP), n = Math.hypot(ax[0], ax[1]), side = (q) => ((q[0] - c[0]) * -ax[1] + (q[1] - c[1]) * ax[0]) / n;
+    let lo = 0, hi = 0;
+    far.forEach((q, i) => { if (side(q) < side(far[lo])) lo = i; if (side(q) > side(far[hi])) hi = i; });
+    return { sides: [[near[lo], far[lo]], [near[hi], far[hi]]], end: far };
   };
 
   const lights = story(stage, {
@@ -57,7 +69,7 @@ function mount({ stage, svg, read, src }, reach) {
           vec2 d = u_d;
           float s = clamp(dot(p - c, d) / dot(d, d), 0.0, 1.0);
           float dist = seg(p, c, c + d);
-          a += exp(-dist / (6.0 + 12.0 * s)) * (1.0 - 0.75 * s) * 0.4;
+          a += exp(-dist / (4.0 + 22.0 * s)) * (1.0 - 0.75 * s) * 0.4; // as wide as the traced cone
         }
         a = clamp(a, 0.0, 0.7) * smoothstep(0.0, 0.3, u_n) * (0.92 + 0.08 * noise(p * 0.05 + u_time));
         // the one colour of its own the effect may carry is the phenomenon's (rule 12): the warm white of a lamp
@@ -72,12 +84,16 @@ function mount({ stage, svg, read, src }, reach) {
     const v = lights.values(lights.held ? { beam: hand.x } : {});
     ic.ink(v.ink);
     const L = v.beam * max;
-    if (v.beam < 0.02) beam.draw([]);
-    else beam.draw(lampPts.map((c) => outline(c, L)), smooth(0.86, 0.97, v.ink));
+    if (v.beam < 0.02) { edges.draw([]); mouth.draw([]); }
+    else {
+      const cs = lampPts.map((c) => cone(c, L));
+      edges.draw(cs.flatMap((k) => k.sides));
+      mouth.draw(cs.map((k) => k.end));
+    }
     const shown = v.ink < 1 ? "drawing" : v.beam < 0.02 ? "rest" : v.beam < 0.8 ? "low beam" : "high beam";
     if (shown !== label) { read.textContent = shown; label = shown; }
     if (fx.on) {
-      const o = ic.iso(0, L, -L * 0.2);
+      const o = ic.iso(0, L, -L * DIP);
       fx.set("u_d", o); fx.set("u_n", v.beam); fx.draw(now);
     }
     return a || b || (fx.on && v.beam > 0.02);
@@ -98,7 +114,7 @@ function mount({ stage, svg, read, src }, reach) {
   }));
 
   bag.add(() => { loop.unregister(); fx.dispose(); while (svg.firstChild) svg.firstChild.remove(); });
-  return { set(v) { max = clamp(v, 0, 130); loop.wake(); }, destroy: bag.dispose };
+  return { set(v) { max = clamp(v, 0, 100); loop.wake(); }, destroy: bag.dispose };
 }
 
 isoform({
@@ -108,6 +124,6 @@ isoform({
   means: "A car switches its headlights on: low beam, high beam, out. Bring the pointer near the lamps to hold the beam.",
   effect: "the warm light of the headlamps along the traced beams, thinning with distance",
   rules: [1, 3, 4, 11],
-  range: [60, 90, 125],
+  range: [45, 70, 95],
   mount,
 });

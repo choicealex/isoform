@@ -68,8 +68,10 @@
  *   pointer(stage, {move, down, leave}) points in stage units; returns its disposer
  *   disposer()                         {add, on, dispose}: collects tear-down, so destroy is bag.dispose
  * Traces: what happens, drawn in the figure's own hairline. Every figure draws its phenomenon this way first
- *   trace(svg, {tone, dash, under})    a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
- *                                      under puts it behind the icon (dust on the ground, a wake)
+ *   trace(svg, {tone, dash, under, solid}) a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
+ *                                      under puts it behind the icon (dust on the ground, a wake); solid fills each closed
+ *                                      outline with the face colour, so a traced object hides what is behind it (a box
+ *                                      falling past a rim): draw its seen faces back to front, one closed outline each
  *   part.trace({tone, dash, clip})     a hairline inside a part: it moves with the part; clip keeps it inside its faces
  *   t.draw(lines, reveal)              sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it.
  *                                      reveal 0…1 draws the line on along its length (an ink line being drawn)
@@ -625,7 +627,7 @@ var IF = (() => {
    * a flame's edge) in the figure's own line. lines is a polyline [[x, y], …] or a list of them; [] hides it.
    */
   function makeTrace(parent, o = {}) {
-    const el = mk("path", { class: `trace ${o.tone ?? "edge"}${o.dash ? " dash" : ""}`, d: "M0 0" }, parent);
+    const el = mk("path", { class: `trace ${o.tone ?? "edge"}${o.dash ? " dash" : ""}${o.solid ? " solid" : ""}`, d: "M0 0" }, parent);
     el.style.display = "none";
     let last = "";
     return {
@@ -639,6 +641,7 @@ var IF = (() => {
         const list = !lines?.length ? [] : Array.isArray(lines[0][0]) ? lines : [lines];
         const rv = clamp(reveal, 0, 1);
         el.style.opacity = rv >= 1 ? "" : String(r2(Math.min(1, rv / 0.12)));
+        if (o.solid) el.style.fillOpacity = rv >= 1 ? "" : String(r2(smooth(0.6, 1, rv))); // the face fills as its outline closes
         /* points arrive in stage units; a trace inside a moving part is drawn in that part's own space */
         let m = null;
         if (parent !== parent.ownerSVGElement && parent.ownerSVGElement) {
