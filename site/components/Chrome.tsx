@@ -17,7 +17,7 @@ export function Header() {
   const path = usePathname();
   if (path.startsWith("/lab")) return null;
   return (
-    <header className="sticky top-0 z-30 bg-ground/85 backdrop-blur-md">
+    <header className="sticky top-0 z-30 bg-ground">
       <div className="relative flex h-[68px] items-center px-4 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 text-[15px] font-medium tracking-[-0.01em]">
           <Mark />

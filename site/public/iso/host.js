@@ -48,7 +48,11 @@
       svg.setAttribute("aria-label", decl.means);
       const read = Object.assign(document.createElement("output"), { className: "iso-read", textContent: "rest" });
       read.setAttribute("aria-live", "polite");
-      stage.append(svg, read);
+      /* the effect layer draws into these two, as on the skill's own page: under the drawing, then over it */
+      const under = Object.assign(document.createElement("canvas"), { className: "under" });
+      const over = Object.assign(document.createElement("canvas"), { className: "over" });
+      under.setAttribute("aria-hidden", "true"); over.setAttribute("aria-hidden", "true");
+      stage.append(under, svg, over, read);
       handle = decl.mount({ stage, svg, read, src: o.src }, value(decl.range, intensity));
     };
     fresh();
