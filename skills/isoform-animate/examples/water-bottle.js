@@ -54,17 +54,35 @@ function mount({ stage, svg, read, src }, lean) {
 
   const fx = gl(stage, {
     layer: "over",
-    uniforms: { u_e: "vec2", u_su: "float", u_sv: "float", u_slosh: "float" },
+    uniforms: { u_e: "vec2", u_su: "float", u_sv: "float", u_slosh: "float", u_depth: "float", u_fizz: "float", u_stir: "float" },
     frag: `
       // the body of water under the traced line: level in the world, along u on the left face and v on the right
       vec4 effect(vec2 p) {
         float inside = mask(p);
-        if (inside < 0.01) return vec4(0.0);
         float dx = p.x - u_e.x;
         float surf = u_e.y + dx * (dx < 0.0 ? u_su : u_sv) + dx * u_slosh + sin(dx * 0.12 + u_time * 5.0) * 7.2 * abs(u_slosh);
-        float below = smoothstep(-0.5, 0.5, p.y - surf);
-        float a = below * mix(0.08, 0.2, clamp((p.y - surf) / 80.0, 0.0, 1.0));
-        return vec4(u_hi * a, a) * inside;
+        float d = p.y - surf, k = clamp(d / u_depth, 0.0, 1.0);
+        // the one colour of its own (rule 12): water, clear blue, light near the top and deep where it is thick
+        vec3 deep = vec3(0.02, 0.20, 0.52), body = vec3(0.05, 0.45, 0.88);
+        vec3 top = mix(vec3(0.20, 0.66, 1.0), vec3(0.42, 0.82, 1.0), u_dark), lit = mix(vec3(0.30, 0.74, 1.0), vec3(0.82, 0.96, 1.0), u_dark);
+        vec3 col = mix(top, body, smoothstep(0.0, 0.3, k));
+        col = mix(col, deep, smoothstep(0.25, 1.0, k));
+        /* caustics: the surface focusing light into ripples that wander through the water, faster when it is stirred */
+        float t = u_time * (0.6 + 2.0 * u_stir);
+        float n1 = noise(vec2(p.x * 0.09 + t * 0.3, d * 0.11 - t * 0.4)), n2 = noise(vec2(p.x * 0.08 - t * 0.25 + 4.0, d * 0.1 + t * 0.3));
+        float r = clamp(1.0 - abs(n1 - n2) * 2.2, 0.0, 1.0);
+        col += lit * pow(r, 5.0) * (0.42 - 0.3 * k);
+        /* small bubbles rising while it fills: one per column, each on its own clock */
+        float cx = floor((p.x - 140.0) / 7.0), h = hash(vec2(cx, 5.3));
+        float by = u_depth - fract(u_time * (0.35 + 0.4 * h) + h * 9.0) * (u_depth + 4.0);
+        vec2 bq = vec2(p.x - (140.0 + (cx + 0.5) * 7.0 + sin(u_time * 3.0 + h * 11.0) * 1.2), d - by);
+        float bub = smoothstep(2.4, 0.8, length(bq)) * smoothstep(0.35, 0.5, h) * u_fizz * smoothstep(1.0, 5.0, d);
+        col = mix(col, mix(lit, vec3(0.9, 0.97, 1.0), u_dark), bub);
+        float water = smoothstep(-0.6, 0.6, d) * inside;
+        /* the surface: a bright band on the traced line, catching the light, brighter as it moves */
+        float band = exp(-d * d / 4.0) * inside * (0.6 + 0.4 * u_stir);
+        float a = mix(0.8, 0.95, k) * water;
+        return vec4(col * a + lit * band * 0.8, clamp(a + band * 0.7 * (1.0 - a), 0.0, 1.0));
       }`,
   });
   if (fx.on) { fx.set("u_su", su); fx.set("u_sv", sv); }
@@ -96,7 +114,13 @@ function mount({ stage, svg, read, src }, lean) {
       : v.ink < 1 ? "drawing" : v.pour > 0.1 && v.pour < 1.9 ? `fill ${Math.round(v.fill * 100)}%` : v.spill > 0.1 && v.spill < 1.9 ? "pour" : Math.abs(sl) > 0.02 ? "slosh"
       : v.cap > 0.05 ? "open" : Math.abs(v.fill - 0.35) < 0.01 ? "rest" : "sealed";
     if (shown !== label) { read.textContent = shown; label = shown; }
-    if (fx.on) { fx.set("u_e", e); fx.set("u_slosh", sl); fx.mask([body]); fx.draw(now); }
+    if (fx.on) {
+      /* bubbles while the stream pours in; the light stirs with the stream, the slosh and the tip (rule 11) */
+      const fizz = smooth(0, 0.3, v.pour) * smooth(1.95, 1.6, v.pour) * (1 - smooth(0, 0.3, v.spill));
+      fx.set("u_e", e); fx.set("u_slosh", sl); fx.set("u_depth", 82 * v.fill + 6); fx.set("u_fizz", fizz);
+      fx.set("u_stir", clamp(fizz + Math.abs(sl) * 4 + smooth(0, 0.3, v.spill) * smooth(1.95, 1.6, v.spill), 0, 1));
+      fx.mask([body]); fx.draw(now);
+    }
     return a || b || c;
   });
 
@@ -123,7 +147,7 @@ isoform({
   icon: "water-bottle",
   variant: "rounded-left",
   means: "A bottle refills on its own: cap off, water in, cap on, a shake, a pour. Hover to take it and rock it.",
-  effect: "the body of water under the traced line, level in the world, sloshing as the bottle moves",
+  effect: "the body of water in the bottle, deep blue below a bright surface, caustics wandering through it, bubbling as it fills",
   rules: [1, 5, 8, 11],
   range: [3, 6, 10],
   mount,
