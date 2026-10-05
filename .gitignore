@@ -4,3 +4,4 @@ node_modules/
 /isoform-*.png
 .next/
 dogfood/**/isoform-*
+dogfood/**/look.log
