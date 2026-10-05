@@ -366,7 +366,7 @@ var IF = (() => {
     const ghostOf = new Map();
     /* every face, cut pieces included; paths[i] keeps meaning the i-th face of the icon (after a cut, its first piece) */
     const faces = new Set(paths);
-    let inkPlan = null, inkDone = false, penTip = null, hiddenInk = [];
+    let inkPlan = null, inkDone = false, hiddenInk = [];
     const r4 = (n) => Math.round(n * 10000) / 10000;
     /* the pen's route over every drawn face, in stage units, measured once at rest */
     function planInk() {
@@ -606,9 +606,7 @@ var IF = (() => {
           f.el.style.fillOpacity = P >= 1 ? "" : String(r2(fill));
           if (q > 0 && q < 1) tip = f.at(q);
         }
-        if (!penTip) penTip = mk("circle", { class: "pen", r: "2.2" }, svg);
-        if (tip && P < DRAW) { penTip.setAttribute("cx", r2(tip[0])); penTip.setAttribute("cy", r2(tip[1])); penTip.style.display = ""; }
-        else penTip.style.display = "none";
+        /* no dot rides the pen: it hops wherever the pen lifts, and reads as dots moving (owner) */
         return tip;
       },
       near(pt) {

@@ -52,6 +52,8 @@ Nothing — clean stopping point.
 - Under-stroke silhouettes (2× then 3× width) — always thicker than inner edges — masked on-top outline (`4015f9d`).
 - Normalised `pathLength` draw-on — breaks under `non-scaling-stroke` (scattered pieces) — screen-px dashes (`9be528c`; skill `.claude/skills/web/animation-interaction.md`, workspace `df0c9ee`).
 - Cascade-all-faces draw-in, per-face fills mid-draw, eased intro — read as scattered/stalling — one pen, fills last, linear (`9be528c`).
+- Pen-tip dot riding the draw-in — hops wherever the pen lifts, read as moving dots (owner, on the key) — removed from the kernel.
+- Key turned by a 10–14° screen tilt — every edge bent off its axis — key stays square, the turn is a mark on the lock's rim.
 - Pointer-height mapping ("raise to unscrew") — reads as a slider — nearness, small moves (`8f28cdf`, rules 03).
 
 ## Environment

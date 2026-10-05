@@ -88,6 +88,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | writing a timer or `requestAnimationFrame` | `register(stage, tick)`, with springs or tweens (rule 07) |
 | testing the pointer against where a part is now | `icon.hit` or `part.rest` (rule 01) |
 | turning a part by 30° | flat faces turned that far stop being a solid: move it, tilt under 15° (rule 09) |
+| showing a turn about the part's own long axis (a key in a lock, a screw, a dial) | a screen tilt of even 10° bends every edge off its axis: keep the part square and tell the turn on what it turns, a mark sweeping round a rim |
 | editing the kernel or the bench to make something work | the figure is wrong; change the figure |
 | a figure that means nothing with effects off | the gesture carries the idea; the effect is its consequence (rule 11) |
 | letting in a second idea | cut it |
