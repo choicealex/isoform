@@ -33,9 +33,10 @@ Nothing — clean stopping point.
    /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.
 4. **Repo:** `choicealex/isoform` created PRIVATE 2026-10-05 (owner: "get a repo"). The raw.githubusercontent fallback in
    `build.mjs`/`find.mjs` and `npx skills add` only work once it is public — ask before flipping. Deploy only when asked.
-5. **Website — v1 built locally** (`site/`, `npm run dev` → :3412): / (hero, playground, in-product tiles), /figures +
-   /figures/[name] drawer, /skill, /docs (engine index read from kernel.js), /inspo, llms.txt. Tier 2 desktop light+dark;
-   390px checked for overflow + drawer. NOT deployed. Open: touch takeover (hover-only), owner review of the site.
+5. **Website v2 — Specimen + Wall, dark default** (`c3eb689`; v1 rejected by owner). Lab of 5 mockups kept at /lab.
+   Research: `research/{animateicons,animateicons-deep,site-survey,vercel-font,foundries-a,foundries-b}.md`. Tier 2
+   desktop dark + light; 390px has no overflow (not touch-tested). Open: owner review; touch takeover; Biome hook cwd
+   (a nested biome.json fails when the hook runs from a parent dir — fix is in the global hook, ask first).
 6. **Dogfood round 2 (2026-10-05):** delete, shield-lock, partly-cloudy-day. Round-1 mechanics held (no blank shots, parts
    picture + find worked); taste didn't — delete and cloudy fail their own look, shield-lock weak at 240px. None on the
    site. Their friction (object entering a container, curved-face geometry, `--at` picks the extreme) → next skill pass.
