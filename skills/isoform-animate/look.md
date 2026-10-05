@@ -28,7 +28,7 @@ Five address parameters make them, and work in any browser for a look by hand: `
 | `small` · `small-answer` | 240px, at rest and answering |
 | `low` · `high` | the slider at 0 and at 1, the pointer at `--edge` |
 | `dark` · `light` | both themes, answering |
-| `effect` · `effect-dark` | answering with the WebGL effect on, in both themes |
+| `effect` · `effect-dark` · `effect-subtle` | answering with the WebGL effect on (bold), in both themes, and at the subtle strength |
 | `no-effect` | answering with the effect off (`?gl=0`): the figure must still read |
 | `colour` · `fill-off` | answering in the Colour style (the bright part filled) and with Isocons' fill off (every edge shows) |
 | `story-25` · `story-50` · `story-75` | a story held at a quarter, half and three quarters of its loop (`?t=`) |

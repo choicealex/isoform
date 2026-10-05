@@ -86,7 +86,9 @@
  *                                      returns {on, set(name, value), mask(parts), draw(now), dispose}
  *                                      on is false when the reader turned effects off or WebGL is missing: the figure must still work
  *   frag                               GLSL defining  vec4 effect(vec2 p)  : p is the stage point, y down; return premultiplied rgba
- *                                      given: u_time (s), u_ptr (stage point, or -1), u_dark (0|1), u_line, u_hi, u_face, u_plate (rgb),
+ *                                      given: u_time (s), u_ptr (stage point, or -1), u_dark (0|1), u_bold (0 subtle, 1 bold: the
+ *                                      kernel already scales the output; use it to also narrow a halo or calm a flicker),
+ *                                      u_line, u_hi, u_face, u_plate (rgb),
  *                                      mask(p) (1 inside the masked parts), hash(p), noise(p), fbm(p), seg(p, a, b) (distance to a segment)
  *
  * Classes on a path: none (face fill, line stroke) · hi (bright stroke) · dim (dim stroke). A figure sets no colour of its own.
@@ -796,7 +798,7 @@ var IF = (() => {
 
   /* the effect layer */
   const PRELUDE = `precision highp float;
-uniform vec2 u_res; uniform float u_time; uniform vec2 u_ptr; uniform float u_dark;
+uniform vec2 u_res; uniform float u_time; uniform vec2 u_ptr; uniform float u_dark; uniform float u_bold;
 uniform vec3 u_line; uniform vec3 u_hi; uniform vec3 u_face; uniform vec3 u_plate;
 uniform sampler2D u_mask; uniform float u_hasMask;
 float mask(vec2 p){ return u_hasMask > 0.5 ? texture2D(u_mask, vec2(p.x / 400.0, p.y / 320.0)).a : 1.0; }
@@ -807,12 +809,14 @@ float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a *
 float seg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h); }
 `;
   const MAIN = `
-void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 400.0, (1.0 - f.y) * 320.0)); }`;
+/* subtle draws the same effect at under half strength (premultiplied, so colour and alpha scale together) */
+void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 400.0, (1.0 - f.y) * 320.0)) * mix(0.42, 1.0, u_bold); }`;
 
   function gl(stage, o) {
     const canvas = stage.querySelector(`canvas.${o.layer === "over" ? "over" : "under"}`);
     const off = { on: false, set() {}, mask() {}, draw() {}, dispose() {} };
-    if (!canvas || stage.dataset.gl !== "on") return off; // the page decides: on unless the reader turned it off
+    /* the page decides: "off", or on at a strength, "subtle" or "bold" ("on" is bold) */
+    if (!canvas || !["on", "bold", "subtle"].includes(stage.dataset.gl)) return off;
     const c = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false });
     if (!c) return off;
     const sh = (type, src) => {
@@ -891,6 +895,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
         c.uniform1f(U("u_time"), reduced ? 0 : (now - t0) / 1000);
         c.uniform2f(U("u_ptr"), ptr[0], ptr[1]);
         c.uniform1f(U("u_dark"), pal.dark);
+        c.uniform1f(U("u_bold"), stage.dataset.gl === "subtle" ? 0 : 1); // read each frame: subtle and bold switch live
         c.uniform3fv(U("u_line"), pal.line); c.uniform3fv(U("u_hi"), pal.hi);
         c.uniform3fv(U("u_face"), pal.face); c.uniform3fv(U("u_plate"), pal.plate);
         c.uniform1f(U("u_hasMask"), hasMask);

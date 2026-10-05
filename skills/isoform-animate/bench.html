@@ -173,8 +173,11 @@
   /* ?t= holds a story at one moment (ms), for the look's pictures */
   if (q.get("t") != null) stage.dataset.t = q.get("t");
   /* the effect layer is on by default (owner, after Ryan's compilation); ?gl=0 or the Effect button turns it off */
-  stage.dataset.gl = q.get("gl") === "0" ? "off" : "on";
-  $("fx").setAttribute("aria-pressed", String(stage.dataset.gl === "on"));
+  /* ?gl=0 off, ?gl=subtle, otherwise bold; the Effect button steps Off -> Subtle -> Bold */
+  const g0 = q.get("gl");
+  stage.dataset.gl = g0 === "0" || g0 === "off" ? "off" : g0 === "subtle" ? "subtle" : "bold";
+  const fxLabel = () => { const g = stage.dataset.gl; $("fx").textContent = g === "off" ? "Effect off" : g === "subtle" ? "Effect subtle" : "Effect bold"; $("fx").setAttribute("aria-pressed", String(g !== "off")); };
+  fxLabel();
   const i0 = q.has("intensity") ? Math.min(1, Math.max(0, parseFloat(q.get("intensity")) || 0)) : 0.5;
   slider.value = i0;
 
@@ -217,10 +220,11 @@
 
   slider.addEventListener("input", () => { show(); if (decl) handle?.set(value(Number(slider.value))); });
   $("fx").addEventListener("click", () => {
-    const on = stage.dataset.gl === "off";
-    stage.dataset.gl = on ? "on" : "off";
-    $("fx").setAttribute("aria-pressed", String(on));
-    if (decl) mount();
+    const was = stage.dataset.gl, next = was === "off" ? "subtle" : was === "subtle" ? "bold" : "off";
+    stage.dataset.gl = next;
+    fxLabel();
+    /* off <-> on needs a new mount (the effect layer is made at mount); subtle -> bold is read live */
+    if (decl && (was === "off" || next === "off")) mount();
   });
   $("theme").addEventListener("click", () => {
     const root = document.documentElement;

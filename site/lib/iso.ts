@@ -12,11 +12,12 @@ export type IsoHandle = {
   decl: { name: string; means: string; effect?: string; range: number[] };
   set(intensity: number): void;
   speed(x: number): void;
+  strength(level: "subtle" | "bold"): void;
   replay(): void;
   destroy(): void;
 };
 type IsoHost = {
-  mount(stage: HTMLElement, name: string, o: { src: string; intensity?: number; speed?: number; gl?: boolean; t?: number }): Promise<IsoHandle>;
+  mount(stage: HTMLElement, name: string, o: { src: string; intensity?: number; speed?: number; gl?: boolean | "subtle" | "bold"; t?: number }): Promise<IsoHandle>;
   theme(): void;
 };
 declare global {

@@ -36,7 +36,8 @@
     const decl = await load(name);
     let handle = null, intensity = o.intensity ?? 0.5;
     stage.classList.add("iso-stage");
-    stage.dataset.gl = o.gl ? "on" : "off";
+    /* o.gl: false/"off", true/"bold", or "subtle" */
+    stage.dataset.gl = !o.gl || o.gl === "off" ? "off" : o.gl === "subtle" ? "subtle" : "bold";
     if (o.speed) stage.dataset.speed = String(o.speed);
     if (o.t != null) stage.dataset.t = String(o.t); else delete stage.dataset.t;
     const fresh = () => {
@@ -59,6 +60,8 @@
     return {
       decl,
       set(t) { intensity = t; handle?.set(value(decl.range, t)); },
+      /* subtle <-> bold is read by the kernel every frame: no remount */
+      strength(level) { stage.dataset.gl = level; },
       speed(x) { stage.dataset.speed = String(x); },
       replay: fresh,
       destroy() { handle?.destroy(); handle = null; for (const el of stage.querySelectorAll(":scope > svg, :scope > canvas, :scope > output.iso-read")) el.remove(); },

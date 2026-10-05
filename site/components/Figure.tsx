@@ -25,12 +25,13 @@ type Props = {
 /** One live figure. The skill's engine draws it; this only gives it a stage and passes the controls on. */
 export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet, className, ref, onStage }: Props) {
   const fx = useFx();
-  gl = gl && fx; // the reader's site-wide switch wins
   const stage = useRef<HTMLDivElement>(null);
   const handle = useRef<IsoHandle | null>(null);
   const meta = figureByName(name);
-  const live = useRef({ intensity, speed, onStage });
-  live.current = { intensity, speed, onStage };
+  const level = gl && fx !== "off" ? fx : false; // the reader's site-wide strength wins; off is off
+  const on = level !== false;
+  const live = useRef({ intensity, speed, onStage, level });
+  live.current = { intensity, speed, onStage, level };
 
   /* a new figure, effect or held moment is a new mount, on a stage of its own: a mount that resolves late (React
      mounts twice in development) clears only its own stage, never the live one */
@@ -44,7 +45,7 @@ export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet,
     iso()
       .then(async (host) => {
         if (gone) return;
-        const h = await host.mount(el, name, { src: meta.svg, intensity: live.current.intensity, speed: live.current.speed, gl, t });
+        const h = await host.mount(el, name, { src: meta.svg, intensity: live.current.intensity, speed: live.current.speed, gl: on ? live.current.level : false, t });
         if (gone) h.destroy();
         else {
           handle.current = h;
@@ -58,10 +59,12 @@ export function Figure({ name, intensity = 0.5, speed = 1, gl = false, t, quiet,
       handle.current = null;
       el.remove();
     };
-  }, [name, meta, gl, t]);
+  }, [name, meta, on, t]);
 
   useEffect(() => { handle.current?.set(intensity); }, [intensity]);
   useEffect(() => { handle.current?.speed(speed); }, [speed]);
+  /* subtle <-> bold: the kernel reads it each frame, no remount */
+  useEffect(() => { if (level) handle.current?.strength(level); }, [level]);
   useImperativeHandle(ref, () => ({ replay: () => handle.current?.replay() }), []);
 
   return <div ref={stage} className={`relative aspect-[5/4] ${className ?? ""}`} data-quiet={quiet ? "" : undefined} />;
