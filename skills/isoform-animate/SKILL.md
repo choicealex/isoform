@@ -74,6 +74,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | If you catch yourself | Do this instead |
 | --- | --- |
 | a part sliding off its own edges on a top or right view | the axes were mis-measured: check `inspect.mjs`'s `axes` line and pass `{ u, v }` to `icon` |
+| two parts passing each other draw in the wrong order | a part paints at its last face's place; call `after(near, far)` the moment the nearer one starts to overlap, and again when they swap back (ABC's sort does this at each crossing) |
 | moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |
 | reading corners off `inspect.mjs` and the cut lands in the wrong place | you placed the icon elsewhere: pass every point through `icon.pt` |
