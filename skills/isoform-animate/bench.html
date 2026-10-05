@@ -37,13 +37,12 @@
   .plate { position: relative; aspect-ratio: 5 / 4; border: 1px solid var(--rule); border-radius: 24px; overflow: hidden; background: var(--iso-plate); touch-action: none; }
   .plate svg, .plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .plate canvas { pointer-events: none; }
-  /* faces: filled, dim inner edges. .sil: the copy under them whose outer half is the silhouette */
+  /* faces: filled, dim edges. .sil: a copy on top, masked to the outline, that strokes the silhouette at the same width */
   .icon path, .icon circle, .icon ellipse, .icon rect, .icon polygon, .icon line {
     fill: var(--iso-face); stroke: var(--iso-lo); stroke-width: var(--iso-stroke); stroke-linejoin: round; stroke-linecap: round;
     vector-effect: non-scaling-stroke; transition: stroke 0.26s ease;
   }
-  /* three widths: the face on top covers the inner one and a half, leaving one full stroke of silhouette outside */
-  .icon .sil > * { stroke: var(--iso-edge); stroke-width: calc(var(--iso-stroke) * 3); }
+  .icon .sil > * { fill: none; stroke: var(--iso-edge); }
   .icon .hi > .sil > * { stroke: var(--iso-hi); }
   .icon .dim > .sil > * { stroke: var(--iso-lo); }
   .icon .ghost { visibility: hidden; }

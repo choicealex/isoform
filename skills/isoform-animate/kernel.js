@@ -281,15 +281,36 @@ var IF = (() => {
     const pt = (x, y) => toStage((x - 200) / s0 + vb[0] + vb[2] / 2, (y - 166) / s0 + vb[1] + vb[3] / 2);
     const parts = [];
     /*
-     * Line weight, Hairline's way: every solid gets a bright silhouette and dim inner edges. A copy of a group's faces
-     * is painted under them with a triple-width stroke in the edge colour; the faces on top cover its inner part and
-     * every shared edge, so only the outline of the whole group shows, outside, at one stroke's width.
+     * Line weight, Hairline's way: every solid gets a bright silhouette and dim inner edges, all one width. The faces
+     * carry the dim edges. On top, a copy of the group's faces is stroked in the edge colour at the same width, masked
+     * by the group's shape eroded by half a stroke: the inner edges, deep inside the shape, are hidden, and the copy's
+     * stroke shows only where it straddles the outline, exactly over the dim stroke it replaces.
      */
-    const outline = (grp, own) => {
-      const sil = mk("g", { class: "sil", "aria-hidden": "true" });
-      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); }
-      grp.insertBefore(sil, grp.firstChild);
+    const defs = svg.querySelector("defs") ?? svg.insertBefore(mk("defs", {}), svg.firstChild);
+    const uid = `if${Math.random().toString(36).slice(2, 8)}`;
+    const erode = mk("filter", { id: `${uid}-erode`, x: "-5%", y: "-5%", width: "110%", height: "110%" }, defs);
+    const morph = mk("feMorphology", { operator: "erode", radius: "0.5" }, erode);
+    /* half a stroke plus a hair, in icon units, from the stroke width in CSS pixels and the icon's size on screen */
+    const fitErode = () => {
+      const m = g.getScreenCTM?.();
+      if (!m) return;
+      const ppu = Math.hypot(m.a, m.b) || 1;
+      const w = parseFloat(getComputedStyle(svg).getPropertyValue("--iso-stroke")) || 0.9;
+      morph.setAttribute("radius", String(r2(((w * 0.5 + 0.35) / ppu) * 100) / 100));
     };
+    let masks = 0;
+    const outline = (grp, own) => {
+      const id = `${uid}-m${masks++}`;
+      const mask = mk("mask", { id, maskUnits: "userSpaceOnUse", x: "-9999", y: "-9999", width: "19998", height: "19998" }, defs);
+      mk("rect", { x: "-9999", y: "-9999", width: "19998", height: "19998", fill: "white" }, mask);
+      const shape = mk("g", { filter: `url(#${uid}-erode)` }, mask);
+      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); c.setAttribute("fill", "black"); c.setAttribute("stroke", "none"); shape.appendChild(c); }
+      const sil = mk("g", { class: "sil", mask: `url(#${id})`, "aria-hidden": "true" });
+      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); }
+      grp.appendChild(sil);
+    };
+    queueMicrotask(fitErode);
+    if (typeof ResizeObserver === "function") new ResizeObserver(fitErode).observe(svg);
     /* faces left out of every part are outlined in runs, keeping the paint order: once, after mount has made its parts */
     let finished = false;
     queueMicrotask(() => {
@@ -423,7 +444,23 @@ var IF = (() => {
           }
           return out;
         };
-        const toD = (pts) => `M${pts.map((p) => `${Math.round(p[0] * 1000) / 1000} ${Math.round(p[1] * 1000) / 1000}`).join("L")}Z`;
+        /* a cut through a corner leaves twin points and zero-width spikes, which a round join draws as a dot: drop them */
+        const clean = (pts) => {
+          let out = pts.filter((p, k) => { const q = pts[(k + 1) % pts.length]; return Math.hypot(p[0] - q[0], p[1] - q[1]) > 0.02; });
+          for (let changed = true; changed && out.length > 3;) {
+            changed = false;
+            out = out.filter((p, k, a) => {
+              const o = a[(k + a.length - 1) % a.length], q = a[(k + 1) % a.length];
+              const ux = p[0] - o[0], uy = p[1] - o[1], vx = q[0] - p[0], vy = q[1] - p[1];
+              const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
+              const back = lu > 0 && lv > 0 && (ux * vx + uy * vy) / (lu * lv) < -0.98; // turns straight back
+              if (back) changed = true;
+              return !back;
+            });
+          }
+          return out;
+        };
+        const toD = (pts) => `M${clean(pts).map((p) => `${Math.round(p[0] * 1000) / 1000} ${Math.round(p[1] * 1000) / 1000}`).join("L")}Z`;
         const pieces = [clip(1), clip(-1)].map((pts) => {
           const p = mk("path", { d: pts.length > 2 ? toD(pts) : "M0 0Z" });
           if (el.getAttribute("class")) p.setAttribute("class", el.getAttribute("class"));

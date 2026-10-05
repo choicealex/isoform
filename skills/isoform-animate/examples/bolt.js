@@ -13,7 +13,9 @@ function mount({ stage, svg, read, src }, reach) {
   const seam = [201, 168];
   const [front, foot] = ic.cut(2, seam, "u");
   /* the surface the break exposes: the cut on the front, pushed back along v by the bolt's thickness */
-  const back = ic.iso(0, -46, 0), left = [140, 133];
+  /* its front edge is the cut itself: run back along u from the seam to where the cut leaves the face, so the two coincide */
+  const back = ic.iso(0, -46, 0), run = (seam[0] - 140) / ic.u[0];
+  const left = [seam[0] - ic.u[0] * run, seam[1] - ic.u[1] * run];
   const broken = ic.facet([left, seam, [seam[0] + back[0], seam[1] + back[1]], [left[0] + back[0], left[1] + back[1]]], foot);
   const low = ic.part("low", [foot, broken, 0, 1]);
   const high = ic.part("high", [front, 3, 4]);
