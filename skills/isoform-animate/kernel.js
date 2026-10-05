@@ -349,6 +349,9 @@ var IF = (() => {
     };
     queueMicrotask(fitErode);
     if (typeof ResizeObserver === "function") new ResizeObserver(fitErode).observe(svg);
+    /* a host that changes the stroke width (a style control) says so with isoform:style; refit, until this icon is gone */
+    const restyle = () => { if (!svg.isConnected) window.removeEventListener("isoform:style", restyle); else fitErode(); };
+    if (typeof window !== "undefined") window.addEventListener("isoform:style", restyle);
     /* faces left out of every part are outlined in runs, keeping the paint order: once, after mount has made its parts */
     let finished = false;
     queueMicrotask(() => {

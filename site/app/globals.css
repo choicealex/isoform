@@ -163,3 +163,10 @@ input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent);
 .sty-heavy .iso-stage { --iso-stroke: 1.6; }
 .sty-heavy .iso-stage .icon path, .sty-heavy .iso-stage .icon circle, .sty-heavy .iso-stage .icon ellipse { stroke: var(--ink); }
 .sty-heavy .iso-stage .icon .sil > * { stroke: var(--ink); }
+/* Isocons' own look (its blue line and pale fill), and Isocons' fill off: every edge shows */
+.sty-isocons { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
+:root[data-theme="light"] .sty-isocons { --iso-face: #f5fbff; --iso-edge: #229eff; --iso-lo: #b4dcff; --iso-hi: #0050d8; }
+.sty-nofill .iso-stage .icon path, .sty-nofill .iso-stage .icon circle, .sty-nofill .iso-stage .icon ellipse { fill: none; }
+/* an inverted tile keeps the Isocons look in its own theme: light Isocons on the dark page, and the reverse */
+.sty-isocons .tile-inv { --iso-face: #f5fbff; --iso-edge: #229eff; --iso-lo: #b4dcff; --iso-hi: #0050d8; }
+:root[data-theme="light"] .sty-isocons .tile-inv { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }

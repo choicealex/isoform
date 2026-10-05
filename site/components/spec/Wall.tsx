@@ -6,6 +6,7 @@ import { CopyButton } from "@/components/Copy";
 import { Figure } from "@/components/Figure";
 import { CATEGORIES, FIGURES } from "@/lib/iso";
 import { LABEL, figNo } from "@/lib/spec";
+import { LOOK, type Look, LookControls, lookProps } from "./Look";
 
 /* every fourth tile is inverted (light on the dark page), for rhythm, after Dinamo and the lab's Wall */
 const inverted = (i: number) => i % 4 === 2;
@@ -17,21 +18,26 @@ const inverted = (i: number) => i % 4 === 2;
 export function Wall({ filters = false }: { filters?: boolean }) {
   const [cat, setCat] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [look, setLook] = useState<Look>(LOOK);
+  const lp = lookProps(look);
   const shown = FIGURES.filter((f) => (!cat || f.category === cat) && (!q || `${f.name} ${f.title} ${f.job} ${f.means}`.toLowerCase().includes(q.toLowerCase())));
 
   return (
     <div>
       {filters && (
-        <div className="sticky top-[68px] z-20 flex flex-wrap items-center gap-2 border-y border-rule bg-ground/90 px-4 py-2.5 backdrop-blur-md sm:px-8">
+        <div className="sticky top-[68px] z-20 flex flex-wrap items-center gap-2 border-y border-rule bg-ground px-4 py-2.5 sm:px-8">
           {[null, ...CATEGORIES].map((c) => (
             <button key={c ?? "all"} type="button" onClick={() => setCat(c)} aria-pressed={cat === c} className="rounded-full border border-rule px-3 py-1 font-mono text-[11px] tracking-[0.04em] text-muted uppercase aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground">
               {c ?? "All"} <span className="opacity-60">{c ? FIGURES.filter((f) => f.category === c).length : FIGURES.length}</span>
             </button>
           ))}
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search figures" aria-label="Search figures" className="ml-auto w-full rounded-full border border-rule bg-transparent px-4 py-1.5 text-[14px] outline-none placeholder:text-faint focus:border-ink sm:w-60" />
+          <div className="w-full border-t border-rule pt-2.5">
+            <LookControls look={look} set={setLook} compact />
+          </div>
         </div>
       )}
-      <div className="grid grid-cols-1 gap-px border-b border-rule bg-rule sm:grid-cols-2 xl:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-px border-b border-rule bg-rule sm:grid-cols-2 xl:grid-cols-3 ${lp.className}`} style={lp.style}>
         {shown.map((f, i) => {
           const inv = inverted(i);
           return (

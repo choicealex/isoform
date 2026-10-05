@@ -7,6 +7,7 @@ import { Figure, type FigureControls } from "@/components/Figure";
 import { EXAMPLE_NOTE, FIGURES, figureByName } from "@/lib/iso";
 import { LABEL, figNo } from "@/lib/spec";
 import { Axes, Lattice } from "./Icon";
+import { LOOK, type Look, LookControls, lookProps } from "./Look";
 import { Hairline } from "./Parts";
 
 /**
@@ -21,6 +22,8 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
   const [speed, setSpeed] = useState(1);
   const [gl, setGl] = useState(false);
   const [code, setCode] = useState<"prompt" | "html" | "embed">("prompt");
+  const [look, setLook] = useState<Look>(LOOK);
+  const lp = lookProps(look);
   const fig = useRef<FigureControls>(null);
   const f = figureByName(name) ?? FIGURES[0];
   const i = FIGURES.indexOf(f);
@@ -54,7 +57,7 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
   }[code];
 
   return (
-    <div className="grid border-y border-rule lg:grid-cols-2">
+    <div className={`grid border-y border-rule lg:grid-cols-2 ${lp.className}`} style={lp.style}>
       {/* left: the figure, large, on its metric lines */}
       <div className="border-rule lg:border-r">
         <div className="grid grid-cols-2 border-b border-rule text-[15px]">
@@ -85,6 +88,7 @@ export function Inspector({ name: start, linked = false }: { name: string; linke
             <Hairline label="Intensity" value={intensity} onChange={setIntensity} />
             <Hairline label="Speed" value={speed} min={0.25} max={2} step={0.05} show={`${speed.toFixed(2)}×`} onChange={setSpeed} />
           </div>
+          <LookControls look={look} set={setLook} compact />
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => fig.current?.replay()} className="rounded-full border border-rule px-3.5 py-1.5 text-[14px] hover:border-ink">Replay</button>
             {f.effect && (

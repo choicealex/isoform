@@ -31,6 +31,8 @@ Every movement is clamped, and at the slider's far end the figure is still a com
 
 ## 04 · accent: the stroke is the only highlight
 
+The bright part is also what the fill styles fill (Plain in ink, Colour in the accent, Glass see-through), so at rest it must be the part that matters; a figure whose `hi` part is a detail looks wrong in every style but Line.
+
 On the drawing, emphasis is the stroke changing from the line colour to the bright one, nothing else. One place is bright at a time.
 
 - **Keep it:** `part.hi(on)` and `part.dim(on)` are the whole palette; a trace takes `tone: "hi"` when it is what answers. At rest one part is bright, where the eye should start; when the pointer chooses, the bright moves to what it chose (a water line, an arc).

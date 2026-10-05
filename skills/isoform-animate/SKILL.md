@@ -18,6 +18,8 @@ If the person named an icon, find its id: `node find.mjs <words>`. If they gave 
 
 `node inspect.mjs <id> [variant]`
 
+Isocons draws every icon six ways: three sides (`left`, `top`, `right`) and two edges (`rounded`, `sharp`). They are different drawings with different faces, so a figure is built for one of them, the `variant`. Ask which view the person wants (default `rounded-left`, Hairline's soft corners); for another view, make another figure.
+
 It prints every face in paint order with which way it looks, its box and its corners, in stage units, and writes `isoform-<id>-parts.png`: the faces numbered and tinted over a grid in stage units. Look at that picture to tell which face is which and to read points off it; do not read the `.html` it is made from. Variants are `rounded-left` (use a rounded one: Hairline's soft corners), `rounded-top`, `rounded-right`, and `sharp-left`, `sharp-top`, `sharp-right`.
 
 ## 2. Concept
@@ -55,7 +57,7 @@ Do not hand over a page the validator rejects. Do not say the look is done if yo
 
 ## 5. Hand over
 
-Publish `isoform-<name>.html` as an artifact if you can; otherwise say where the file is. Then, one line each:
+Publish `isoform-<name>.html` as an artifact if you can; otherwise say where the file is. The page takes Isocons' and Overflow's looks without any change to the figure: `?style=line|plain|colour|glass|heavy|isocons`, `?stroke=` any width from 0.5 to 4 (granular, like Isocons' slider), `?fill=0` for Isocons' fill off; the page's Style row does the same live. Then, one line each:
 
 - the metaphor: the object, what the pointer does, what the effect shows;
 - the rules it leans on;
