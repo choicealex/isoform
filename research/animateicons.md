@@ -84,3 +84,17 @@ Pure-black, product-tool aesthetic: one near-white text tier ramp on #000, a sin
 - **Single endless 669-card scroll with no deep link per item**: drawer without a URL means no shareable item; keep Hairline's per-item addressability.
 - **Marketing sections (sponsors page, Clarity analytics, star counters, v0.dev link)**: off-brand for a small open-source skill; also add llms.txt (they have none).
 - **Licence/credit**: they only state "Free and open source under the MIT license. Built by Avijit Dey." in the footer and do not visibly credit Lucide/Huge sources on the pages visited. Isoform must do better: per-illustration attribution to Isocons (CC BY 4.0) with a link in the drawer and inside each exported HTML file.
+
+## 7) First-hand look, 2026-10-05 (after the owner rejected our v1 site)
+Owner: "i dont like the website design" — and pointed at animateicons.in again for fine-tuning. Seen side by side:
+- **Home hero is centred and dark**: two-line headline in grey with ONE coloured word (coral), a two-line sub in muted
+  grey, an install pill with a small tab ("shadcn") sitting on top of it, then two pill buttons (filled coral + dark).
+  Below, a full-bleed field of ~30 icons scattered over a faint plus grid, some dim, some lit — the catalogue as hero.
+- **Catalogue is an app shell**: full-height left sidebar (Navigation / Icon libraries / Categories, each with count
+  badges; the active row is a filled pill), a top bar with search (⌘K) and the install pill, and a dense grid of dark
+  cards (~230×150) with mono labels.
+- **Detail panel** (right, ~460px): title + library chip, one-line instruction, framed preview on a plus grid with a
+  "Hover to play" chip, Replay / Reset pills, Size + Duration sliders with an accent-filled track and a ringed thumb,
+  colour swatches, an Install segmented control (npm package / shadcn) above package-manager tabs, syntax-coloured code.
+- **Why ours reads weaker by comparison**: left-aligned editorial hero (quiet, small figure), off-white page, cards and
+  rails that look like a docs site, not a tool; no search; controls are plain; nothing fills the width.
