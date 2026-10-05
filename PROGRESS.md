@@ -22,8 +22,7 @@ Checks: `node skills/isoform-animate/validate.mjs <page>` → ok for all three �
 three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mobile or touch.
 
 ## In Progress
-Nothing mid-edit. **Unpushed:** GitHub had an incident on 2026-10-06 ("Disruption with some GitHub services");
-`git push` was rejected (Internal Server Error) from `b4f7142` onward — push before anything else.
+Nothing mid-edit; everything pushed.
 
 ## State (2026-10-06)
 - Site (`site/`, dark default, Specimen + Wall): / · /figures · /icons (all 1,007 with prompts + sweep notes) · /skill ·
@@ -34,8 +33,8 @@ Nothing mid-edit. **Unpushed:** GitHub had an incident on 2026-10-06 ("Disruptio
   concepts per category. `node scripts/sweep.mjs` re-sweeps all 6,041 drawings in ~1.5s.
 
 ## Next
-1. Push. 2. Owner: ABC onto the site? its speed? 3. Touch takeover (hover-only) + 390px real-device check.
-4. Repo public (needed for `npx skills add`) — owner's call. Deploy only when asked.
+1. Owner: ABC onto the site? its speed? 2. Touch takeover (hover-only) + 390px real-device check.
+3. Repo public (needed for `npx skills add`) — owner's call. Deploy only when asked.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
