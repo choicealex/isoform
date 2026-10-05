@@ -10,11 +10,12 @@
  * over a grid in stage units, to look at when the lines are not enough. Paths that touch and paint one after another usually belong to
  * one part; a part is always a run of consecutive indices.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { browser } from "./browser.mjs";
 import { iconOf } from "./build.mjs";
+import { axesOf, facing, walk } from "./geometry.mjs";
 
 const [id, variant = "rounded-left"] = process.argv.slice(2);
 if (!id) { console.error("usage: node inspect.mjs <icon-id> [variant]"); process.exit(2); }
@@ -22,47 +23,6 @@ const icon = await iconOf(id, variant);
 const vb = /viewBox="([^"]+)"/.exec(icon.svg)[1].split(/[\s,]+/).map(Number);
 const scale = Math.min(220 / vb[3], 300 / vb[2]); // the kernel's default placement
 const st = (x, y) => [200 + (x - vb[0] - vb[2] / 2) * scale, 166 + (y - vb[1] - vb[3] / 2) * scale];
-
-/** Every on-curve point and every straight segment of a path. */
-function walk(d) {
-  const tok = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/g) || [];
-  const pts = [], segs = [];
-  let i = 0, cmd = "", x = 0, y = 0, sx = 0, sy = 0, curved = 0;
-  const n = () => parseFloat(tok[i++]);
-  const ARGS = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7 };
-  while (i < tok.length) {
-    if (/[a-zA-Z]/.test(tok[i])) cmd = tok[i++];
-    const C = cmd.toUpperCase(), rel = cmd !== C;
-    if (C === "Z") { segs.push([x, y, sx, sy]); x = sx; y = sy; continue; }
-    if (!ARGS[C] || i + ARGS[C] > tok.length) break;
-    const ox = rel ? x : 0, oy = rel ? y : 0;
-    let nx = x, ny = y;
-    if (C === "M") { nx = n() + ox; ny = n() + oy; sx = nx; sy = ny; cmd = rel ? "l" : "L"; }
-    else if (C === "L" || C === "T") { nx = n() + ox; ny = n() + oy; segs.push([x, y, nx, ny]); }
-    else if (C === "H") { nx = n() + ox; segs.push([x, y, nx, ny]); }
-    else if (C === "V") { ny = n() + oy; segs.push([x, y, nx, ny]); }
-    else { i += ARGS[C] - 2; nx = n() + ox; ny = n() + oy; curved++; }
-    x = nx; y = ny; pts.push([x, y]);
-  }
-  return { pts, segs, curved };
-}
-
-/** Which way a face looks, from its edges: verticals with one diagonal are a side, two diagonals are a top. */
-function facing({ segs, curved }) {
-  let up = 0, dr = 0, dl = 0;
-  for (const [x0, y0, x1, y1] of segs) {
-    const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
-    if (len < 0.5) continue;
-    if (Math.abs(dx) < 0.2 * len) up += len;
-    else if (dx * dy > 0) dr += len; // runs down-right
-    else dl += len;
-  }
-  const total = up + dr + dl;
-  if (curved > segs.length) return "curved";
-  if (!total) return "dot";
-  if (up < 0.15 * total) return "top";
-  return dr > dl ? "left" : "right"; // a face whose long edges run down-right faces left, toward the viewer's left
-}
 
 const shapes = [...icon.svg.matchAll(/<(path|circle|ellipse|rect)\b[^>]*>/g)];
 console.log(`${icon.id} · ${icon.variant} · "${icon.title}" · ${shapes.length} paths · viewBox ${vb.join(" ")}`);
@@ -92,32 +52,28 @@ shapes.forEach((m, k) => {
   }
 });
 
-/* the axes the kernel will measure, the same way (the two strongest non-vertical edge directions), so a wrong one is
-   seen before a figure moves along it. Isocons' top and right views are not all one projection */
+/* the axes the kernel will measure (geometry.mjs, the same code), so a wrong one is seen before a figure moves along it */
 {
-  const bins = new Float64Array(180);
-  for (const m of shapes) {
-    const d = /\bd="([^"]+)"/.exec(m[0])?.[1];
-    if (!d) continue;
-    for (const [x0, y0, x1, y1] of walk(d).segs) {
-      const len = Math.hypot(x1 - x0, y1 - y0);
-      if (len < 1) continue;
-      const a = ((Math.round((Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI) % 180) + 180) % 180;
-      if (a > 80 && a < 100) continue;
-      bins[a] += len;
-    }
-  }
-  const peak = (skip) => { let best = -1, at = 0; for (let a = 0; a < 180; a++) { if (skip != null && Math.min(Math.abs(a - skip), 180 - Math.abs(a - skip)) < 20) continue; const w = bins[a] + bins[(a + 1) % 180] + bins[(a + 179) % 180]; if (w > best) { best = w; at = a; } } return at; };
-  const a1 = peak(), a2 = peak(a1);
-  const vec = (a) => [Math.cos((a * Math.PI) / 180), Math.sin((a * Math.PI) / 180)];
-  const down = (w) => (w[1] < 0 ? [-w[0], -w[1]] : w);
-  let u = down(vec(a1)), v = down(vec(a2));
-  if (Math.sign(u[0]) === Math.sign(v[0]) && Math.min(Math.abs(u[1]), Math.abs(v[1])) < 0.15) { if (Math.abs(u[1]) < Math.abs(v[1])) u = [-u[0], -u[1]]; else v = [-v[0], -v[1]]; }
-  if (u[0] < v[0]) [u, v] = [v, u];
-  const ok = u[0] > 0 && v[0] < 0;
+  const ax = axesOf(icon.svg);
   const f = (w) => w.map((n) => n.toFixed(2)).join(", ");
-  console.log(ok ? `axes   u ${f(u)}   v ${f(v)}   (measured; check them against the corners above)`
+  console.log(ax ? `axes   u ${f(ax.u)}   v ${f(ax.v)}   (measured; check them against the corners above)`
     : "axes   NOT measured: the kernel falls back to true isometric. Read two edge directions off the corners and pass icon(svg, src, { u: [x, y], v: [x, y] })");
+}
+
+/* what the sweep of every icon in every view (scripts/sweep.mjs → data/sweep.json) knows about this one */
+{
+  let sw = null;
+  try { sw = JSON.parse(readFileSync(new URL("../../data/sweep.json", import.meta.url), "utf8"))[icon.id]; } catch {}
+  const here = sw?.[icon.variant];
+  const NOTE = {
+    axes: "the axes cannot be measured (true isometric is assumed): check them, and pass { u, v } if wrong",
+    tiny: `${here?.tiny} faces are under 6 units: unreadable at 240px; move them with their neighbours, never alone`,
+    dense: `${here?.faces} faces: group them into a few parts; animating each is noise`,
+    dots: `${here?.dots} zero-size faces: leave them out of parts`,
+  };
+  for (const f of here?.flags ?? []) console.log(`sweep  ${NOTE[f]}`);
+  const better = sw && Object.entries(sw).filter(([v, x]) => v !== icon.variant && !x.flags.length).map(([v]) => v);
+  if (here?.flags.length && better?.length) console.log(`sweep  clean views of this icon: ${better.join(", ")}`);
 }
 
 const hue = (k) => `hsl(${(k * 137.5) % 360} 70% 50%)`;

@@ -267,29 +267,28 @@ var IF = (() => {
         bins[a] += len;
       }
     }
-    const peak = (skip) => {
-      let best = -1, at = 0;
-      for (let a = 0; a < 180; a++) {
-        if (skip != null && Math.min(Math.abs(a - skip), 180 - Math.abs(a - skip)) < 20) continue;
-        const w = bins[a] + bins[(a + 1) % 180] + bins[(a + 179) % 180];
-        if (w > best) { best = w; at = a; }
+    /* u among the down-right directions, v among the down-left, each preferring the near-30° slopes of an isometric
+       drawing (a symbol's own strokes, a chevron's 60° arms, are often stronger than its ground edges); a level edge may
+       serve either axis but not both; oriented by side. Without evidence for both, true isometric. Same code as
+       geometry.mjs, which inspect.mjs and the sweep use */
+    const prior = (a, lo, hi) => (a >= lo && a <= hi ? 1 : 0.35);
+    const peakIn = (from, to, lo, hi) => {
+      let best = -1, at = from;
+      for (let a = from; a <= to; a++) {
+        const k = ((a % 180) + 180) % 180;
+        const w = (bins[k] + bins[(k + 1) % 180] + bins[(k + 179) % 180]) * prior(k, lo, hi);
+        if (w > best) { best = w; at = k; }
       }
-      return at;
+      return best > 0 ? at : null;
     };
-    const a1 = peak(), a2 = peak(a1);
+    const a1 = peakIn(-4, 80, 12, 40);
+    const level = a1 != null && (a1 <= 4 || a1 >= 176);
+    const a2 = peakIn(100, level ? 175 : 184, 140, 168);
+    if (a1 == null || a2 == null) return { u: [0.866, 0.5], v: [-0.866, 0.5] };
     const vec = (a) => [Math.cos(rad(a)), Math.sin(rad(a))];
     let u = vec(a1), v = vec(a2);
-    /* u runs down-right, v down-left */
-    const down = (w) => (w[1] < 0 ? [-w[0], -w[1]] : w);
-    u = down(u); v = down(v);
-    /* a top view can have a horizontal axis (Isocons' top views do), and "down" says nothing about which way a
-       horizontal line points: if both now point the same side, turn the flatter one round */
-    if (Math.sign(u[0]) === Math.sign(v[0]) && Math.min(Math.abs(u[1]), Math.abs(v[1])) < 0.15) {
-      if (Math.abs(u[1]) < Math.abs(v[1])) u = [-u[0], -u[1]];
-      else v = [-v[0], -v[1]];
-    }
-    if (u[0] < v[0]) [u, v] = [v, u];
-    if (!(u[0] > 0) || !(v[0] < 0)) { u = [0.866, 0.5]; v = [-0.866, 0.5]; } // a flat icon: fall back to true isometric
+    if (u[0] < 0) u = [-u[0], -u[1]];
+    if (v[0] > 0) v = [-v[0], -v[1]];
     return { u, v };
   }
 
