@@ -48,3 +48,5 @@ next-env.d.ts
 /lib/figures.json
 /lib/kernel-index.txt
 /.next-prod/
+/public/iso/all/
+/lib/icons.json

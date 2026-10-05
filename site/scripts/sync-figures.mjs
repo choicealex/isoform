@@ -48,4 +48,14 @@ for (const f of FIGURES) {
   });
 }
 writeFileSync(out("lib/figures.json"), `${JSON.stringify(manifest, null, 1)}\n`);
+/* every Isocons icon in its default view, for the Icons page (img; the page tints it per theme), and the sweep's notes */
+const icons = JSON.parse(readFileSync(join(site, "../data/index.json"), "utf8"));
+let sweep = {};
+try { sweep = JSON.parse(readFileSync(join(site, "../data/sweep.json"), "utf8")); } catch {}
+const done = {};
+/* an icon can have several figures (shopping-cart has two) */
+for (const m of manifest) done[m.icon] = [...(done[m.icon] ?? []), m.name];
+for (const ic of icons) writeFileSync(out(`public/iso/all/${ic.id}.svg`), readFileSync(join(site, "../data/icons", ic.id, "rounded-left.svg")));
+writeFileSync(out("lib/icons.json"), `${JSON.stringify(icons.map((ic) => ({ id: ic.id, title: ic.title, category: ic.categoryName, flags: sweep[ic.id]?.["rounded-left"]?.flags ?? [], clean: Object.entries(sweep[ic.id] ?? {}).filter(([, x]) => !x.flags.length).map(([v]) => v), figures: done[ic.id] ?? [] })))}\n`);
+console.log(`icons     ${icons.length} → public/iso/all, lib/icons.json`);
 console.log(`sync      ${manifest.length} figures → public/iso, lib/figures.json`);

@@ -9,9 +9,10 @@ import { ThemeToggle } from "./ThemeToggle";
 /* numbered sections, after Commit Mono's header; the active one is inverted, after vercel.com/font's switcher */
 const NAV = [
   { href: "/figures", label: "Figures", n: "01" },
-  { href: "/skill", label: "Skill", n: "02" },
-  { href: "/docs", label: "Docs", n: "03" },
-  { href: "/inspo", label: "Inspo", n: "04" },
+  { href: "/icons", label: "Icons", n: "02" },
+  { href: "/skill", label: "Skill", n: "03" },
+  { href: "/docs", label: "Docs", n: "04" },
+  { href: "/inspo", label: "Inspo", n: "05" },
 ];
 
 export function Header() {

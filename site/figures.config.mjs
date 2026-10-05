@@ -9,6 +9,7 @@ export default [
   { file: "../skills/isoform-animate/examples/bolt.js", prompt: null, job: "A connection, live" },
   { file: "../skills/isoform-animate/examples/rocket.js", prompt: null, job: "Launch, deploy, go live" },
   { file: "../dogfood/shopping-cart/shopping-cart.js", prompt: "/isoform-animate shopping-cart", job: "Added to cart" },
+  { file: "../dogfood/cart-push/cart-push.js", prompt: "/isoform-animate shopping-cart", job: "A purchase on its way" },
   { file: "../dogfood/padlock/padlock.js", prompt: "/isoform-animate a padlock or key: unlocking", job: "Access granted" },
   { file: "../dogfood/car/car.js", prompt: "/isoform-animate a car", job: "Lights on, drive mode" },
   { file: "../dogfood/gas-station/local-gas-station.js", prompt: "/isoform-animate local-gas-station", job: "A running total, a balance" },

@@ -170,3 +170,7 @@ input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent);
 /* an inverted tile keeps the Isocons look in its own theme: light Isocons on the dark page, and the reverse */
 .sty-isocons .tile-inv { --iso-face: #f5fbff; --iso-edge: #229eff; --iso-lo: #b4dcff; --iso-hi: #0050d8; }
 :root[data-theme="light"] .sty-isocons .tile-inv { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
+
+/* an Isocons drawing as an <img> (black lines on white): inverted on the dark theme so it reads like the figures */
+.iso-thumb { mix-blend-mode: multiply; }
+:root:not([data-theme="light"]) .iso-thumb { filter: invert(1) brightness(0.85); mix-blend-mode: screen; }
