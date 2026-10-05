@@ -5,7 +5,7 @@
  * takes the bottle: its side of the bottle rocks it, and the water stays
  * level. In a product: a fill, a quota, a balance.
  */
-const { icon, spring, stepS, register, pointer, disposer, gl, trace, story, clamp, rad, lerp, SPRING } = IF;
+const { icon, spring, stepS, register, pointer, disposer, gl, story, clamp, rad, lerp, SPRING } = IF;
 
 function mount({ stage, svg, read, src }, lean) {
   const bag = disposer();
@@ -17,17 +17,15 @@ function mount({ stage, svg, read, src }, lean) {
   const cap = ic.part("cap", [capSide, 1]);
   cap.hi(true); // the eye starts at the cap
 
-  /* in the figure's own hairline: the water's surface, kept inside the body; the stream in and the stream out, each a
-     line that draws on from where the water leaves and retracts after it, the way the illustration itself is drawn */
+  /* in the figure's own hairline: the water's surface, kept inside the body. The water going in and out is told by the
+     level alone (owner's call: no stream lines), so pour and spill only time the read-out */
   const water = body.trace({ clip: true });
-  const stream = trace(svg, { tone: "hi" });
-  const spillLine = trace(svg, { tone: "hi" });
 
   const refill = story(stage, {
     /* pour and spill run 0 → 1 → 2: the stream's head draws on to 1, then its tail follows it off at 2 */
     rest: { fill: 0.35, cap: 0, rock: 0, pour: 0, spill: 0, ink: 1 },
     poster: { fill: 0.6, cap: 1, rock: 0, pour: 1, spill: 0, ink: 1 },
-    intro: { dur: 2400, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
+    intro: { dur: 4400, from: { ink: 0 } }, // it draws itself in, once, the first time it is seen
     beats: [
       { dur: 500 },
       { dur: 450, to: { cap: 1 }, ease: "out" },                             // the cap comes off, set aside
@@ -93,16 +91,6 @@ function mount({ stage, svg, read, src }, lean) {
     water.draw(v.ink < 1 ? [] : line);
     water.tone(v.pour > 0.1 || v.spill > 0.1 || Math.abs(sl) > 0.01 || refill.held ? "hi" : "edge");
 
-    /* the streams: falling straight into the mouth, and arcing out of it as it tips */
-    const mouth = turn([206, 101], deg);
-    /* a stream is drawn from its head back to its tail: head = min(1, c), tail = max(0, c - 1) */
-    const span = (c, n, at) => {
-      const head = Math.min(1, c), tail = Math.max(0, c - 1);
-      return c <= 0.01 || head - tail < 0.01 ? [] : Array.from({ length: n }, (_, i) => at(lerp(tail, head, i / (n - 1))));
-    };
-    stream.draw(span(v.pour, 2, (s) => [mouth[0], lerp(18, mouth[1] - 3, s)]));
-    /* out of the tipped mouth: thrown up and over the shoulder first, then falling clear of the bottle's side */
-    spillLine.draw(span(v.spill, 16, (s) => [mouth[0] - 6 - 96 * s, mouth[1] - 26 * s + 170 * s * s]));
 
     const shown = refill.held ? (Math.abs(deg) < 0.5 ? "level" : `tip ${deg > 0 ? "+" : "−"}${Math.round(Math.abs(deg))}°`)
       : v.ink < 1 ? "drawing" : v.pour > 0.1 && v.pour < 1.9 ? `fill ${Math.round(v.fill * 100)}%` : v.spill > 0.1 && v.spill < 1.9 ? "pour" : Math.abs(sl) > 0.02 ? "slosh"
