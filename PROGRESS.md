@@ -1,7 +1,7 @@
 # Session Checkpoint — 2026-10-05 (Isoform: skill dogfooded by four stranger runs)
 
 Isoform works end to end locally: the `isoform-animate` skill, its engine and checks, and three example
-illustrations that draw themselves in and loop a story. Tree clean. Not on GitHub, not deployed.
+illustrations that draw themselves in and loop a story. Tree clean. On GitHub (private), not deployed.
 
 > **What this file is for.** Only what `git log` can't tell you — what shipped and why is in the commit
 > bodies (`git show <sha>`). When work is committed, its prose here collapses to its SHA.
@@ -31,8 +31,11 @@ Nothing — clean stopping point.
 2. **Touch** — hover takeover has no touch equivalent yet (proposal: press-and-hold takes over). Test at 390px.
 3. **Website** like hairline.lucasmarkes.com (home hero drawing in, /figures catalogue + drawer, /skill, /docs,
    /inspo telling this session's real story) — structure notes in memory `project_isocons_skill`.
-4. **BLOCKS ON USER:** create `choicealex/isoform` (public or private?) — `build.mjs`/`find.mjs` fall back to
-   raw.githubusercontent from it; copyright name in `LICENSE` (currently "choicealex"). Deploy only when asked.
+4. **Repo:** `choicealex/isoform` created PRIVATE 2026-10-05 (owner: "get a repo"). The raw.githubusercontent fallback in
+   `build.mjs`/`find.mjs` and `npx skills add` only work once it is public — ask before flipping. Deploy only when asked.
+5. **Website — owner confirmed the approach brief 2026-10-05:** Next.js + Tailwind v4 in `isoform/site/`; light default +
+   dark theme; Geist + Geist Mono with one italic serif word; Hairline structure + animateicons interactions
+   (`research/animateicons.md` §5); all dogfood figures in, more Isocons may be added.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
