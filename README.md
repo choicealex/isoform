@@ -1,6 +1,6 @@
 # Isoform
 
-Isocons icons, taken apart, that answer the pointer the way the real object would.
+Isocons icons, taken apart, as animated illustrations: each tells what the real object does, and answers the hand.
 
 Isoform is a skill for coding agents. Name an [Isocons](https://isocons.app) icon (or an idea) and it splits the icon along its own edges into parts that answer the pointer coming near, draws what the real object would do in the same hairline (a water line, arcs, a flame's edge), and, when the reader turns it on, adds a WebGL effect for the material under those lines (the water, the light, the heat). Both versions look alike. It checks the result against twelve rules and in a browser, and hands it over as one HTML file with no dependencies.
 
@@ -30,11 +30,13 @@ scripts/                 extract-isocons.mjs: how data/ was made from the Isocon
 
 ## The examples
 
-| Figure | The pointer | In line | With the effect on |
+Isocons are mostly used as illustrations, so every figure plays a short story on its own; hover takes over, and letting go hands it back.
+
+| Figure | On its own | Hover | With the effect on |
 | --- | --- | --- | --- |
-| `water-bottle` | its side rocks the bottle a few degrees | the water line stays level, sloshes, settles | the body of water under it |
-| `bolt` | nearness parts the halves at the seam | one to three arcs, re-struck | the current's blue-white light |
-| `rocket` | nearness lights the engine; close in it lifts off | the flame's edge, core and shock diamonds; dashed dust | the flame's heat, the dust cloud |
+| `water-bottle` | cap off, a stream pours in, cap on, a shake, it pours out | its side rocks the bottle; the water stays level | the body of water |
+| `bolt` | the halves part, current arcs across, they snap shut | nearness holds the seam open | the current's blue-white light |
+| `rocket` | ignition (the flame draws on), liftoff, hover, landing | nearness is the throttle | the flame's heat, the dust cloud |
 
 Build one: `node skills/isoform-animate/build.mjs skills/isoform-animate/examples/bolt.js`, then open `isoform-bolt.html`.
 

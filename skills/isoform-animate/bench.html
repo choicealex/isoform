@@ -6,25 +6,26 @@
 <title>Isoform figure</title>
 <link rel="icon" href="data:,">
 <style>
-  /* ink: the default, neutral like a technical drawing. isocons: the set's own blue, by ?palette=isocons */
+  /* ink with one accent: the drawing is neutral, the acting part and its traces take the accent, Isocons' blue by default
+     (--iso-hi; set it to any brand colour). isocons: the set's own blue everywhere, by ?palette=isocons */
   :root {
     color-scheme: light;
     --ground: #ffffff; --ink: #18181b; --muted: #71717a; --rule: #e4e4e7;
-    --iso-plate: #ffffff; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #d7d7dc; --iso-hi: #18181b; --iso-stroke: 0.9;
+    --iso-plate: #ffffff; --iso-face: #ffffff; --iso-edge: #8e8e97; --iso-lo: #d7d7dc; --iso-hi: #229eff; --iso-stroke: 0.9;
   }
   :root[data-palette="isocons"] { --iso-face: #f5fbff; --iso-edge: #229eff; --iso-lo: #b4dcff; --iso-hi: #0050d8; }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --ground: #0a0a0c; --ink: #ececef; --muted: #8b8b94; --rule: #232327;
-      --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #f4f4f5;
+      --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #4da3ff;
     }
     :root[data-palette="isocons"]:not([data-theme="light"]) { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --ground: #0a0a0c; --ink: #ececef; --muted: #8b8b94; --rule: #232327;
-    --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #f4f4f5;
+    --iso-plate: #0a0a0c; --iso-face: #0a0a0c; --iso-edge: #7a7a84; --iso-lo: #2a2a30; --iso-hi: #4da3ff;
   }
   :root[data-theme="dark"][data-palette="isocons"] { --iso-face: #191924; --iso-edge: #6a6a80; --iso-lo: #2e2e3c; --iso-hi: #4da3ff; }
   * { box-sizing: border-box; }
@@ -116,6 +117,8 @@
   const theme = q.get("theme");
   if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
   if (q.get("palette") === "isocons") document.documentElement.dataset.palette = "isocons";
+  /* ?t= holds a story at one moment (ms), for the look's pictures */
+  if (q.get("t") != null) stage.dataset.t = q.get("t");
   /* the effect layer is opt-in: off unless ?gl=1 or the reader presses Effect */
   stage.dataset.gl = q.get("gl") === "1" ? "on" : "off";
   $("fx").setAttribute("aria-pressed", String(stage.dataset.gl === "on"));

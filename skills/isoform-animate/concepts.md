@@ -1,6 +1,6 @@
 # From an icon to a concept
 
-A concept is four things: **the icon**, **what the pointer does to it**, **what the real object does in answer** (the effect), and **what the read-out says**. It fits on one line. If it does not, it is not ready to build.
+Isocons are used as illustrations, so a concept is a **story** first: **the icon**, **what it does on its own in a few beats** (set up, act, hold, return), **what happens physically** (traced, with an optional effect), **what hover does**, and **the poster frame**. It fits on one line. If it does not, it is not ready to build.
 
 ## Finding it
 
@@ -14,13 +14,15 @@ A concept is four things: **the icon**, **what the pointer does to it**, **what 
 8. **Design the rest.** The icon as Isocons drew it, one bright part where the eye should start.
 9. **Choose the read-out and the slider.** A state in a few characters (`ignition`, `arc ×2`, `tip +4°`) and `rest`; one number the slider makes weaker or stronger: a reach, a gap, a climb. Small at the default.
 
-## Three answers already built
+## Three stories already built
 
-| Answer | Example | The pointer | The parts | The effect |
+Each plays on its own; hover takes over as shown.
+
+| Story | Example | Hover | The parts | What happens |
 | --- | --- | --- | --- | --- |
-| **Rock and settle** | `examples/water-bottle.js` | its side of the bottle rocks it 3–6° on its front corner | one cut (cap from body); everything rocks together | trace: the water line, level in the world, sloshing; effect: the body of water under it |
-| **Charge** | `examples/bolt.js` | nearness to the seam parts the halves a few units | one cut along u, the broken surface added with `facet` | trace: one to three arcs, re-struck; effect: the current's blue-white light |
-| **Ignition** | `examples/rocket.js` | nearness lights the engine; past half it lifts a few units | the parts move together, the window is the bright mark | trace: the flame's edge, its core and shock diamonds, dashed dust; effect: the flame's heat and the dust cloud |
+| **Refill** (8.8s): cap off, pour in, cap on, shake, pour out | `examples/water-bottle.js` | its side of the bottle rocks it | one cut (cap from body); the cap is set aside | traces: the water line, level and sloshing; the streams in and out; effect: the body of water |
+| **Charge** (4.2s): part, arc, snap shut | `examples/bolt.js` | nearness to the seam holds it open | one cut along u, the broken surface added with `facet` | trace: one to three arcs, re-struck; effect: the current's blue-white light |
+| **Flight** (6.4s): ignite, lift off, hover, land, cut out | `examples/rocket.js` | nearness is the throttle | the parts move together, the window is the bright mark | trace: the flame's edge, its core and shock diamonds, dashed dust; effect: the flame's heat and the dust cloud |
 
 Other answers that suit Isocons objects: **open a hinge** (a lid, a door, a laptop: `tilt` about the hinge, under 15°, plus a `move`), **press** (a key, a button: a short move down with neighbours following, rule 02), **fill** (a battery, a glass: an `over` effect masked to the body), **spin** (a fan, a wheel: the effect carries the motion the flat faces cannot), **heat** (a pan, a bulb: an `under` shimmer of rising air, or an `over` glow of the metal itself in its one physical colour).
 

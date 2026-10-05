@@ -2,6 +2,10 @@
 
 An Isoform figure is an Isocons icon taken apart and made to answer the pointer, the way the real object would. It is drawn in one hairline: the icon's faces, and traces for what happens (a water line, an arc, a flame's edge). A WebGL effect may add the material under those lines, water, light, heat, but only when the reader turns it on, and the figure looks the same either way, only flatter.
 
+Isocons are used as **illustrations**: in a hero, a bento card, beside a feature. So a figure tells its story on its own, a short loop of beats (set up, act, hold, return, pause), the way a product illustration explains a feature without anyone touching it. The pointer is a bonus: hover takes over and the figure answers the hand; let go and the story carries on from where it stopped. Under reduced motion it shows one poster frame, the most telling moment.
+
+The drawing is ink with one accent: neutral lines, and the part that acts (and its traces) in the accent, Isocons' blue by default (`--iso-hi`, any brand colour).
+
 Above all twelve: **alive without moving much.** The answer is a few units, not a leap; it settles into a designed rest; the reader notices late that the figure has been listening. Each rule says what it means, how the kernel keeps it, and what gets a figure sent back.
 
 ## 01 · hit: test the rest shape
@@ -32,12 +36,12 @@ On the drawing, emphasis is the stroke changing from the line colour to the brig
 - **Keep it:** `part.hi(on)` and `part.dim(on)` are the whole palette; a trace takes `tone: "hi"` when it is what answers. At rest one part is bright, where the eye should start; when the pointer chooses, the bright moves to what it chose (a water line, an arc).
 - **Sent back when:** the figure sets a colour, fill, opacity, filter or stroke width on the drawing; two unrelated places are bright at once.
 
-## 05 · rest: the icon, as drawn
+## 05 · rest: the icon, as drawn; the poster, as told
 
-At rest the figure is the Isocons icon, recognisable at a glance, with one bright mark. Rest is the thumbnail and the first thing anyone sees.
+The story's first frame is the Isocons icon, recognisable at a glance, with one bright mark, and every loop comes back to it. The poster (reduced motion, and the still a reader sees first if motion is off) is the story's most telling moment: mid-pour, mid-arc, just after liftoff, never the rest pose.
 
-- **Keep it:** every part's rest offset is zero unless the concept needs a resting pose (a door ajar); seams from cuts follow edges the object really has (a cap's rim, a lid's line).
-- **Sent back when:** at rest the icon is broken, offset or hard to recognise; rest and "not drawn yet" look alike.
+- **Keep it:** every channel's `rest` gives the icon as drawn; `poster` names the telling moment; seams from cuts follow edges the object really has (a cap's rim, a lid's line).
+- **Sent back when:** at rest the icon is broken, offset or hard to recognise; the poster is the rest pose; the loop ends somewhere other than rest (it would jump).
 
 ## 06 · honesty: no holes, no lies
 
@@ -46,16 +50,16 @@ When a part moves it reveals what was behind it, and that has to be drawn: the n
 - **Keep it:** `icon.face(i, a, b, c, before)` copies a face to where the hidden surface is; `icon.facet(points, before)` draws a new one from corners on the icon's axes. Faces paint back to front: a part paints where its last face did, unless `{paint: "first"}`. Anything added that runs between two places, a pipe, a cable, a wire, has both ends anchored on a face and keeps its width.
 - **Sent back when:** a moving part leaves an empty outline or a see-through gap; a far edge crosses a near face; an added line floats free or crosses another.
 
-## 07 · cost: sleep when still
+## 07 · cost: sleep when unseen
 
-Motion happens only in the one shared loop, and only while something moves or an effect is alive.
+Motion happens only in the one shared loop. A story is ambient, so it runs while the figure is on screen and sleeps off it; anything else runs only while it moves.
 
 - **Keep it:** all motion inside `register(stage, tick)`; `tick` returns `true` only while a spring or tween is moving or the effect is running; call `wake()` after input. The loop sleeps offscreen and lands everything at once under reduced motion.
 - **Sent back when:** the figure has a timer, `requestAnimationFrame`, CSS or SMIL animation of its own; `tick` returns `true` at rest.
 
-## 08 · clock: two clocks, and physics when it is physical
+## 08 · clock: a story's pace, the hand's spring, physics when it is physical
 
-A discrete choice gets a 700ms ease-out on `(.32, .72, 0, 1)`; a continuous input gets a spring, `k 100 · c 18 · m 1`. A spring with other constants is allowed only for a material that really behaves that way (water rings: underdamped), said in a comment.
+A story moves on beats eased in-out (`(.65, 0, .35, 1)`), 300ms–2s each, a whole loop 4–9s; a snap or a press is a short `out` beat that overshoots a hair and settles (`[-0.05, 0]`). The hand gets a spring (`SPRING.hand`, 100/18); a small gesture settles without overshoot (`SPRING.settle`, 200/25); only the one part that carries the meaning may bounce (`SPRING.hero`, 400/10). A spring with other constants is allowed only for a material that really behaves that way (water rings: underdamped), said in a comment. Returning is softer than arriving: shorter, no overshoot.
 
 - **Keep it:** `tween` / `tset` / `tval` for which; `spring` / `stepS` for where.
 - **Sent back when:** a tween chases the pointer; a spring animates a choice; constants are changed without a physical reason; anything is linear.

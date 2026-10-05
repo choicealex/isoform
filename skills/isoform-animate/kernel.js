@@ -43,6 +43,17 @@
  * The discrete clock: a 700ms tween on (.32, .72, 0, 1)
  *   tween(v, dur)  tset(tw, to, now, delay)  tval(tw, now)  tdone(tw, now)
  *   reducedMotion()                    true when the reader asked for less motion; springs and tweens land at once
+ * Stories: an illustration plays on its own; the pointer takes over while it holds
+ *   story(stage, {rest, poster, beats}) channels are named numbers. rest: their values at rest; poster: the one frame shown
+ *                                      under reduced motion (the most telling moment). beats: [{dur ms, to: {ch: v | [keys…]},
+ *                                      ease}] in order; a beat moves the channels it names, the rest hold; it loops.
+ *                                      ease: "inOut" (default, a story's pace), "out", "in", "linear"
+ *   s.step(dt)                         call in tick; returns whether it still needs frames
+ *   s.values(live)                     the channels now; live: {ch: v} for those the pointer drives, blended in while held
+ *   s.hold(on)                         the pointer takes over (the clock stops) or lets go (it carries on)
+ *   SPRING.settle | hero | float | hand  {k, c}: settle 200/25, no overshoot (the default for small gestures); hero 400/10,
+ *                                      the one part that carries the meaning; float 50/10, water and slow drift; hand 100/18
+ *   EASES.inOut | out | in | linear    the curves beats use
  * Life
  *   register(stage, tick)              joins the one frame loop; tick(dt seconds, now ms) returns true while anything moves;
  *                                      gives {wake, unregister}. The loop sleeps offscreen and when every tick returns false
@@ -52,7 +63,8 @@
  *   trace(svg, {tone, dash, under})    a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
  *                                      under puts it behind the icon (dust on the ground, a wake)
  *   part.trace({tone, dash, clip})     a hairline inside a part: it moves with the part; clip keeps it inside its faces
- *   t.draw(lines)                      sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it
+ *   t.draw(lines, reveal)              sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it.
+ *                                      reveal 0…1 draws the line on along its length (an ink line being drawn)
  *   t.tone(tone)                       changes its tone
  * The effect layer: WebGL, opt-in (the reader turns it on; off by default), one per figure at most. It adds the
  * material under the traces, never replaces them: the figure looks the same with it off, only flatter
@@ -524,8 +536,19 @@ var IF = (() => {
     let last = "";
     return {
       el,
-      draw(lines) {
+      /*
+       * reveal (0…1) draws the line on along its length, the way an ink line is drawn: the dash is normalised
+       * (pathLength 1), so one timing fits a line of any length, and a short opacity pre-roll keeps the round
+       * cap from showing as a dot before the line starts. A dashed trace only fades.
+       */
+      draw(lines, reveal = 1) {
         const list = !lines?.length ? [] : Array.isArray(lines[0][0]) ? lines : [lines];
+        const rv = clamp(reveal, 0, 1);
+        el.style.opacity = rv >= 1 ? "" : String(r2(Math.min(1, rv / 0.12)));
+        if (!o.dash) {
+          if (rv >= 1) { el.removeAttribute("pathLength"); el.style.strokeDasharray = ""; el.style.strokeDashoffset = ""; }
+          else { el.setAttribute("pathLength", "1"); el.style.strokeDasharray = "1 1"; el.style.strokeDashoffset = String(r2(1 - rv)); }
+        }
         /* points arrive in stage units; a trace inside a moving part is drawn in that part's own space */
         let m = null;
         if (parent !== parent.ownerSVGElement && parent.ownerSVGElement) {
@@ -567,6 +590,69 @@ var IF = (() => {
     const v = (n) => rgb(s.getPropertyValue(n));
     const plate = v("--iso-plate");
     return { line: v("--iso-edge"), hi: v("--iso-hi"), face: v("--iso-face"), plate, dark: plate[0] + plate[1] + plate[2] < 1.2 ? 1 : 0 };
+  }
+
+  /*
+   * Stories: an illustration plays on its own. A story is a list of beats over named channels (plain numbers the
+   * figure reads: a fill, a gap, a thrust). Each beat moves some channels to new values, or through keyframes, over
+   * its duration on an ease; channels it does not name hold. The story loops while the figure is on screen.
+   * When the pointer takes hold (hold(true)), the story's clock stops and the channels the figure drives live
+   * blend in on a settle spring; when it lets go, they blend back and the story carries on from where it stopped.
+   * Under reduced motion, or with ?t= on the bench, it shows one frame: the poster, or that moment.
+   */
+  const EASES = { linear: (t) => t, out: EASE, inOut: bezier(0.65, 0, 0.35, 1), in: bezier(0.55, 0, 1, 0.45) };
+  const SPRING = { settle: { k: 200, c: 25 }, hero: { k: 400, c: 10 }, float: { k: 50, c: 10 }, hand: { k: 100, c: 18 } };
+  function story(stage, o) {
+    const rest = { ...o.rest };
+    const names = Object.keys(rest);
+    const segs = Object.fromEntries(names.map((n) => [n, []]));
+    let t = 0;
+    for (const b of o.beats) {
+      for (const [n, v] of Object.entries(b.to ?? {})) {
+        if (!segs[n]) throw new Error(`story: beat moves "${n}", which is not in rest`);
+        segs[n].push({ t0: t, t1: t + b.dur, keys: Array.isArray(v) ? v : [v], ease: EASES[b.ease ?? "inOut"] ?? EASES.inOut });
+      }
+      t += b.dur;
+    }
+    const total = t;
+    stage.dataset.storyTotal = String(total);
+    /* each segment starts from wherever the channel was when it began */
+    const at = (n, T) => {
+      let v = rest[n];
+      for (const sg of segs[n]) {
+        if (T < sg.t0) break;
+        const ks = [v, ...sg.keys], p = clamp((T - sg.t0) / (sg.t1 - sg.t0), 0, 1);
+        if (p >= 1) { v = ks[ks.length - 1]; continue; }
+        const f = p * (ks.length - 1), i = Math.floor(f);
+        return lerp(ks[i], ks[i + 1], sg.ease(f - i));
+      }
+      return v;
+    };
+    let clock = 0, held = false;
+    const w = spring(0, SPRING.settle);
+    const fixed = () => (stage.dataset.t != null && stage.dataset.t !== "" ? Number(stage.dataset.t) : null);
+    return {
+      total,
+      /* advances the story's clock unless it is held, fixed or reduced; returns whether anything is still moving */
+      step(dt) {
+        const blending = stepS(w, dt);
+        if (!held && fixed() == null && !reduced) clock = (clock + dt * 1000) % total;
+        return blending || (!held && fixed() == null && !reduced);
+      },
+      /* the channels now: the story's, with the pointer's live values blended in while it holds */
+      values(live = {}) {
+        const f = fixed();
+        const T = f != null ? ((f % total) + total) % total : clock;
+        const out = {};
+        for (const n of names) {
+          const s = reduced && f == null ? (o.poster?.[n] ?? at(n, T)) : at(n, T);
+          out[n] = n in live ? lerp(s, live[n], w.x) : s;
+        }
+        return out;
+      },
+      hold(on) { held = !!on; w.t = held ? 1 : 0; },
+      get held() { return held; },
+    };
   }
 
   /* the effect layer */
@@ -689,7 +775,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
 
   return {
     clamp, lerp, smooth, rad, r2,
-    spring, stepS, tween, tset, tval, tdone, bezier, EASE, reducedMotion,
+    spring, stepS, tween, tset, tval, tdone, bezier, EASE, EASES, SPRING, reducedMotion, story,
     disposer, register, pointer,
     icon, after, mk, segments, axes, trace,
     gl, palette,

@@ -1,12 +1,12 @@
 ---
 name: isoform-animate
-description: Use when someone asks to animate an Isocons icon (isocons.app), make an isometric icon react to the pointer, or runs /isoform-animate with an icon or an idea. Takes one of the 1,007 Isocons icons apart into parts that answer the pointer, adds an effect showing what the real object would physically do, and hands it over as a single self-contained HTML file.
+description: Use when someone asks to animate an Isocons icon (isocons.app), make an animated isometric illustration for a site (a hero, a bento card, a feature), or runs /isoform-animate with an icon or an idea. Takes one of the 1,007 Isocons icons apart and makes it tell a short looping story of what the real object does, which hover can take over, and hands it over as a single self-contained HTML file.
 argument-hint: "[icon or idea]"
 ---
 
 # Isoform: animate an icon
 
-You are making one figure: an Isocons icon, taken apart along its own edges, that answers the pointer the way the real object would. It is drawn in one hairline, the icon's faces plus traces for what happens (a water line, arcs, a flame's edge), and it is alive without moving much. A WebGL effect may add the material under those lines (the body of water, the light of the current, the heat of the flame) when the reader turns it on; it is off by default, and the figure looks the same either way. It ships as one HTML file with nothing to install. `examples/water-bottle.js`, `examples/bolt.js` and `examples/rocket.js` are the bar, in the format you will write.
+You are making one figure: an Isocons icon, taken apart along its own edges, used as an illustration. It plays a short story of what the real object does, on its own, and when the pointer comes near, hover takes over and the object answers the hand. It is drawn in one hairline, the icon's faces plus traces for what happens (a water line, arcs, a flame's edge), and it is alive without moving much. A WebGL effect may add the material under those lines (the body of water, the light of the current, the heat of the flame) when the reader turns it on; it is off by default, and the figure looks the same either way. It ships as one HTML file with nothing to install. `examples/water-bottle.js`, `examples/bolt.js` and `examples/rocket.js` are the bar, in the format you will write.
 
 You write one thing: the figure. The engine (`kernel.js`) and the page (`bench.html`) are fixed. Never edit them, never paste a changed copy, never rewrite what the kernel gives you.
 
@@ -24,7 +24,7 @@ It prints every face in paint order with which way it looks, its box and its cor
 
 Read `concepts.md`. Then offer two or three concepts, one line each:
 
-> **Name.** The object. What the pointer coming near does to it. What the real object does in answer, as a trace and (optionally) an effect. What it means inside a product. What the read-out says.
+> **Name.** The object. Its story in beats (set up, act, hold, return). What hover does to it. What happens, as a trace and (optionally) an effect. Its job on a page. The poster frame.
 
 Say any cut it needs. Wait for the person to pick. Skip this only when they arrived with the gesture and the effect chosen; if there is nobody to ask, take the concept whose effect is most physical and say which you took.
 
@@ -34,8 +34,8 @@ One figure, one idea. An effect that would suit any icon is not a concept yet.
 
 1. Read `rules.md`. The twelve rules are not advice: a figure that breaks one is not finished.
 2. Read the index at the top of `kernel.js`, down to `var IF`. It lists everything you may call. Do not read the code under it.
-3. Read the nearest example: `water-bottle.js` for a part that comes away and an effect inside the object, `bolt.js` for a break with an effect in the gap, `rocket.js` for the whole object moving with an effect in the open.
-4. Write `<name>.js` in the shape of the examples: take what you need from `IF`; define `mount({ stage, svg, read, src }, value)` returning `{ set, destroy }`; end the file with `isoform({ name, icon, variant, means, effect, rules, range, mount })`.
+3. Read the nearest example: `water-bottle.js` for a long story with several parts and an effect inside the object, `bolt.js` for a short one with a break and an effect in the gap, `rocket.js` for the whole object moving with an effect in the open. All three use `story` for the loop and hand it to the pointer the same way.
+4. Write `<name>.js` in the shape of the examples: take what you need from `IF`; make the story with `story(stage, {rest, poster, beats})`; in `tick`, step it and read `values(live)`; on pointer move `hold(true)` and drive the live channels with a `SPRING.hand` spring, on leave `hold(false)`; define `mount({ stage, svg, read, src }, value)` returning `{ set, destroy }`; end the file with `isoform({ name, icon, variant, means, effect, rules, range, mount })`.
    - `icon`, `variant`: the Isocons id and variant. `build.mjs` inlines that SVG.
    - `means`: one sentence, at most 140 characters, saying what the figure shows.
    - `effect`: one sentence naming the physical thing the effect adds under the traces. Leave it out if there is no effect.
@@ -78,6 +78,9 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | drawing the phenomenon only in the shader | trace it in hairline first; the effect adds material under the trace (rule 11) |
 | mapping the pointer's height to a big move | answer nearness, a few units at the default (rule 03) |
 | a read-out in percent | name the state: `rest`, `ignition`, `liftoff`, `arc ×2`, `tip +4°` |
+| a figure that waits for the pointer | illustrations play on their own: a `story`; hover only takes over |
+| a loop that jumps back to the start | the last beats return every channel to `rest` |
+| a poster that is the rest pose | the poster is the most telling moment |
 | giving the effect a colour of its own | palette uniforms; one physical colour only, with a comment (rule 12) |
 | writing a timer or `requestAnimationFrame` | `register(stage, tick)`, with springs or tweens (rule 07) |
 | testing the pointer against where a part is now | `icon.hit` or `part.rest` (rule 01) |

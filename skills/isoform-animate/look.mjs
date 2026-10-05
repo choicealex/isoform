@@ -38,8 +38,9 @@ const edges = flag("--edge");
 const lo = edges[0] ?? at, hi = edges[1] ?? edges[0] ?? at;
 if (!at) console.log("answer    no --at: the answering pictures are taken at rest; that is not a finished look");
 const q = (o) => { const s = new URLSearchParams(Object.entries(o).filter(([, v]) => v != null)).toString(); return s ? `?${s}` : ""; };
+/* a story is held at a moment with ?t=, so every picture can hold still: rest is its first frame */
 const SHOTS = [
-  ["rest", {}], ["answer", { at }], ["small", { w: 240 }], ["small-answer", { w: 240, at }],
+  ["rest", { t: 0 }], ["answer", { at }], ["small", { w: 240, t: 0 }], ["small-answer", { w: 240, at }],
   ["low", { intensity: 0, at: lo }], ["high", { intensity: 1, at: hi }],
   ["dark", { theme: "dark", at }], ["light", { theme: "light", at }], ["effect", { gl: 1, at }],
 ];
@@ -61,9 +62,25 @@ let browser;
 for (const opts of [{ channel: "chrome" }, {}]) { try { browser = await pw.chromium.launch(opts); break; } catch {} }
 if (!browser) { console.log("look      no Chrome or Chromium: run  npx playwright install chromium  then look again"); process.exit(2); }
 
+/* a figure that tells a story also gets three moments of it and its poster, the frame reduced motion shows */
+{
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  await p.goto(pathToFileURL(page).href);
+  await p.waitForTimeout(400);
+  const total = Number(await p.evaluate(() => document.getElementById("stage").dataset.storyTotal || 0));
+  await ctx.close();
+  if (total) {
+    for (const f of [0.25, 0.5, 0.75]) SHOTS.push([`story-${Math.round(f * 100)}`, { t: Math.round(total * f) }]);
+    SHOTS.push(["poster", { reduce: 1 }]);
+    console.log(`story     ${(total / 1000).toFixed(1)}s loop; pictures at 25, 50, 75% and the poster`);
+  }
+}
+
 let failed = false;
-const results = await Promise.all(SHOTS.map(async ([shot, o]) => {
-  const ctx = await browser.newContext({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 });
+const results = await Promise.all(SHOTS.map(async ([shot, o0]) => {
+  const { reduce, ...o } = o0;
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2, reducedMotion: reduce ? "reduce" : "no-preference" });
   const p = await ctx.newPage();
   const logs = [];
   p.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(m.text()); });
@@ -107,7 +124,7 @@ for (const r of results) {
 }
 const rest = results.find((r) => r.shot === "rest");
 if (rest.read !== "rest") { failed = true; console.log(`readout   FAIL rest reads "${rest.read}", not "rest"`); }
-for (const r of results) if (r.shot !== "rest" && !r.shot.startsWith("small") && at && r.read === "rest" && r.shot !== "low") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
+for (const r of results) if (["answer", "high", "dark", "light", "effect"].includes(r.shot) && at && r.read === "rest") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
 console.log(`readout   ${results.map((r) => `${r.shot}=${r.read}`).join("  ")}`);
 const moving = results.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");

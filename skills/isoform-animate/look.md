@@ -29,6 +29,8 @@ Five address parameters make them, and work in any browser for a look by hand: `
 | `low` · `high` | the slider at 0 and at 1, the pointer at `--edge` |
 | `dark` · `light` | both themes, answering |
 | `effect` | answering with the WebGL effect on |
+| `story-25` · `story-50` · `story-75` | a story held at a quarter, half and three quarters of its loop (`?t=`) |
+| `poster` | under reduced motion: the poster frame |
 
 By hand, keep the window at least 800 × 900 and wait 1.5 seconds before each picture: springs take about a second.
 
@@ -36,7 +38,7 @@ By hand, keep the window at least 800 × 900 and wait 1.5 seconds before each pi
 
 Answer each yes or no. A no is fixed before anything is handed over. `look.mjs` answers 3, 9 and 12 and part of 4; the rest are yours, from the sheet.
 
-1. **It is the icon at rest** (rule 05). The `rest` picture is the Isocons icon, recognisable, with one bright part; any seam from a cut lies on an edge the object really has.
+1. **It is the icon at rest, and the story reads** (rule 05). The `rest` picture is the Isocons icon, recognisable, with one bright part. Read `story-25`, `story-50`, `story-75` in order: can you say what happens, without the read-out? `poster` is the telling moment, not the rest pose.
 2. **The silhouette reads at 240px.** In `small` and `small-answer` you can say what the object is and what is happening to it.
 3. **The read-out** says `rest` at rest and names the state in a few characters when answering.
 4. **Nothing flickers** (rule 01). Every picture's drawing comes to rest; an effect may keep running while the pointer holds the object in a running state, never at rest.

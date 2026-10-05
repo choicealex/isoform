@@ -1,10 +1,11 @@
 /*
- * Water bottle. Over the bottle, the pointer's side rocks it a few degrees on
- * its front corner; the water inside stays level, sloshes when the rocking
- * changes, and settles. In a product: a level that holds while what it
- * measures moves — a fill, a quota, a balance.
+ * Water bottle. On its own it refills: the cap comes off and is set aside, a
+ * stream pours in and the level rises, the cap goes back on, a shake sloshes
+ * the water, then it tips and pours out back down to where it began. Hover
+ * takes the bottle: its side of the bottle rocks it, and the water stays
+ * level. In a product: a fill, a quota, a balance.
  */
-const { icon, spring, stepS, register, pointer, disposer, gl, clamp, rad } = IF;
+const { icon, spring, stepS, register, pointer, disposer, gl, trace, story, clamp, rad, lerp, SPRING } = IF;
 
 function mount({ stage, svg, read, src }, lean) {
   const bag = disposer();
@@ -14,79 +15,109 @@ function mount({ stage, svg, read, src }, lean) {
   const [capSide, bodySide] = ic.cut(0, [198, 111], "u");
   const body = ic.part("body", [bodySide, 2, 3, 4, 5, 6]);
   const cap = ic.part("cap", [capSide, 1]);
-  cap.hi(true); // rest: the eye starts at the cap
-  /* the water line, in the figure's own hairline, kept inside the body; it is the figure with or without the effect */
+  cap.hi(true); // the eye starts at the cap
+
+  /* in the figure's own hairline: the water's surface, kept inside the body; the stream in and the stream out, dashed */
   const water = body.trace({ clip: true });
+  const stream = trace(svg, { dash: true, tone: "hi" });
+  const spillLine = trace(svg, { dash: true, tone: "hi" });
+
+  const refill = story(stage, {
+    rest: { fill: 0.35, cap: 0, rock: 0, pour: 0, spill: 0 },
+    poster: { fill: 0.6, cap: 1, rock: 0, pour: 1, spill: 0 },
+    beats: [
+      { dur: 500 },
+      { dur: 450, to: { cap: 1 }, ease: "out" },                             // the cap comes off, set aside
+      { dur: 1700, to: { fill: 0.62, pour: [1, 1, 1, 1, 0] } },              // a stream pours in, the level rises
+      { dur: 450, to: { cap: [-0.05, 0] }, ease: "out" },                    // the cap goes back on, pressed home
+      { dur: 1300, to: { rock: [0.8, -0.55, 0.3, 0] } },                     // a shake: the water sloshes
+      { dur: 600 },
+      { dur: 400, to: { cap: 1 }, ease: "out" },
+      { dur: 1500, to: { rock: -1.5, fill: 0.35, spill: [1, 1, 1, 0] } },    // it tips and pours out
+      { dur: 700, to: { rock: 0 } },
+      { dur: 450, to: { cap: [-0.05, 0] }, ease: "out" },
+      { dur: 800 },
+    ],
+  });
 
   const pivot = [214, 268]; // the base's front corner, which it rocks on
-  const tip = spring(0);
-  /* water rings, a hand does not: an underdamped spring for the slosh (rule 08) */
+  const hand = spring(0, SPRING.hand);
+  /* water rings, a hand does not: a float spring, underdamped, for the slosh (rule 08) */
   const slosh = spring(0, { k: 55, c: 2.6, eps: 0.0004 });
-  let max = lean, label = "", lastTip = 0;
-  const level = [220, 190]; // where the surface meets the front edge at rest
+  let max = lean, label = "", lastDeg = 0;
+  const su = ic.u[1] / ic.u[0], sv = ic.v[1] / ic.v[0];
+  const turn = (p, deg) => {
+    const t = rad(deg), x = p[0] - pivot[0], y = p[1] - pivot[1];
+    return [pivot[0] + x * Math.cos(t) - y * Math.sin(t), pivot[1] + x * Math.sin(t) + y * Math.cos(t)];
+  };
 
   const fx = gl(stage, {
     layer: "over",
     uniforms: { u_e: "vec2", u_su: "float", u_sv: "float", u_slosh: "float" },
     frag: `
+      // the body of water under the traced line: level in the world, along u on the left face and v on the right
       vec4 effect(vec2 p) {
         float inside = mask(p);
         if (inside < 0.01) return vec4(0.0);
-        // level in the world: along u on the left face, along v on the right, whatever the bottle does
         float dx = p.x - u_e.x;
-        float surf = u_e.y + dx * (dx < 0.0 ? u_su : u_sv) + dx * u_slosh
-                   + sin(dx * 0.12 + u_time * 5.0) * 1.2 * abs(u_slosh) * 6.0;
-        // the body of water under the traced line: the effect adds the material, the line stays the trace's
+        float surf = u_e.y + dx * (dx < 0.0 ? u_su : u_sv) + dx * u_slosh + sin(dx * 0.12 + u_time * 5.0) * 7.2 * abs(u_slosh);
         float below = smoothstep(-0.5, 0.5, p.y - surf);
-        float depth = clamp((p.y - surf) / 80.0, 0.0, 1.0);
-        float a = below * mix(0.06, 0.16, depth);
-        return vec4(u_line * a, a) * inside;
+        float a = below * mix(0.08, 0.2, clamp((p.y - surf) / 80.0, 0.0, 1.0));
+        return vec4(u_hi * a, a) * inside;
       }`,
   });
-  if (fx.on) { fx.set("u_su", ic.u[1] / ic.u[0]); fx.set("u_sv", ic.v[1] / ic.v[0]); }
+  if (fx.on) { fx.set("u_su", su); fx.set("u_sv", sv); }
 
   const loop = register(stage, (dt, now) => {
-    const a = stepS(tip, dt);
-    const deg = tip.x * max;
-    /* a change in the rocking is a push on the water */
-    slosh.v += (deg - lastTip) * 0.2;
-    lastTip = deg;
-    const b = stepS(slosh, dt);
-    cap.tilt(deg, pivot);
+    const a = refill.step(dt), b = stepS(hand, dt);
+    const v = refill.values(refill.held ? { rock: hand.x } : {});
+    const deg = v.rock * max;
+    slosh.v += (deg - lastDeg) * 0.2; // a change in the rocking is a push on the water
+    lastDeg = deg;
+    const c = stepS(slosh, dt);
+    /* the cap lifts and is set aside along -u, off the mouth, so the stream has somewhere to go */
+    cap.move(-16 * Math.max(0, v.cap), 0, 14 * v.cap).tilt(deg, pivot);
     body.tilt(deg, pivot);
-    const whole = Math.round(Math.abs(deg));
-    const shown = Math.abs(tip.x) < 0.01 ? "rest" : whole === 0 ? "level" : `tip ${deg > 0 ? "+" : "−"}${whole}°`;
-    if (shown !== label) { read.textContent = shown; label = shown; }
+
     /* the surface keeps its height where it meets the turned front edge, and stays level in the world */
-    const t = rad(deg), x = level[0] - pivot[0], y = level[1] - pivot[1];
-    const e = [pivot[0] + x * Math.cos(t) - y * Math.sin(t), pivot[1] + x * Math.sin(t) + y * Math.cos(t)];
-    const sl = clamp(slosh.x, -0.4, 0.4), su = ic.u[1] / ic.u[0], sv = ic.v[1] / ic.v[0], time = now / 1000;
-    const line = [];
-    for (let px = body.rest.x0 - 20; px <= body.rest.x1 + 20; px += 2) {
+    const e = turn([217, lerp(258, 176, v.fill)], deg);
+    const sl = clamp(slosh.x, -0.4, 0.4), time = now / 1000, line = [];
+    for (let px = body.rest.x0 - 30; px <= body.rest.x1 + 30; px += 2) {
       const dx = px - e[0];
       line.push([px, e[1] + dx * (dx < 0 ? su : sv) + dx * sl + Math.sin(dx * 0.12 + time * 5) * 7.2 * Math.abs(sl)]);
     }
     water.draw(line);
-    water.tone(Math.abs(sl) > 0.01 || Math.abs(tip.t) > 0 ? "hi" : "edge");
-    if (fx.on) {
-      fx.set("u_e", e);
-      fx.set("u_slosh", sl);
-      fx.mask([body]);
-      fx.draw(now);
-    }
-    return a || b;
+    water.tone(v.pour > 0.1 || v.spill > 0.1 || Math.abs(sl) > 0.01 || refill.held ? "hi" : "edge");
+
+    /* the streams: falling straight into the mouth, and arcing out of it as it tips; the dashes flow */
+    const mouth = turn([206, 101], deg), flow = (now * 0.06) % 5;
+    stream.draw(v.pour > 0.02 ? [[mouth[0], 18 + flow], [mouth[0], lerp(18, mouth[1] - 3, v.pour)]] : []);
+    /* out of the tipped mouth: thrown up and over the shoulder first, then falling clear of the bottle's side */
+    spillLine.draw(v.spill > 0.02 ? Array.from({ length: 16 }, (_, i) => {
+      const s = (i / 15) * v.spill;
+      return [mouth[0] - 6 - 96 * s - flow * 0.4, mouth[1] - 26 * s + 170 * s * s];
+    }) : []);
+
+    const shown = refill.held ? (Math.abs(deg) < 0.5 ? "level" : `tip ${deg > 0 ? "+" : "−"}${Math.round(Math.abs(deg))}°`)
+      : v.pour > 0.1 ? `fill ${Math.round(v.fill * 100)}%` : v.spill > 0.1 ? "pour" : Math.abs(sl) > 0.02 ? "slosh"
+      : v.cap > 0.05 ? "open" : Math.abs(v.fill - 0.35) < 0.01 ? "rest" : "sealed";
+    if (shown !== label) { read.textContent = shown; label = shown; }
+    if (fx.on) { fx.set("u_e", e); fx.set("u_slosh", sl); fx.mask([body]); fx.draw(now); }
+    return a || b || c;
   });
 
-  /* rule 01: the bottle's rest box, widened a little; the pointer's side of its centre sets the rock */
+  /* hover takes the bottle: its side of the bottle's rest centre sets the rock (rule 01) */
   const r = body.rest;
   const over = (pt) => pt[0] > r.x0 - 30 && pt[0] < r.x1 + 30 && pt[1] > cap.rest.y0 - 20 && pt[1] < r.y1 + 10;
+  const leave = () => { refill.hold(false); loop.wake(); };
   bag.add(pointer(stage, {
     move(pt) {
-      tip.t = over(pt) ? clamp((pt[0] - r.cx) / ((r.x1 - r.x0) / 2 + 30), -1, 1) : 0;
-      cap.hi(!over(pt)); // the bright moves to the water line while the pointer holds the bottle (rule 04)
+      if (!over(pt)) { leave(); return; }
+      if (!refill.held) { hand.x = refill.values().rock; refill.hold(true); }
+      hand.t = clamp((pt[0] - r.cx) / ((r.x1 - r.x0) / 2 + 30), -1, 1);
       loop.wake();
     },
-    leave() { tip.t = 0; cap.hi(true); loop.wake(); },
+    leave,
   }));
 
   bag.add(() => { loop.unregister(); fx.dispose(); while (svg.firstChild) svg.firstChild.remove(); });
@@ -97,8 +128,8 @@ isoform({
   name: "water-bottle",
   icon: "water-bottle",
   variant: "rounded-left",
-  means: "A bottle of water. The pointer rocks it on its corner; the water stays level, sloshes, and settles.",
-  effect: "the body of water under the line: it stays level as the bottle rocks, sloshing and ringing down",
+  means: "A bottle refills on its own: cap off, water in, cap on, a shake, a pour. Hover to take it and rock it.",
+  effect: "the body of water under the traced line, level in the world, sloshing as the bottle moves",
   rules: [1, 5, 8, 11],
   range: [3, 6, 10],
   mount,
