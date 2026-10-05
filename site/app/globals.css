@@ -147,3 +147,19 @@ input[type="range"].spec-range:focus-visible { outline: 1px solid var(--accent);
 .iso-view path, .iso-view circle, .iso-view ellipse, .iso-view rect {
   fill: var(--iso-face); stroke: var(--iso-edge); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round;
 }
+
+/* ---- lab: Overflow-style fills, previewed over the same figures (app/lab/styles) ---- */
+/* Plain: every face a light grey, the acting part solid ink */
+.sty-plain .iso-stage .icon path, .sty-plain .iso-stage .icon circle, .sty-plain .iso-stage .icon ellipse { fill: color-mix(in srgb, var(--ink) 7%, var(--iso-plate)); stroke: var(--iso-edge); }
+.sty-plain .iso-stage .icon .hi > path, .sty-plain .iso-stage .icon .hi > circle, .sty-plain .iso-stage .icon .hi > ellipse { fill: var(--ink); }
+.sty-plain .iso-stage .icon .hi > .sil > * { stroke: var(--ink); }
+/* Colour: warm tints, the acting part in Isocons blue, inked edges */
+.sty-colour .iso-stage .icon path, .sty-colour .iso-stage .icon circle, .sty-colour .iso-stage .icon ellipse { fill: #f4efe6; stroke: #2b2b30; }
+.sty-colour .iso-stage .icon .hi > path, .sty-colour .iso-stage .icon .hi > circle, .sty-colour .iso-stage .icon .hi > ellipse { fill: #5fb3ff; }
+.sty-colour .iso-stage .icon .sil > *, .sty-colour .iso-stage .icon .hi > .sil > * { stroke: #2b2b30; }
+/* Glass: the acting part see-through, so the edges behind it show */
+.sty-glass .iso-stage .icon .hi > path, .sty-glass .iso-stage .icon .hi > circle, .sty-glass .iso-stage .icon .hi > ellipse { fill: color-mix(in srgb, var(--iso-hi) 22%, transparent); }
+/* Heavy: Overflow's one heavy stroke, every edge in ink */
+.sty-heavy .iso-stage { --iso-stroke: 1.6; }
+.sty-heavy .iso-stage .icon path, .sty-heavy .iso-stage .icon circle, .sty-heavy .iso-stage .icon ellipse { stroke: var(--ink); }
+.sty-heavy .iso-stage .icon .sil > * { stroke: var(--ink); }
