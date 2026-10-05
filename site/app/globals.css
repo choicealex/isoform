@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* Light by default (owner's call), dark as a full theme on <html data-theme="dark">. The --iso-* tokens are the
+   skill's own (bench.html): the drawing is neutral ink, the acting part and its traces take Isocons' blue. */
+:root {
+  color-scheme: light;
+  --ground: #fafaf9;
+  --surface: #ffffff;
+  --ink: #18181b;
+  --muted: #71717a;
+  --faint: #a1a1aa;
+  --rule: #e7e5e4;
+  --grid: rgba(24, 24, 27, 0.09);
+  --accent: #229eff;
+  --iso-plate: #ffffff;
+  --iso-face: #ffffff;
+  --iso-edge: #8e8e97;
+  --iso-lo: #d7d7dc;
+  --iso-hi: #229eff;
+  --iso-stroke: 0.9;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #09090b;
+  --surface: #0f0f12;
+  --ink: #ececef;
+  --muted: #8b8b94;
+  --faint: #5c5c66;
+  --rule: #232327;
+  --grid: rgba(236, 236, 239, 0.07);
+  --accent: #4da3ff;
+  --iso-plate: #0f0f12;
+  --iso-face: #0f0f12;
+  --iso-edge: #7a7a84;
+  --iso-lo: #2a2a30;
+  --iso-hi: #4da3ff;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif-italic);
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+/* drafting paper: a faint plus every 32px, fading out from the middle (borrowed from animateicons, kept quiet).
+   The marks are a mask over a layer of --grid, so they follow the theme */
+.plus-grid { position: relative; background-color: var(--iso-plate); isolation: isolate; }
+.plus-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--grid);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M16 12v8M12 16h8' stroke='black' stroke-width='1'/%3E%3C/svg%3E"), radial-gradient(ellipse at center, black 35%, transparent 80%);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M16 12v8M12 16h8' stroke='black' stroke-width='1'/%3E%3C/svg%3E"), radial-gradient(ellipse at center, black 35%, transparent 80%);
+  -webkit-mask-size: 32px 32px, 100% 100%;
+  mask-size: 32px 32px, 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* ---- a figure's stage: the skill's bench styles, scoped to .iso-stage ---- */
+.iso-stage { position: relative; aspect-ratio: 5 / 4; touch-action: none; }
+.iso-stage > svg, .iso-stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.iso-stage > canvas { pointer-events: none; }
+.iso-stage .icon path, .iso-stage .icon circle, .iso-stage .icon ellipse, .iso-stage .icon rect, .iso-stage .icon polygon, .iso-stage .icon line {
+  fill: var(--iso-face); stroke: var(--iso-lo); stroke-width: var(--iso-stroke); stroke-linejoin: round; stroke-linecap: round;
+  vector-effect: non-scaling-stroke; transition: stroke 0.26s ease;
+}
+.iso-stage .icon .sil > * { fill: none; stroke: var(--iso-edge); }
+.iso-stage .icon.inking path, .iso-stage .icon.inking circle, .iso-stage .icon.inking ellipse, .iso-stage .icon.inking rect { stroke: var(--iso-edge); transition: stroke 0.9s ease; }
+.iso-stage .icon.inking .hi > path, .iso-stage .icon.inking .hi > .sil > * { stroke: var(--iso-hi); }
+.iso-stage .icon .hi > .sil > * { stroke: var(--iso-hi); }
+.iso-stage .icon .dim > .sil > * { stroke: var(--iso-lo); }
+.iso-stage .icon .ghost { visibility: hidden; }
+.iso-stage path.trace { fill: none; stroke: var(--iso-edge); stroke-width: var(--iso-stroke); stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.iso-stage path.trace.hi { stroke: var(--iso-hi); }
+.iso-stage path.trace.solid { fill: var(--iso-face); }
+.iso-stage path.trace.lo { stroke: var(--iso-lo); }
+.iso-stage path.trace.dash { stroke-dasharray: 2 3; }
+.iso-stage > output.iso-read {
+  position: absolute; top: 12px; right: 14px; z-index: 1; pointer-events: none;
+  font: 11px/1 var(--font-geist-mono), ui-monospace, monospace; letter-spacing: 0.02em;
+  color: var(--muted); font-variant-numeric: tabular-nums;
+}
+[data-quiet] .iso-stage > output.iso-read { display: none; }
+.iso-stage { height: 100%; aspect-ratio: auto; }
+
+/* a hairline slider, the bench's: a 1px track and a ring thumb */
+input[type="range"].hairline { height: 24px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+input[type="range"].hairline::-webkit-slider-runnable-track { height: 1px; background: var(--faint); }
+input[type="range"].hairline::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -6px; border-radius: 50%; border: 1px solid var(--ink); background: var(--surface); }
+input[type="range"].hairline::-moz-range-track { height: 1px; background: var(--faint); }
+input[type="range"].hairline::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--ink); background: var(--surface); }
+input[type="range"].hairline:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 2px; }

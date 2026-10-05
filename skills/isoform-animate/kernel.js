@@ -65,6 +65,7 @@
  * Life
  *   register(stage, tick)              joins the one frame loop; tick(dt seconds, now ms) returns true while anything moves;
  *                                      gives {wake, unregister}. The loop sleeps offscreen and when every tick returns false
+ *                                      (a host may set stage.dataset.speed: dt is scaled by it; a figure never needs to)
  *   pointer(stage, {move, down, leave}) points in stage units; returns its disposer
  *   disposer()                         {add, on, dispose}: collects tear-down, so destroy is bag.dispose
  * Traces: what happens, drawn in the figure's own hairline. Every figure draws its phenomenon this way first
@@ -181,7 +182,8 @@ var IF = (() => {
     for (const e of entries) {
       if (!e.visible || !e.awake) continue;
       let again = false;
-      try { again = e.tick(dt, now); } catch (err) { console.error(err); }
+      /* data-speed on the stage plays it faster or slower (a host's speed control); springs and stories scale with it */
+      try { again = e.tick(dt * (Number(e.stage.dataset.speed) || 1), now); } catch (err) { console.error(err); }
       e.awake = !!again;
       more = more || e.awake;
     }
@@ -189,7 +191,7 @@ var IF = (() => {
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
   function register(stage, tick) {
-    const e = { tick, awake: true, visible: true };
+    const e = { tick, stage, awake: true, visible: true };
     entries.add(e);
     let io = null;
     if (typeof IntersectionObserver === "function") {
