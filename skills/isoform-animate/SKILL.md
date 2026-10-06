@@ -24,7 +24,7 @@ It prints every face in paint order with which way it looks, its box and its cor
 
 ## 2. Concept
 
-Read `concepts.md`. Then offer two or three concepts, one line each:
+Read `concepts.md`. Build every concept from the parts picture, not from the icon's name: a name promises parts the drawing may not have. Then offer two or three concepts, one line each:
 
 > **Name.** The object. Its story in beats (set up, act, hold, return). What hover does to it. What happens, as a trace and (optionally) an effect. Its job on a page. The poster frame.
 
@@ -77,6 +77,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | a part sliding off its own edges on a top or right view | the axes were mis-measured: check `inspect.mjs`'s `axes` line and pass `{ u, v }` to `icon` |
 | a part that hides another it should sit in front of (a body painting over its own stripe) | a part paints where its LAST face was; `{paint: "first"}` when it should paint where its first face was, `after(near, far)` when it changes during the story |
 | `part … : member … is not a face of the icon` for an `icon.face` copy | make the copy before the part and pass it in its faces; it then moves with the part |
+| `look.mjs` warns of lines at rest, and the red picture shows your cut seam through a surface | the cut is not on an edge the object has (a straight cut under a scalloped awning): move the story to a part that comes away along a real edge, or choose another concept |
 | the inspector warns of zero-size faces | put each in the part it sits on, so it moves with it; never a part of its own |
 | two parts passing each other draw in the wrong order | a part paints at its last face's place; call `after(near, far)` the moment the nearer one starts to overlap, and again when they swap back (ABC's sort does this at each crossing) |
 | moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |

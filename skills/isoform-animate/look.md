@@ -40,7 +40,7 @@ By hand, keep the window at least 800 × 900 and wait 1.5 seconds before each pi
 
 Answer each yes or no. There is no "partly", "weak" or "mostly": a doubtful answer is a no, and a no is fixed before anything is handed over. `look.mjs` answers 3, 9 and 12, part of 4, and part of 8 (the answer must change the drawing itself, not only the read-out or the glow); the rest are yours, from the sheet. A figure without an effect answers 10 and 11 as one question: do the lines alone say what happens?
 
-1. **It is the icon at rest, and the story reads** (rule 05). The `rest` picture is the Isocons icon, recognisable, with one bright part. Read `story-25`, `story-50`, `story-75` in order: can you say what happens, without the read-out? `poster` is the telling moment, not the rest pose.
+1. **It is the icon at rest, and the story reads** (rule 05). The `rest` picture is the Isocons icon, recognisable, with one bright part. If `look.mjs` warns of lines at rest, open `isoform-<name>-rest-extra.png`: every red line must be an edge the real object has (a lid's rim, the bolt's break); a straight cut through a curved or scalloped surface is a no. Read `story-25`, `story-50`, `story-75` in order: can you say what happens, without the read-out? `poster` is the telling moment, not the rest pose.
 2. **The silhouette reads at 240px.** In `small` and `small-answer` you can say what the object is and what is happening to it.
 3. **The read-out** says `rest` at rest and names the state in a few characters when answering.
 4. **Nothing flickers** (rule 01). Every picture's drawing comes to rest; an effect may keep running while the pointer holds the object in a running state, never at rest.

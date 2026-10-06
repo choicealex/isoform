@@ -22,7 +22,8 @@
  *   icon.cut(i, [x, y], axis)          cuts face i (an index or a path) along a line through the stage point, running along
  *                                      "u", "v" or "up"; returns [above, below] (left, right for "up"), in i's place in the paint
  *                                      order. Indices never shift: afterwards i means the first piece. Isocons draws coplanar faces as ONE path: a part that comes away needs a cut first
- *   icon.face(i, a, b, c, before)      a copy of face i moved by (a, b, c), painted just before `before` (a part or a path); it
+ *   icon.face(i, a, b, c, before)      a copy of face i moved by (a, b, c), painted just before `before` (a part, a path or a
+ *                                      face index); it
  *                                      is a face like any other, so it can join a part (make it before the part):
  *                                      the surface a moving part was hiding, so the drawing never shows a hole (rule 06)
  *   icon.facet([[x, y], …], before)    a new face from stage corners: the broken surface a cut exposes. It can join a part
@@ -600,7 +601,7 @@ var IF = (() => {
         p.removeAttribute("class");
         p.setAttribute("transform", `translate(${r2(dx / scale)} ${r2(dy / scale)})`);
         p.dataset.revealed = ""; // hidden at rest under the part it was copied for: the draw-in leaves it out
-        const at = before?.g ?? before ?? null;
+        const at = typeof before === "number" ? paths[before] : before?.g ?? before ?? null; // a face index works too
         if (at) at.before(p); else g.appendChild(p);
         /* a face like any other, so it can join a part (a lid's underside that travels with the lid); two dogfood runs
            tried that and hit "not a face of the icon" */
@@ -616,7 +617,7 @@ var IF = (() => {
         const d = `M${points.map(([x, y]) => toIcon(x, y).map((n) => Math.round(n * 1000) / 1000).join(" ")).join("L")}Z`;
         const p = mk("path", { d });
         p.dataset.revealed = ""; // a surface the drawing hides at rest: the draw-in leaves it out
-        const at = before?.g ?? before ?? null;
+        const at = typeof before === "number" ? paths[before] : before?.g ?? before ?? null;
         if (at) at.before(p); else g.appendChild(p);
         faces.add(p);
         const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);

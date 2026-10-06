@@ -191,7 +191,7 @@ Arrows, plus, minus, check, close, letters, numbers, shapes: `arrow-forward`, `a
 - **Check.** A block that stamps: drops along up onto its plate, short overshoot, holds, lifts. Close and cancel stamp the same way, drawn once.
 - **Plus.** Blocks stack: a second block arrives and seats on the first, the plus brightens, the pair settles. Minus: a block slides out and leaves a gap.
 - **Letters and numbers (`abc`, `123`).** They are separate blocks: sort them, stack them or slide them into a row. Never morph a glyph or draw its strokes on.
-- **Shapes (`radio-button-checked`, `stat-3`).** A disc seats into a ring; levels step one by one. Move, never scale.
+- **Shapes (`stat-3`, `radio-button-checked`).** Levels step one by one. Move, never scale. Check what the drawing really has: `radio-button-checked` is one ring with a hole and no separate dot, so a story about a dot has nothing to move (two stress-test agents built one and animated the hole's wall). A symbol with nothing that comes apart may have no good story: say so, and offer a nearby icon that has one.
 
 Trace: a path line (the travel, drawn on and retracted) or a seat ring where a block lands. Nothing else.
 

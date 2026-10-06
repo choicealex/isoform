@@ -76,3 +76,15 @@ Regression: all 13 approved figures pass look.mjs on the new skill.
 ## Not fixed
 - F6 cut points read by eye; F16 an effect smothering the lines (no check); F9 holes on coplanar faces (no check).
 - Taste: the fixes make a weak concept less likely, not impossible. Re-run the two FAILs cold to confirm.
+
+## Re-runs on the fixed skill (cold agents, new folders)
+- radio-curve-v2: axis measured from the side band (no guess), answer changes 1.51% (was 0.08%); agent wrote three
+  concepts, struck two, judged its own figure "not for a product site". Root cause of the first FAIL was concepts.md:
+  it promised "a disc seats into a ring" and the icon has no disc (one ring, a hole). Fixed; SKILL step 2 now says
+  build concepts from the parts picture, not the name. Mechanics PASS; figure dull because the icon has nothing to take
+  apart — some icons have no good story, and the skill now says to offer a nearby one.
+- storefront-sharp-v2: no face-copy stray lines, answer 1.52%, honest "no" on the last question. Still a seam at rest:
+  a straight cut can't follow the scalloped awning. New look.mjs check: rest vs the untouched icon, extra lines marked
+  red. Calibrated on 23 figures: 0 on 17; storefronts ~1,950; but also bolt 481, water 134, padlock 1,111, delete 1,256
+  (legitimate seams / a rest trace) → a WARN with a red picture, not a FAIL: only the eye tells a real edge from a cut.
+- kernel: face()/facet() `before` accepts a face index (agent hit "at.before is not a function").

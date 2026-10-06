@@ -96,9 +96,27 @@ const results = await Promise.all(SHOTS.map(async ([shot, o0]) => {
   const png = await p.locator("main").screenshot();
   /* the drawing alone (no page chrome), for the answer-vs-rest check below */
   const lines = shot === "rest" || shot === "no-effect" ? await p.locator("#stage svg").first().screenshot() : null;
+  /* the icon as Isocons drew it, in the same place and style: the rest picture may add no line to it (rule 05) */
+  let plain = null;
+  if (shot === "rest") {
+    const ok = await p.evaluate(async () => {
+      const svg = document.querySelector("#stage svg"), g = svg.querySelector(".icon");
+      if (!g || typeof ISOFORM_ICON === "undefined") return false;
+      const twin = svg.cloneNode(false);
+      svg.after(twin);
+      svg.style.visibility = "hidden";
+      const ic = IF.icon(twin, ISOFORM_ICON.svg);
+      ic.g.setAttribute("transform", g.getAttribute("transform") ?? "");
+      ic.ink(1);
+      await new Promise((r) => setTimeout(r, 120)); // loose faces are outlined in a microtask
+      twin.id = "if-plain";
+      return true;
+    });
+    if (ok) plain = await p.locator("#if-plain").screenshot();
+  }
   const zoom = flag("--zoom").includes(shot) ? await p.locator("#stage").screenshot({ scale: "device" }) : null;
   await ctx.close();
-  return { shot, url: `isoform-${name}.html${q(o)}`, png, zoom, lines, still, logs, ...info };
+  return { shot, url: `isoform-${name}.html${q(o)}`, png, zoom, lines, plain, still, logs, ...info };
 }));
 
 const errsSeen = new Map(); // the same error in every picture (a mount that throws) is one error, said once
@@ -145,6 +163,43 @@ console.log(`readout   ${results.map((r) => `${r.shot}=${r.read}`).join("  ")}`)
     if (share < 0.0012) { failed = true; console.log(`answer    FAIL the answer reads "${quiet.read}" but its lines change only ${pct} of the stage from rest (effects off): what happens is in the read-out or the glow, not the drawing. Make the move or the trace bigger, or drive it from the hand (every channel the answer needs must be in live)`); }
     else console.log(`answer    the lines change ${pct} of the stage between rest and the answer (effects off)`);
   }
+}
+/* rule 05: at rest the figure is the icon as drawn. A cut whose seam is not an edge the object has (a straight cut
+   under a scalloped awning) shows as a line the original never had; two stress-test agents shipped one */
+if (rest.lines && rest.plain) {
+  const ctx = await browser.newContext();
+  const pg = await ctx.newPage();
+  const [extra, marked] = await pg.evaluate(async ([a, b]) => {
+    const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = `data:image/png;base64,${s}`; });
+    const [A, B] = await Promise.all([load(a), load(b)]);
+    const w = Math.min(A.width, B.width), h = Math.min(A.height, B.height), cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    const x = cv.getContext("2d");
+    const mask = (img) => {
+      x.clearRect(0, 0, w, h); x.drawImage(img, 0, 0); const d = x.getImageData(0, 0, w, h).data;
+      const m = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) m[i] = Math.abs(d[i * 4] - d[0]) + Math.abs(d[i * 4 + 1] - d[1]) + Math.abs(d[i * 4 + 2] - d[2]) > 60 ? 1 : 0;
+      return m;
+    };
+    const fig = mask(A), base = mask(B), R = 5; // a few pixels of tolerance: a bright stroke is a hair wider
+    const near = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let q = 0; q < w; q++) if (base[y * w + q])
+      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const yy = y + dy, xx = q + dx; if (yy >= 0 && yy < h && xx >= 0 && xx < w) near[yy * w + xx] = 1; }
+    x.clearRect(0, 0, w, h); x.drawImage(B, 0, 0);
+    const img = x.getImageData(0, 0, w, h);
+    let n = 0;
+    for (let i = 0; i < w * h; i++) if (fig[i] && !near[i]) { n++; img.data.set([255, 0, 0, 255], i * 4); }
+    x.putImageData(img, 0, 0);
+    return [n, cv.toDataURL("image/png").split(",")[1]];
+  }, [rest.lines.toString("base64"), rest.plain.toString("base64")]);
+  await ctx.close();
+  /* not a FAIL: a seam on an edge the real object has (a lid's rim, the bolt's break) is allowed; a cut through a
+     surface (a straight seam under a scalloped awning) is not, and only the eye can tell them apart */
+  if (extra > 40) {
+    const file = `isoform-${name}-rest-extra.png`;
+    writeFileSync(resolve(file), Buffer.from(marked, "base64"));
+    console.log(`rest      warn ${extra} line pixels at rest that the Isocons drawing does not have, in red in ${file}: each must be an edge the real object has (a lid's rim), never a cut through a surface or a trace left showing`);
+  } else console.log("rest      the rest picture adds no line to the Isocons drawing");
 }
 const moving = results.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");
