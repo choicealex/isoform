@@ -83,7 +83,9 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | an outline that should become another Isocons drawing's | `icon.morph(face, points, {hide})`: place the other drawing's outline on this one first (as fractions of the same face, measured with `extent`) |
 | the inspector warns of zero-size faces | put each in the part it sits on, so it moves with it; never a part of its own |
 | two parts passing each other draw in the wrong order | a part paints at its last face's place; call `after(near, far)` the moment the nearer one starts to overlap, and again when they swap back (ABC's sort does this at each crossing) |
-| moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |
+| moving a part and leaving an empty outline behind it, or `look.mjs` warns of a hole | draw what it hid: `icon.face(i, 0, 0, 0, part)` copies the face into its seat, `icon.facet` draws an exposed surface (rule 06) |
+| `look.mjs` fails with "the effect repaints N% of the drawing" | the effect is a wash over the whole object: keep it to the part the phenomenon happens in (water in the bottle), or outside it (a flame under the rocket) |
+| reading a cut point off the parts picture by eye, on a face with curves | `node inspect.mjs <id> [variant] --near x,y` prints the exact points and edges around it: cut through one of those |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |
 | reading corners off `inspect.mjs` and the cut lands in the wrong place | you placed the icon elsewhere: pass every point through `icon.pt` |
 | `look.mjs` fails with `effect shader: … syntax error` | a GLSL reserved word used as a name (`out`, `in`, `input`, `output`, `sample`, `filter`, `active`): rename it |

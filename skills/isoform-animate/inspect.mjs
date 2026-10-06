@@ -9,6 +9,9 @@
  * (and the .html it is taken from): the icon with every path numbered and tinted
  * over a grid in stage units, to look at when the lines are not enough. Paths that touch and paint one after another usually belong to
  * one part; a part is always a run of consecutive indices.
+ *
+ * `--near x,y` (a stage point read off the parts picture) also prints the exact outline points and edges of every face
+ * around it, so a cut goes through a point the drawing has, not one read by eye.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -17,8 +20,10 @@ import { browser } from "./browser.mjs";
 import { data, iconOf } from "./build.mjs";
 import { axesOf, facing, walk } from "./geometry.mjs";
 
-const [id, variant = "rounded-left"] = process.argv.slice(2);
-if (!id) { console.error("usage: node inspect.mjs <icon-id> [variant]"); process.exit(2); }
+const argv = process.argv.slice(2);
+const nearAt = argv.includes("--near") ? argv[argv.indexOf("--near") + 1]?.split(",").map(Number) : null;
+const [id, variant = "rounded-left"] = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--near");
+if (!id || (nearAt && (nearAt.length !== 2 || nearAt.some(Number.isNaN)))) { console.error("usage: node inspect.mjs <icon-id> [variant] [--near x,y]"); process.exit(2); }
 const icon = await iconOf(id, variant);
 const vb = /viewBox="([^"]+)"/.exec(icon.svg)[1].split(/[\s,]+/).map(Number);
 const scale = Math.min(220 / vb[3], 300 / vb[2]); // the kernel's default placement
@@ -52,8 +57,37 @@ shapes.forEach((m, k) => {
     const w = walk(d);
     const corners = w.pts.filter((p, j, a) => j === 0 || Math.hypot(p[0] - a[j - 1][0], p[1] - a[j - 1][1]) > 0.5);
     if (corners.length <= 16) console.log(`       corners ${corners.map(([x, y]) => st(x, y).map((n) => Math.round(n)).join(",")).join("  ")}`);
+  } else if (d) {
+    /* a face with curves has no corners, but its curves meet at points (a scalloped awning's tips): the agent who cut the
+       storefront had only a picture to read them off (F6) */
+    const pts = walk(d).pts.filter((p, j, a) => j === 0 || Math.hypot(p[0] - a[j - 1][0], p[1] - a[j - 1][1]) > 0.5);
+    if (pts.length <= 24) console.log(`       points ${pts.map(([x, y]) => st(x, y).map((n) => Math.round(n)).join(",")).join("  ")}   (where its curves and edges meet)`);
+    else console.log(`       ${pts.length} points: read the ones you need with --near x,y`);
   }
 });
+
+/* --near: every outline point and the nearest point of every straight edge within 12 units, to a tenth, nearest first */
+if (nearAt) {
+  const hits = [];
+  shapes.forEach((m, k) => {
+    const d = /\bd="([^"]+)"/.exec(m[0])?.[1];
+    if (!d) return;
+    const w = walk(d);
+    for (const [x, y] of w.pts) hits.push({ k, what: "point", p: st(x, y) });
+    for (const [x0, y0, x1, y1] of w.segs) {
+      const a = st(x0, y0), b = st(x1, y1), dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+      if (L2 < 1) continue;
+      const t = Math.max(0, Math.min(1, ((nearAt[0] - a[0]) * dx + (nearAt[1] - a[1]) * dy) / L2));
+      if (t > 0.02 && t < 0.98) hits.push({ k, what: `on the edge ${a.map(Math.round).join(",")} → ${b.map(Math.round).join(",")}`, p: [a[0] + dx * t, a[1] + dy * t] });
+    }
+  });
+  const dist = (h) => Math.hypot(h.p[0] - nearAt[0], h.p[1] - nearAt[1]);
+  const seen = new Set();
+  const list = hits.filter((h) => dist(h) <= 12).sort((a, b) => dist(a) - dist(b)).filter((h) => { const key = `${h.k}|${h.p.map((n) => n.toFixed(1))}`; return !seen.has(key) && seen.add(key); }).slice(0, 12);
+  console.log(`near ${nearAt.join(",")}${list.length ? "" : "   nothing within 12 units"}`);
+  for (const h of list) console.log(`  face ${String(h.k).padStart(2)}  ${h.p.map((n) => n.toFixed(1)).join(",").padEnd(12)} ${dist(h).toFixed(1).padStart(4)} away  ${h.what}`);
+  if (list.length) console.log("  cut through one of these points (through icon.pt if you moved the icon): a seam on an edge the drawing has never shows at rest");
+}
 
 /* the axes the kernel will measure (geometry.mjs, the same code), so a wrong one is seen before a figure moves along it */
 {

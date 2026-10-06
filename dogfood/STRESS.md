@@ -74,7 +74,9 @@ Engine on the view: 7/8 (radio's axes could not be measured). Figures: 1 pass (d
 Regression: all 13 approved figures pass look.mjs on the new skill.
 
 ## Not fixed
-- F6 cut points read by eye; F16 an effect smothering the lines (no check); F9 holes on coplanar faces (no check).
+- ~~F6, F16, F9~~ checked since 2026-10-06 (see the commit after `d526a20`): F16 → look.mjs FAILs an effect repainting >60% of the
+  drawing; F9 → look.mjs warns of plate enclosed where rest was drawn (Colour style, traces hidden); F6 → `inspect.mjs --near x,y`
+  prints exact points (a kernel near-miss warning was tried and dropped: approved cuts sit 0.7-1.9 units from corners too).
 - Taste: the fixes make a weak concept less likely, not impossible. Re-run the two FAILs cold to confirm.
 
 ## Re-runs on the fixed skill (cold agents, new folders)
