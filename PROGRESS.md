@@ -36,7 +36,7 @@ Nothing mid-edit; everything pushed.
 ## Next
 1. Real-phone check (touch takeover is tested with CDP touch only, cfc330c). 2. Unchecked by any script: an effect
    smothering the lines, cut points read by eye, gaps on coplanar faces. 3. No concept recipe for a blank symbol (an
-   empty checkbox has nothing to do). 4. Deploy / repo public: owner's call. Install path TESTED (e144a97): `npx skills add choicealex/isoform` finds and
+   empty checkbox has nothing to do). 4. LIVE https://isoform-skill.vercel.app (2026-10-06), repo PUBLIC. Install path TESTED (e144a97): `npx skills add choicealex/isoform` finds and
    installs isoform-animate like hairline-create; the installed copy runs find → inspect → look end to end once it can
    fetch data/ (served locally as a stand-in). While private it stops with a clear message. After going public: rerun
    the install test with no override.
