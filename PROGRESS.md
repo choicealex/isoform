@@ -36,7 +36,10 @@ Nothing mid-edit; everything pushed.
 ## Next
 1. Real-phone check (touch takeover is tested with CDP touch only, cfc330c). 2. Unchecked by any script: an effect
    smothering the lines, cut points read by eye, gaps on coplanar faces. 3. No concept recipe for a blank symbol (an
-   empty checkbox has nothing to do). 4. Deploy / repo public: owner's call.
+   empty checkbox has nothing to do). 4. Deploy / repo public: owner's call. Install path TESTED (e144a97): `npx skills add choicealex/isoform` finds and
+   installs isoform-animate like hairline-create; the installed copy runs find → inspect → look end to end once it can
+   fetch data/ (served locally as a stand-in). While private it stops with a clear message. After going public: rerun
+   the install test with no override.
 Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
 sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 
