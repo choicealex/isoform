@@ -39,8 +39,9 @@ function mount({ stage, svg, read, src }, reach) {
 
   const hand = spring(0, SPRING.hand);
   let max = reach, label = "";
-  /* the tail's farthest point along +v, measured off the drawing; the exhaust leaves from a hair inside it */
-  const nozzle = [131.2, 201.4];
+  /* the middle of the tail: the hull's back is a vertical edge (x 130, y 142.9 to 201.8, measured off the drawing),
+     and the exhaust leaves from its centre, a hair inside. Its farthest point along +v is the bottom corner, not this */
+  const nozzle = [131, 172.3];
   const back = ic.v; // the exhaust trails along +v, behind the tail
   const side = [-back[1], back[0]];
 
