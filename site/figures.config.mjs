@@ -14,4 +14,7 @@ export default [
   { file: "../dogfood/house/house.js", prompt: "/isoform-animate house sharp-top", job: "Welcome home" },
   { file: "../dogfood/car/car.js", prompt: "/isoform-animate a car", job: "Lights on, drive mode" },
   { file: "../dogfood/gas-station/local-gas-station.js", prompt: "/isoform-animate local-gas-station", job: "A running total, a balance" },
+  /* the hero's other two directions: built for the corner switch, not listed (listed: false) */
+  { file: "../dogfood/rocket-views/rocket-top.js", prompt: "/isoform-animate rocket rounded-top", job: "Launch, seen from above", listed: false },
+  { file: "../dogfood/rocket-views/rocket-right.js", prompt: "/isoform-animate rocket rounded-right", job: "Launch, deploy, go live", listed: false },
 ];

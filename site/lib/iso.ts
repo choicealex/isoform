@@ -2,8 +2,10 @@
 import figures from "./figures.json";
 
 export type FigureMeta = (typeof figures)[number];
-export const FIGURES: FigureMeta[] = figures;
-export const figureByName = (name: string) => FIGURES.find((f) => f.name === name);
+/* every figure the site can play; FIGURES are the ones it lists (the hero's other rocket directions are not) */
+export const ALL_FIGURES: FigureMeta[] = figures;
+export const FIGURES: FigureMeta[] = figures.filter((f) => f.listed);
+export const figureByName = (name: string) => ALL_FIGURES.find((f) => f.name === name);
 /* the skill's own examples have no prompt: they were written with it, not by it */
 export const EXAMPLE_NOTE = "Written by hand alongside the skill: one of the three examples its agent reads before it builds.";
 export const CATEGORIES = [...new Set(FIGURES.map((f) => f.category))];

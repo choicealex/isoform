@@ -1,14 +1,14 @@
 import { SixViews } from "@/components/spec/SixViews";
 import Link from "next/link";
 import { CopyButton } from "@/components/Copy";
-import { Figure } from "@/components/Figure";
-import { Lattice, SetOverview, ThreeViews } from "@/components/spec/Icon";
+import { HeroPlate } from "@/components/spec/HeroPlate";
+import { Lattice, SetOverview } from "@/components/spec/Icon";
 import { Inspector } from "@/components/spec/Inspector";
 import { Cross } from "@/components/spec/Parts";
 import { Sheet } from "@/components/spec/Sheet";
 import { Wall } from "@/components/spec/Wall";
 import { FIGURES } from "@/lib/iso";
-import { LABEL, figNo } from "@/lib/spec";
+import { LABEL } from "@/lib/spec";
 
 const INSTALL = "npx skills add choicealex/isoform";
 
@@ -20,7 +20,8 @@ function Section({ n, title, note, children }: { n: string; title: string; note?
     <section className="mt-24">
       <div className="grid gap-3 px-4 pb-7 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
         <h2 className="text-[clamp(2rem,3.6vw,3rem)] leading-[0.95] font-medium tracking-[-0.04em]">
-          <span className="mr-4 align-top font-mono text-[12px] tracking-normal text-muted">{n}</span>
+          {/* above the title on a phone, so the title lines up with the text under it; beside it from sm up */}
+          <span className="mb-3 block font-mono text-[12px] tracking-normal text-muted sm:mr-4 sm:mb-0 sm:inline sm:align-top">{n}</span>
           {title}
           <span className="text-accent">.</span>
         </h2>
@@ -32,8 +33,6 @@ function Section({ n, title, note, children }: { n: string; title: string; note?
 }
 
 export default function Home() {
-  const hero = "rocket";
-  const f = FIGURES.find((x) => x.name === hero);
   return (
     <>
       {/* title block */}
@@ -74,13 +73,7 @@ export default function Home() {
           <Lattice id="hero-lattice" />
           <Cross className="top-3 left-3" />
           <Cross className="right-3 bottom-3" />
-          <p className={`${LABEL} absolute top-5 left-12 normal-case`}>{figNo(hero)} — {f?.title}</p>
-          <p className={`${LABEL} absolute top-5 right-6`}>{f?.icon} · {f?.variant}</p>
-          <p className={`${LABEL} absolute right-12 bottom-5 normal-case`}>{f?.lines} lines · plays on its own, hover takes over</p>
-          {f && <ThreeViews icon={f.icon} variant={f.variant} className="bottom-4 left-5" />}
-          <div className="relative mx-auto flex h-full max-w-[640px] items-center px-8 py-16">
-            <Figure name={hero} quiet gl className="w-full" />
-          </div>
+          <HeroPlate />
         </div>
       </section>
 

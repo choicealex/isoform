@@ -44,7 +44,7 @@ for (const f of FIGURES) {
   manifest.push({
     name, icon: id, variant: icon.variant, title: icon.title, category: icon.category,
     means: field(src, "means"), effect: field(src, "effect"), range: list(src, "range"), rules: list(src, "rules"),
-    prompt: f.prompt, job: f.job, lines: src.split("\n").length, svg: icon.svg,
+    prompt: f.prompt, job: f.job, listed: f.listed ?? true, lines: src.split("\n").length, svg: icon.svg,
   });
 }
 writeFileSync(out("lib/figures.json"), `${JSON.stringify(manifest, null, 1)}\n`);
@@ -55,7 +55,7 @@ let sweep = {};
 try { sweep = JSON.parse(readFileSync(join(site, "../data/sweep.json"), "utf8")); } catch {}
 const done = {};
 /* an icon can have several figures (shopping-cart has two) */
-for (const m of manifest) done[m.icon] = [...(done[m.icon] ?? []), m.name];
+for (const m of manifest) if (m.listed) done[m.icon] = [...(done[m.icon] ?? []), m.name]; // unlisted figures have no page
 const VIEWS = ["rounded-left", "rounded-top", "rounded-right", "sharp-left", "sharp-top", "sharp-right"];
 rmSync(out("public/iso/all"), { recursive: true, force: true });
 for (const v of VIEWS) {
