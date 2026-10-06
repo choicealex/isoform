@@ -27,6 +27,10 @@
  *                                      is a face like any other, so it can join a part (make it before the part):
  *                                      the surface a moving part was hiding, so the drawing never shows a hole (rule 06)
  *   icon.facet([[x, y], …], before)    a new face from stage corners: the broken surface a cut exposes. It can join a part
+ *   icon.morph(i, points, {hide})      face i flowing into another outline and back (stage points, closed): {set(t)}, 0 the
+ *                                      face as drawn, 1 the target. For one Isocons drawing becoming another (a large lens
+ *                                      becoming the small one); place the other drawing's outline on this one first. hide:
+ *                                      faces that belong to this outline only (an opening's inner wall), hidden while it morphs
  *   icon.hole(i)                       the openings in face i (a screen's window, a ring's bore: inner outlines of the same
  *                                      path) as faces of their own, returned in a list: they can join a part, grow, turn.
  *                                      The face keeps its outer outline. Call it before making parts; rest is unchanged
@@ -35,6 +39,8 @@
  *   part.rest                          {cx, cy, x0, y0, x1, y1}: its box at rest, in stage units, measured once
  *   part.move(a, b, c)                 places the part at that offset from rest; the same offset again does nothing
  *   part.tilt(deg, [px, py])           a small screen-plane turn about a stage point, for a wobble or a hinge; keep it under 15°
+ *   part.extent(plane)                 where the part lies at rest in a plane of its own axes: {a: [lo, hi], b: [lo, hi],
+ *                                      pt(a, b)}, spans in stage units and the stage point at (a, b). Measure, do not guess
  *   part.stretch(sa, sb, plane, at)    grows the part within a plane of its own axes ("u-up", "u-v", "v-up"), sa along the
  *                                      first, sb along the second, about a stage point (default its rest centre). Exact for a
  *                                      flat face (an inner panel growing); for a solid, only a uniform swell (sa = sb) is honest
@@ -367,13 +373,13 @@ var IF = (() => {
       morph.setAttribute("radius", String(r2(((w * 0.5 + 0.35) / ppu) * 100) / 100));
     };
     let masks = 0;
-    const silOf = new Map();
+    const silOf = new Map(), maskOf = new Map(); // the copies of a face in its outline, which a morph must update too
     const outline = (grp, own) => {
       const id = `${uid}-m${masks++}`;
       const mask = mk("mask", { id, maskUnits: "userSpaceOnUse", x: "-9999", y: "-9999", width: "19998", height: "19998" }, defs);
       mk("rect", { x: "-9999", y: "-9999", width: "19998", height: "19998", fill: "white" }, mask);
       const shape = mk("g", { filter: `url(#${uid}-erode)` }, mask);
-      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); c.setAttribute("fill", "black"); c.setAttribute("stroke", "none"); shape.appendChild(c); }
+      for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); c.setAttribute("fill", "black"); c.setAttribute("stroke", "none"); shape.appendChild(c); maskOf.set(p, c); }
       const sil = mk("g", { class: "sil", mask: `url(#${id})`, "aria-hidden": "true" });
       for (const p of own) { const c = p.cloneNode(true); c.removeAttribute("class"); sil.appendChild(c); silOf.set(p, c); }
       grp.appendChild(sil);
@@ -561,6 +567,21 @@ var IF = (() => {
           },
           hi(on) { pg.classList.toggle("hi", !!on); return part; },
           dim(on) { pg.classList.toggle("dim", !!on); return part; },
+          /* where the part lies in a plane of its own axes, at rest: a, b its spans along the plane's two axes (stage units),
+             and pt(a, b) the stage point there. Lets a figure grow, slide or aim by measure instead of reading points by eye */
+          extent(plane = "u-up") {
+            const [pa, pb] = plane.split("-"), A = AX[pa](), Bv = AX[pb](), det = A[0] * Bv[1] - Bv[0] * A[1];
+            let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+            for (const el of own) {
+              const L = el.getTotalLength?.() ?? 0, m = el.transform?.baseVal?.consolidate()?.matrix;
+              for (let k = 0; k <= 96 && L > 0; k++) {
+                const q = el.getPointAtLength((L * k) / 96), ix = q.x + (m ? m.e : 0), iy = q.y + (m ? m.f : 0);
+                const [x, y] = toStage(ix, iy), a = (x * Bv[1] - y * Bv[0]) / det, b = (A[0] * y - A[1] * x) / det;
+                a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b);
+              }
+            }
+            return { a: [a0, a1], b: [b0, b1], pt: (a, b) => [a * A[0] + b * Bv[0], a * A[1] + b * Bv[1]] };
+          },
           /* rule 09: a part may grow or turn only within a plane of its own axes, never as a flat screen zoom or spin */
           stretch(sa = 1, sb = sa, plane = "u-up", at = [rest.cx, rest.cy]) {
             sAff = Math.abs(sa - 1) < 1e-4 && Math.abs(sb - 1) < 1e-4 ? null : inPlane(plane, [sa, 0, 0, sb], at);
@@ -737,6 +758,44 @@ var IF = (() => {
           const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);
           return p;
         });
+      },
+      /*
+       * Face `which` flowing into another outline and back: target is a closed outline in stage points (another Isocons
+       * drawing's opening, placed on this one). morph.set(t): 0 the face as drawn (its own path, exactly), 1 the target.
+       * Both are sampled at one spacing, wound the same way and started at the nearest point, so nothing crosses
+       */
+      morph(which, target, o = {}) {
+        const el = typeof which === "number" ? paths[which] : which, d0 = el.getAttribute("d"), N = 180;
+        const L = el.getTotalLength(), A = [];
+        for (let i = 0; i < N; i++) { const q = el.getPointAtLength((L * i) / N); A.push([q.x, q.y]); }
+        const T = target.map(([x, y]) => toIcon(x, y));
+        const len = T.map((q, i) => Math.hypot(T[(i + 1) % T.length][0] - q[0], T[(i + 1) % T.length][1] - q[1]));
+        const tot = len.reduce((x, y) => x + y, 0);
+        let B = [];
+        for (let i = 0, j = 0, run = 0; i < N; i++) {
+          const want = (tot * i) / N;
+          while (run + len[j] < want && j < T.length - 1) { run += len[j]; j++; }
+          const f = len[j] ? (want - run) / len[j] : 0, a = T[j], b = T[(j + 1) % T.length];
+          B.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+        }
+        const area = (P) => P.reduce((s2, q, i) => s2 + q[0] * P[(i + 1) % N][1] - P[(i + 1) % N][0] * q[1], 0);
+        if (Math.sign(area(A)) !== Math.sign(area(B))) B = B.reverse();
+        let best = 0, bestD = Infinity;
+        for (let k = 0; k < N; k += 2) { let dd = 0; for (let i = 0; i < N; i += 6) dd += Math.hypot(A[i][0] - B[(i + k) % N][0], A[i][1] - B[(i + k) % N][1]); if (dd < bestD) { bestD = dd; best = k; } }
+        B = B.map((_, i) => B[(i + best) % N]);
+        const copies = () => [el, silOf.get(el), maskOf.get(el)].filter(Boolean);
+        /* faces that belong to this outline only (an opening's inner wall) step aside while it is another's */
+        const hid = (o.hide ?? []).map((h) => (typeof h === "number" ? paths[h] : h));
+        const aside = hid.flatMap((h) => [h, silOf.get(h)]).filter(Boolean), masks = hid.map((h) => maskOf.get(h)).filter(Boolean);
+        return {
+          set(t) {
+            for (const h of aside) h.style.visibility = t > 0.02 ? "hidden" : "";
+            /* out of the outline's mask too, or its old shape keeps the bright stroke hidden where the new outline runs */
+            for (const m of masks) m.style.display = t > 0.02 ? "none" : "";
+            const d = t <= 1e-4 ? d0 : `M${A.map((a, i) => `${r4(a[0] + (B[i][0] - a[0]) * t)} ${r4(a[1] + (B[i][1] - a[1]) * t)}`).join("L")}Z`;
+            for (const c of copies()) c.setAttribute("d", d);
+          },
+        };
       },
       /*
        * The illustration drawing itself, the way a hand draws it (Morph's Draw On, re-paced): ONE pen, at a constant
