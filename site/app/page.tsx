@@ -1,3 +1,4 @@
+import { SixViews } from "@/components/spec/SixViews";
 import Link from "next/link";
 import { CopyButton } from "@/components/Copy";
 import { Figure } from "@/components/Figure";
@@ -87,15 +88,19 @@ export default function Home() {
         <SetOverview />
       </Section>
 
-      <Section n="02" title="Specimen sheet" note="One figure in full: its story as frames, the six ways Isocons draws it, the sizes it reads at.">
+      <Section n="02" title="Six views" note="Isocons draws every icon with rounded or sharp edges, from the left, the top and the right. The skill works from any of them.">
+        <SixViews />
+      </Section>
+
+      <Section n="03" title="Specimen sheet" note="One figure in full: its story as frames, the six ways Isocons draws it, the sizes it reads at.">
         <Sheet />
       </Section>
 
-      <Section n="03" title="The wall" note="Every figure, playing. Hover for the file and the prompt; open one to inspect it.">
+      <Section n="04" title="The wall" note="Every figure, playing. Hover for the file and the prompt; open one to inspect it.">
         <Wall />
       </Section>
 
-      <Section n="04" title="Inspect" note="One figure on its construction grid, solid or in parts, with its controls and its code.">
+      <Section n="05" title="Inspect" note="One figure on its construction grid, solid or in parts, with its controls and its code.">
         <Inspector name="padlock" />
       </Section>
     </>

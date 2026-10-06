@@ -9,7 +9,7 @@
  * lib/figures.json              what the pages need to list and mount them, icon markup included
  * lib/kernel-index.txt          the engine's API index, as written at the top of kernel.js
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assemble, declared, iconOf } from "../../skills/isoform-animate/build.mjs";
@@ -48,14 +48,25 @@ for (const f of FIGURES) {
   });
 }
 writeFileSync(out("lib/figures.json"), `${JSON.stringify(manifest, null, 1)}\n`);
-/* every Isocons icon in its default view, for the Icons page (img; the page tints it per theme), and the sweep's notes */
+/* every Isocons icon in all six views, for the Icons page and the Six views section (img; the page tints it per theme),
+   and the sweep's notes per view */
 const icons = JSON.parse(readFileSync(join(site, "../data/index.json"), "utf8"));
 let sweep = {};
 try { sweep = JSON.parse(readFileSync(join(site, "../data/sweep.json"), "utf8")); } catch {}
 const done = {};
 /* an icon can have several figures (shopping-cart has two) */
 for (const m of manifest) done[m.icon] = [...(done[m.icon] ?? []), m.name];
-for (const ic of icons) writeFileSync(out(`public/iso/all/${ic.id}.svg`), readFileSync(join(site, "../data/icons", ic.id, "rounded-left.svg")));
-writeFileSync(out("lib/icons.json"), `${JSON.stringify(icons.map((ic) => ({ id: ic.id, title: ic.title, category: ic.categoryName, flags: sweep[ic.id]?.["rounded-left"]?.flags ?? [], clean: Object.entries(sweep[ic.id] ?? {}).filter(([, x]) => !x.flags.length).map(([v]) => v), figures: done[ic.id] ?? [] })))}\n`);
-console.log(`icons     ${icons.length} → public/iso/all, lib/icons.json`);
+const VIEWS = ["rounded-left", "rounded-top", "rounded-right", "sharp-left", "sharp-top", "sharp-right"];
+rmSync(out("public/iso/all"), { recursive: true, force: true });
+for (const v of VIEWS) {
+  mkdirSync(out(`public/iso/all/${v}`), { recursive: true });
+  for (const ic of icons) {
+    const f = join(site, "../data/icons", ic.id, `${v}.svg`);
+    if (existsSync(f)) writeFileSync(out(`public/iso/all/${v}/${ic.id}.svg`), readFileSync(f)); // Isocons ships 6,041 of 6,042
+  }
+}
+/* notes only for the views that have any, to keep the file small */
+const notes = (id) => Object.fromEntries(Object.entries(sweep[id] ?? {}).filter(([, x]) => x.flags.length).map(([v, x]) => [v, x.flags]));
+writeFileSync(out("lib/icons.json"), `${JSON.stringify(icons.map((ic) => ({ id: ic.id, title: ic.title, category: ic.categoryName, notes: notes(ic.id), missing: VIEWS.filter((v) => !existsSync(join(site, "../data/icons", ic.id, `${v}.svg`))), clean: Object.entries(sweep[ic.id] ?? {}).filter(([, x]) => !x.flags.length).map(([v]) => v), figures: done[ic.id] ?? [] })))}\n`);
+console.log(`icons     ${icons.length} × 6 views → public/iso/all, lib/icons.json`);
 console.log(`sync      ${manifest.length} figures → public/iso, lib/figures.json`);
