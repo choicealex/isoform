@@ -78,6 +78,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |
 | reading corners off `inspect.mjs` and the cut lands in the wrong place | you placed the icon elsewhere: pass every point through `icon.pt` |
+| `look.mjs` fails with `effect shader: … syntax error` | a GLSL reserved word used as a name (`out`, `in`, `input`, `output`, `sample`, `filter`, `active`): rename it |
 | reaching for a glow, sparkle or particles | name what the real object does, and draw that (rule 11) |
 | drawing the phenomenon only in the shader | trace it in hairline first; the effect adds material under the trace (rule 11) |
 | mapping the pointer's height to a big move | answer nearness, a few units at the default (rule 03) |
