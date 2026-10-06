@@ -1,10 +1,10 @@
 /*
  * Stat up, as a boomerang. It draws itself in, then it is thrown: it flies out on an arc, spinning flat in its own
- * plane the way a boomerang does, curves back, and lands where it was drawn. Its trail draws on behind it and fades.
+ * plane the way a boomerang does, curves back, and lands where it was drawn.
  * Bring the pointer near and it is cocked back, ready to throw: the nearer, the further. In a product: a trend that
  * comes round, "level up", a retry.
  */
-const { icon, spring, stepS, register, pointer, disposer, trace, story, clamp, smooth, lerp, SPRING } = IF;
+const { icon, spring, stepS, register, pointer, disposer, story, clamp, smooth, SPRING } = IF;
 
 function mount({ stage, svg, read, src }, reach) {
   const bag = disposer();
@@ -18,7 +18,6 @@ function mount({ stage, svg, read, src }, reach) {
   const rang = ic.part("boomerang", [0, 1, 2], { solid: { front: 0, depth: [0, -44.7 * k, 0] } });
   rang.hi(true);
   const home = [rang.rest.cx, rang.rest.cy];
-  const trail = trace(svg, { tone: "lo", under: true });
 
   const life = story(stage, {
     rest: { fly: 0, cock: 0, ink: 1 },
@@ -34,7 +33,7 @@ function mount({ stage, svg, read, src }, reach) {
     ],
   });
   const hand = spring(0, SPRING.hand);
-  let max = reach, label = "", path = [];
+  let max = reach, label = "";
 
   /* the flight: one closed loop, out along u, curving away along -v and back along +v, rising a little on the way */
   const at = (p) => [max * Math.sin(Math.PI * p), -0.45 * max * Math.sin(2 * Math.PI * p), 0.25 * max * Math.sin(Math.PI * p)];
@@ -50,11 +49,6 @@ function mount({ stage, svg, read, src }, reach) {
     const spinDeg = 720 * (p < 1 ? smooth(0, 1, p) : 1) % 360 - 18 * v.cock;
     const o = ic.iso(mu + back, mv, mc);
     rang.spin(Math.abs(spinDeg) < 0.05 ? 0 : spinDeg, [home[0] + o[0], home[1] + o[1]]);
-    /* the trail: where it has been this flight, drawing on behind it, gone once it lands */
-    if (p > 0.01 && p < 0.999) {
-      path = Array.from({ length: 40 }, (_, i) => { const q = at((p * i) / 39), w = ic.iso(q[0], q[1], q[2]); return [home[0] + w[0], home[1] + w[1]]; });
-      trail.draw(path, 1);
-    } else trail.draw([]);
     const shown = v.ink < 1 ? "drawing" : p > 0.01 && p < 0.999 ? `spin ${Math.round(Math.abs(spinDeg))}°` : v.cock > 0.02 ? "cocked" : "rest";
     if (shown !== label) { read.textContent = shown; label = shown; }
     return a || b;
@@ -81,7 +75,7 @@ isoform({
   icon: "stat-1",
   variant: "rounded-left",
   means: "Thrown like a boomerang: the chevron flies out on an arc, spinning flat in its own plane, and comes back.",
-  rules: [3, 8, 9, 11],
+  rules: [3, 8, 9],
   range: [24, 34, 42],
   mount,
 });

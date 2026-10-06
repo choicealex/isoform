@@ -33,3 +33,5 @@ boomerangs swept every 100ms of flight at intensity 1, inside the frame. Kernel 
 guess), icon.morph (with hide: an opening's wall steps aside, out of the outline mask too). Still no story: 16 maximize,
 17 minimize, 23 capture, 24 hov. Known looks the owner accepted on the toast: stretched round ends recur in chips and
 subheader; dialog/dropdown/fullscreen-portrait show their opening's inner wall lines inside the grown window.
+- Owner: the boomerangs "reveal a threadlike line" while moving → it was the flight trail (a short detached trace);
+  removed from the pilot and both generated boomerangs (zoomed frames confirm the body is clean). 24 hov: leave static.
