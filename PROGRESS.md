@@ -25,12 +25,13 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 Nothing mid-edit; everything pushed.
 
 ## State (2026-10-06)
-- Site (`site/`): / (new 02 Six views) · /figures (9: + house sharp-top, Fig. 06) · /icons (1,007 × 6 views, view
-  switch, prompts, sweep notes) · /skill · /docs · /inspo. FX bold/subtle/off (E). ABC not on the site.
-- Skill proven: all 6,041 drawings render through the kernel (0 errors); 9 figures + 10 stress figures animated.
-- Stress test (`dogfood/STRESS.md`, 48efe9a + 3972fa7): 8 cold agents + 2 re-runs. Engine holds on every view;
-  quality is the weak point (judgement, not mechanics). Fixed: one-axis measuring, face copies join parts,
-  "nothing happens" FAIL (<0.12%), rest-extra-lines WARN with red picture, find.mjs everyday words, weak-concept strike.
+- Site: 31 figures = 8 objects + 23 interface icons (group field; Figures pills All/Objects/Interface; home has The
+  wall + 05 Interface). Key/padlock removed from the site (owner, 603ebb6); its dogfood file stays. Docs: "Grow, turn,
+  spin". Production build verified (48 pages). Not deployed; repo private.
+- Rule 09 opened (owner): grow/turn only within a plane of the icon's axes. Kernel: stretch, turn, spin, grow, hole,
+  morph, extent. Hard icons: `dogfood/HARD.md` + `dogfood/hard/generate.py` (5 family templates from measure.json).
+- Stress test: `dogfood/STRESS.md`. Engine holds on every view; taste is the weak point. 3× this session a figure passed
+  every check and was still wrong — the look/review step is not optional.
 
 ## Next
 1. Not covered by any check: an effect smothering the lines (F16), cut points read by eye (F6), holes on coplanar
