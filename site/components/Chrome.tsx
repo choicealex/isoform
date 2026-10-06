@@ -21,8 +21,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 bg-ground">
       <div className="relative flex h-[68px] items-center px-4 sm:px-8">
-        <Link href="/" className="flex items-center gap-2.5 text-[15px] font-medium tracking-[-0.01em]">
-          <Mark />
+        <Link href="/" className="text-[15px] font-medium tracking-[-0.01em]">
           Isoform
         </Link>
         <nav className="absolute left-1/2 hidden -translate-x-1/2 gap-0.5 rounded-full border border-rule p-1 text-[14px] md:flex">
@@ -54,16 +53,6 @@ export function Header() {
   );
 }
 
-/* an isometric cube: its top filled in ink, its sides in one hairline */
-function Mark() {
-  return (
-    <svg viewBox="0 0 20 20" className="size-[22px]" fill="none" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10 2.5 16.5 6.25 10 10 3.5 6.25Z" fill="currentColor" />
-      <path d="M3.5 6.25v7.5L10 17.5V10M16.5 6.25v7.5L10 17.5" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
 export function Footer() {
   const path = usePathname();
   if (path.startsWith("/lab")) return null;
@@ -86,7 +75,13 @@ export function Footer() {
           <a href="https://creativecommons.org/licenses/by/4.0/" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">CC BY 4.0</a>
           , split into parts and animated. Isocons does not endorse Isoform.
         </p>
-        <p className="font-mono text-[12px] sm:text-right">v0.1</p>
+        <div className="grid gap-1 font-mono text-[12px] sm:text-right">
+          <p>
+            Designed and built by{" "}
+            <a href="https://samuelalex.work" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">Samuel Alex</a>
+          </p>
+          <p>v0.1</p>
+        </div>
       </div>
       <p aria-hidden="true" className="pointer-events-none -mb-[0.2em] select-none px-2 text-[clamp(6rem,21vw,19rem)] leading-none font-semibold tracking-[-0.065em] text-[color-mix(in_srgb,var(--ink)_6%,transparent)]">
         Isoform.

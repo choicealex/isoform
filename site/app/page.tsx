@@ -2,7 +2,7 @@ import { SixViews } from "@/components/spec/SixViews";
 import Link from "next/link";
 import { CopyButton } from "@/components/Copy";
 import { Figure } from "@/components/Figure";
-import { Axes, Lattice, SetOverview } from "@/components/spec/Icon";
+import { Lattice, SetOverview, ThreeViews } from "@/components/spec/Icon";
 import { Inspector } from "@/components/spec/Inspector";
 import { Cross } from "@/components/spec/Parts";
 import { Sheet } from "@/components/spec/Sheet";
@@ -77,7 +77,7 @@ export default function Home() {
           <p className={`${LABEL} absolute top-5 left-12 normal-case`}>{figNo(hero)} — {f?.title}</p>
           <p className={`${LABEL} absolute top-5 right-6`}>{f?.icon} · {f?.variant}</p>
           <p className={`${LABEL} absolute right-12 bottom-5 normal-case`}>{f?.lines} lines · plays on its own, hover takes over</p>
-          <Axes className="bottom-4 left-5" />
+          {f && <ThreeViews icon={f.icon} variant={f.variant} className="bottom-4 left-5" />}
           <div className="relative mx-auto flex h-full max-w-[640px] items-center px-8 py-16">
             <Figure name={hero} quiet gl className="w-full" />
           </div>

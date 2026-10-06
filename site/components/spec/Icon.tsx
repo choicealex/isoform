@@ -40,6 +40,27 @@ export function Lattice({ step = 28, lines = true, id }: { step?: number; lines?
 }
 
 /** The axis marker of the construction grid: u down-right, v down-left, up. */
+/** The icon as Isocons draws it from the left, the top and the right (same edges as the figure); the one the figure
+    animates is marked. For the hero's corner: what the icon is, before it moves. */
+export function ThreeViews({ icon, variant, className = "" }: { icon: string; variant: string; className?: string }) {
+  const edge = variant.split("-")[0];
+  const sides = ["left", "top", "right"] as const;
+  return (
+    <div role="img" className={`pointer-events-none absolute flex items-end gap-3 ${className}`} aria-label={`${icon}, as Isocons draws it from the left, top and right`}>
+      {sides.map((s) => {
+        const on = variant === `${edge}-${s}`;
+        return (
+          <div key={s} className="flex flex-col items-center gap-1.5">
+            {/* biome-ignore lint/performance/noImgElement: three small static Isocons SVGs */}
+            <img src={`/iso/icons/${icon}/${edge}-${s}.svg`} alt="" className={`iso-thumb h-9 w-auto sm:h-11 ${on ? "opacity-95" : "opacity-55"}`} />
+            <span className={`font-mono text-[9px] tracking-[0.08em] uppercase ${on ? "text-accent" : "text-faint"}`}>{s}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Axes({ className = "" }: { className?: string }) {
   const a = (deg: number, r = 26) => [32 + r * Math.cos((deg * Math.PI) / 180), 34 + r * Math.sin((deg * Math.PI) / 180)];
   const [u, v, up] = [a(30), a(150), a(-90)];
