@@ -34,8 +34,11 @@ Nothing mid-edit; everything pushed.
   every check and was still wrong — the look/review step is not optional.
 
 ## Next
-1. Not covered by any check: an effect smothering the lines (F16), cut points read by eye (F6), holes on coplanar
-   faces (F9). 2. Owner: ABC onto the site? 3. Touch takeover + 390px device check. 4. Repo public / deploy: owner's call.
+1. Real-phone check (touch takeover is tested with CDP touch only, cfc330c). 2. Unchecked by any script: an effect
+   smothering the lines, cut points read by eye, gaps on coplanar faces. 3. No concept recipe for a blank symbol (an
+   empty checkbox has nothing to do). 4. Deploy / repo public: owner's call.
+Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
+sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
