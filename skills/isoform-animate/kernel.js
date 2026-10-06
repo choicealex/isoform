@@ -75,7 +75,10 @@
  *                                      under puts it behind the icon (dust on the ground, a wake); solid fills each closed
  *                                      outline with the face colour, so a traced object hides what is behind it (a box
  *                                      falling past a rim): draw its seen faces back to front, one closed outline each
- *   part.trace({tone, dash, clip})     a hairline inside a part: it moves with the part; clip keeps it inside its faces
+ *   part.trace({tone, dash, clip})     a hairline in the part's layer: it paints with the part, and clip keeps it inside the
+ *                                      part's faces. Its points are stage points where the line is NOW: it does not follow
+ *                                      part.move, so add the part's offset yourself (icon.iso(a, b, c), as rocket.js does);
+ *                                      that is what lets a water line stay level while its bottle tilts
  *   t.draw(lines, reveal)              sets it from stage points: a polyline [[x, y], …] or a list of them; [] hides it.
  *                                      reveal 0…1 draws the line on along its length (an ink line being drawn)
  *   t.tone(tone)                       changes its tone
@@ -462,7 +465,8 @@ var IF = (() => {
             turn = Math.abs(deg) < 0.01 ? "" : ` rotate(${r2(deg)} ${r2(ix)} ${r2(iy)})`;
             apply(); return part;
           },
-          /* a hairline that belongs to the part: it moves with it, and with {clip: true} stays inside its faces */
+          /* a hairline in the part's layer: it paints with it, and with {clip: true} stays inside its faces. Its points are
+             stage points as drawn now; it does not follow the part's move (a water line stays level while the bottle tilts) */
           trace(o = {}) {
             const t = makeTrace(pg, o);
             if (o.clip) {
