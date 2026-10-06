@@ -8,7 +8,11 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  /* absolute URLs for the link preview (app/opengraph-image.png, twitter-image.png) */
+  metadataBase: new URL("https://isoform-skill.vercel.app"),
   title: { default: "Isoform: isometric icons that draw themselves", template: "%s · Isoform" },
+  openGraph: { siteName: "Isoform", type: "website" },
+  twitter: { card: "summary_large_image" },
   description:
     "An agent skill that takes an Isocons icon apart and makes it a small line-art illustration that draws itself in and plays what the real object does. One HTML file, nothing to install.",
 };
