@@ -44,6 +44,9 @@ shapes.forEach((m, k) => {
   rows.push({ k, face, box: [a0, b0, a1, b1] });
   const f = (n) => String(Math.round(n)).padStart(4);
   console.log(`${String(k).padStart(3)}  ${face.padEnd(7)} ${f(a0)},${f(b0)} → ${f(a1)},${f(b1)}   ${f((a0 + a1) / 2)},${f((b0 + b1) / 2)}`);
+  /* an inner outline is an opening (a screen's window, a ring's bore), not a part: an agent who misses it moves the
+     opening's wall and nothing visible happens */
+  if (d && (d.match(/[Mm]/g) || []).length > 1) console.log(`       opening: this face has ${(d.match(/[Mm]/g) || []).length - 1} inner outline(s), a window or bore; free it with icon.hole(${k}) before moving it`);
   /* a straight-edged face lists its corners, which are where a cut goes */
   if (d && /^[\sMLHVZmlhvz\d.,eE+-]*$/.test(d)) {
     const w = walk(d);

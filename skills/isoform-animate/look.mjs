@@ -47,12 +47,13 @@ const browser = await openBrowser("look");
 if (!browser) { console.log("look      do the look as look.md says under \"Without a browser\""); process.exit(2); }
 
 /* a figure that tells a story also gets three moments of it and its poster, the frame reduced motion shows */
+let total = 0;
 {
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
   await p.goto(pathToFileURL(page).href);
   await p.waitForTimeout(400);
-  const total = Number(await p.evaluate(() => document.getElementById("stage").dataset.storyTotal || 0));
+  total = Number(await p.evaluate(() => document.getElementById("stage").dataset.storyTotal || 0));
   await ctx.close();
   if (total) {
     for (const f of [0.25, 0.5, 0.75]) SHOTS.push([`story-${Math.round(f * 100)}`, { t: Math.round(total * f) }]);
@@ -205,6 +206,34 @@ if (rest.lines && rest.plain) {
     writeFileSync(resolve(file), Buffer.from(marked, "base64"));
     console.log(`rest      warn ${extra} line pixels at rest that the Isocons drawing does not have, in red in ${file}: each must be an edge the real object has (a lid's rim), never a cut through a surface or a trace left showing`);
   } else console.log("rest      the rest picture adds no line to the Isocons drawing");
+}
+/* rule 03 through the whole story: the pictures above are a handful of moments, and a part that swings or flies (a
+   spinning solid) can leave the frame between them. Every 150ms of the loop at intensity 1, the outlines themselves */
+if (total) {
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 1000 } });
+  const pg = await ctx.newPage();
+  const out = [];
+  for (let t = 0; t <= total; t += 150) {
+    await pg.goto(`${pathToFileURL(page).href}${q({ t, intensity: 1 })}`);
+    await pg.waitForTimeout(90);
+    const b = await pg.evaluate(() => {
+      const svg = document.querySelector("#stage svg"), inv = svg.getScreenCTM().inverse();
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const el of svg.querySelectorAll(".icon path")) {
+        if (el.closest(".ghost, defs, mask, clipPath") || getComputedStyle(el).visibility === "hidden" || el.closest('[style*="display: none"]')) continue;
+        const L = el.getTotalLength?.() ?? 0, m = inv.multiply(el.getScreenCTM());
+        for (let k = 0; k <= 48 && L > 0; k++) {
+          const p2 = el.getPointAtLength((L * k) / 48), x = m.a * p2.x + m.c * p2.y + m.e, y = m.b * p2.x + m.d * p2.y + m.f;
+          x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+        }
+      }
+      return [x0, y0, x1, y1];
+    });
+    if (b[0] < 0 || b[1] < 0 || b[2] > 400 || b[3] > 320) out.push(`${t}ms (${b.map((n) => Math.round(n)).join(",")})`);
+  }
+  await ctx.close();
+  if (out.length) { failed = true; console.log(`frame     FAIL at intensity 1 the drawing leaves 400 × 320 during the story at ${out.slice(0, 4).join(", ")}${out.length > 4 ? ` and ${out.length - 4} more` : ""}`); }
+  else console.log(`frame     the drawing stays inside the frame through the whole story at intensity 1 (every 150ms)`);
 }
 const moving = results.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");

@@ -64,9 +64,17 @@ Stories that work:
 
 Traps:
 - Abstract symbols have no physics: animate the gesture the symbol stands for and use no WebGL effect (see Abstract symbols).
-- Do not animate a UI icon as a UI: no spinners, no progress fill, no morphing between two states. Move blocks.
-- Circles and rings are flat discs: slide or lift them, never scale or rotate them.
-- Chevrons and arrows are angled blocks: move along their own axis, tilt under 15°.
+- Do not animate a UI icon as a UI: no spinners, no progress fill. Let the symbol do what it means.
+- Grow and turn only within the symbol's own plane (rule 09): a ring swells as a ring, a dial turns as a dial, never a flat screen zoom or spin. A solid that spins keeps its thickness: `part.spin`.
+- Chevrons and arrows are angled blocks: move along their own axis, or spin them as solids; a 45° arm can fool the axis measure (see inspect's warning).
+- Read the parts picture before you promise a part: a screen's window and a ring's bore are openings in one face (`icon.hole`), and some symbols have nothing that comes apart. If nothing can honestly move, say so and offer a nearby icon.
+
+Five story families the owner approved for interface symbols (dogfood/HARD.md has 23 built this way):
+- **Grow.** A window, a toast, a dropdown: the opening (freed with `hole`) grows toward the screen's edges within its plane, holds, settles (`part.stretch`, sized by `part.extent`).
+- **Slide.** Window positions: the opening glides to each spot Isocons draws it in and comes home (`part.move` within the screen's plane).
+- **Swell and turn.** A radio: the ring swells uniformly (a true 3D swell), a half-moon turns once within the dial (`stretch`, `turn`). `radio.js` is the example.
+- **Morph.** One Isocons drawing becoming its sibling and back (magnification large and small, a checkbox's bar and square): `icon.morph`.
+- **Boomerang.** A chevron or bar thrown on a loop, spinning as a solid in its own plane, caught where it was drawn (`part.spin`); a bar maximised or minimised along its length (`part.grow`).
 
 Worked examples:
 - **Toggle on.** The switch, `toggle-on`. Beats: the knob rests left, slides along u to the right end (1s), the track takes the bright stroke, hold (1.2s), slides back (0.8s). Hover: nearness pushes the knob a few units past its seat and it settles back. Trace: a short line along the track behind the knob; no effect. Job: a setting that takes effect. Poster: the knob at the far end, track bright.
@@ -191,7 +199,7 @@ Arrows, plus, minus, check, close, letters, numbers, shapes: `arrow-forward`, `a
 - **Check.** A block that stamps: drops along up onto its plate, short overshoot, holds, lifts. Close and cancel stamp the same way, drawn once.
 - **Plus.** Blocks stack: a second block arrives and seats on the first, the plus brightens, the pair settles. Minus: a block slides out and leaves a gap.
 - **Letters and numbers (`abc`, `123`).** They are separate blocks: sort them, stack them or slide them into a row. Never morph a glyph or draw its strokes on.
-- **Shapes (`stat-3`, `radio-button-checked`).** Levels step one by one. Move, never scale. Check what the drawing really has: `radio-button-checked` is one ring with a hole and no separate dot, so a story about a dot has nothing to move (two stress-test agents built one and animated the hole's wall). A symbol with nothing that comes apart may have no good story: say so, and offer a nearby icon that has one.
+- **Shapes (`stat-3`, `radio-button-checked`).** Levels step one by one; a ring swells within its plane. Check what the drawing really has: `radio-button-checked` is one ring with a hole and no separate dot, so a story about a dot has nothing to move (two stress-test agents built one and animated the hole's wall). A symbol with nothing that comes apart may have no good story: say so, and offer a nearby icon that has one.
 
 Trace: a path line (the travel, drawn on and retracted) or a seat ring where a block lands. Nothing else.
 

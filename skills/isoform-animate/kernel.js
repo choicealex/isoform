@@ -298,7 +298,10 @@ var IF = (() => {
        drawing (a symbol's own strokes, a chevron's 60° arms, are often stronger than its ground edges); a level edge may
        serve either axis but not both; oriented by side. Without evidence for both, true isometric. Same code as
        geometry.mjs, which inspect.mjs and the sweep use */
-    const prior = (a, lo, hi) => (a >= lo && a <= hi ? 1 : 0.35);
+    /* in the isometric band, or level (a top view's edge); anything else is a symbol's own stroke, never an axis: a 45°
+       arm out-voted the true edges on ~200 drawings (stat-1, arrows, chevrons). An axis with no evidence in band is left
+       unmeasured, and only it falls back */
+    const prior = (a, lo, hi) => (a >= lo && a <= hi ? 1 : a <= 4 || a >= 176 ? 0.35 : 0);
     const peakIn = (from, to, lo, hi) => {
       let best = -1, at = from;
       for (let a = from; a <= to; a++) {

@@ -45,10 +45,10 @@ Answer each yes or no. There is no "partly", "weak" or "mostly": a doubtful answ
 3. **The read-out** says `rest` at rest and names the state in a few characters when answering.
 4. **Nothing flickers** (rule 01). Every picture's drawing comes to rest; an effect may keep running while the pointer holds the object in a running state, never at rest.
 5. **No holes** (rule 06). Where a part moved away, the surface it was hiding is drawn: no empty outline, no see-through gap, no far edge across a near face.
-6. **The faces are Isocons'** (rule 09). Parts move along the icon's own edges; nothing is scaled, skewed or turned far enough to look flat.
+6. **The faces are Isocons'** (rule 09). Parts move along the icon's own edges. Anything that grows or turns does it within a plane of those edges (`stretch`, `turn`, `spin`, `grow`): a disc stays a disc, a dial turns as a dial. Nothing is zoomed or spun flat on the screen, and a spinning solid keeps its thickness.
 7. **One highlight** (rule 04). One bright place, and it is a stroke.
 8. **What happens is what the object does** (rule 11). Cover the name and the sentence: would someone who sees `answer` (lines only) say what physical thing is happening? Would it make as much sense on another icon? (If yes, it is decoration.)
-9. **Nothing leaves the frame** (rule 03), in `low` and `high` — the drawing is checked; check the effect by eye.
+9. **Nothing leaves the frame** (rule 03), in `low` and `high`, and through the whole story at intensity 1 (`look.mjs` sweeps it every 150ms) — the drawing is checked; check the effect by eye.
 10. **Both themes** (rule 12). In `dark` and `light` the effect neither vanishes nor glares; a white core on the white plate still reads.
 11. **The effect counts, and the figure stands without it.** In `effect` the material and its light are unmistakable, saturated, glowing, the one colour in the scene; in `no-effect` the drawing and its traces still say what happens. The effect never draws edges of its own.
 12. **The page is clean.** No error line under the stage, nothing on the console.
