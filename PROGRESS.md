@@ -40,7 +40,7 @@ Nothing mid-edit; everything pushed.
    installs isoform-animate like hairline-create; the installed copy runs find → inspect → look end to end once it can
    fetch data/ (served locally as a stand-in). While private it stops with a clear message. After going public: rerun
    the install test with no override.
-Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
+Live 0244a96 (2026-10-06): hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
 sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 
 ## Decisions that constrain future work
