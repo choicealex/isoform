@@ -37,7 +37,7 @@ Nothing mid-edit; everything pushed.
 1. Still unchecked by script: an empty outline or far edge left by a moving part (look.mjs sees see-through gaps only).
    Done 2026-10-06: real-phone check of the touch takeover (owner, on their phone). Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
    find → inspect → build → validate → look (exit 0) on data fetched from raw.githubusercontent.
-Live 0244a96 (2026-10-06): hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
+Live b3a5f75 (2026-10-06, 3rd deploy): link preview card (OG + Twitter). Before that, 0244a96: hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
 sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 
 ## Decisions that constrain future work
