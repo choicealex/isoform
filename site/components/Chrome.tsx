@@ -86,7 +86,7 @@ export function Footer() {
           <a href="https://creativecommons.org/licenses/by/4.0/" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">CC BY 4.0</a>
           , split into parts and animated. Isocons does not endorse Isoform.
         </p>
-        <p className="font-mono text-[12px] sm:text-right">v0.1 · local preview</p>
+        <p className="font-mono text-[12px] sm:text-right">v0.1</p>
       </div>
       <p aria-hidden="true" className="pointer-events-none -mb-[0.2em] select-none px-2 text-[clamp(6rem,21vw,19rem)] leading-none font-semibold tracking-[-0.065em] text-[color-mix(in_srgb,var(--ink)_6%,transparent)]">
         Isoform.
