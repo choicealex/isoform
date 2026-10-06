@@ -5,16 +5,10 @@
  * Prints the best matches as `id · title · category`, most words matched first.
  * With --all it lists the whole set, grouped by category.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { REMOTE } from "./build.mjs";
+import { data } from "./build.mjs";
 
-const here = (p) => fileURLToPath(new URL(p, import.meta.url));
-const dir = [process.env.ISOFORM_ICONS, here("../../data")].filter(Boolean).find((d) => existsSync(join(d, "index.json")));
-const index = dir
-  ? JSON.parse(readFileSync(join(dir, "index.json"), "utf8"))
-  : await fetch(`${REMOTE}/index.json`).then((r) => r.json());
+let index;
+try { index = JSON.parse(await data("index.json")); } catch (e) { console.error(e.message); process.exit(2); }
 
 const args = process.argv.slice(2);
 if (!args.length) { console.error("usage: node find.mjs <words…> | --all"); process.exit(2); }

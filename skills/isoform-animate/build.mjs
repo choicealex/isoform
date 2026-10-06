@@ -14,7 +14,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
-export const REMOTE = "https://raw.githubusercontent.com/choicealex/isoform/main/data";
+export const REMOTE = process.env.ISOFORM_REMOTE || "https://raw.githubusercontent.com/choicealex/isoform/main/data";
 
 /** The figure's declaration: the last isoform({ … }) call, so a key of the same name earlier in the figure is not taken for it. */
 export function declared(figure) {
@@ -30,19 +30,30 @@ function local() {
   return dirs.find((d) => existsSync(join(d, "index.json"))) ?? null;
 }
 
+/* Isocons' drawings: a local copy (the repo's data/, or $ISOFORM_ICONS) or, for an installed skill, fetched from the
+   repo as needed (the whole set is 41MB; one icon is a few KB). Missing: null. Unreachable: an error that says what to do */
+const fetched = new Map();
+export async function data(path) {
+  const dir = local();
+  if (dir) { const f = join(dir, path); return existsSync(f) ? readFileSync(f, "utf8") : null; }
+  if (!fetched.has(path)) {
+    fetched.set(path, (async () => {
+      let r;
+      try { r = await fetch(`${REMOTE}/${path}`); } catch (e) {
+        throw new Error(`could not reach ${REMOTE} (${e.cause?.code ?? e.message}). Isocons' drawings are fetched from there; offline, clone github.com/choicealex/isoform and set ISOFORM_ICONS=<that clone>/data`);
+      }
+      if (r.status === 404 && path !== "index.json") return null;
+      if (!r.ok) throw new Error(`${REMOTE}/${path} answered ${r.status}. Isocons' drawings are fetched from there: if the repository is private or moved, clone it and set ISOFORM_ICONS=<that clone>/data`);
+      return r.text();
+    })());
+  }
+  return fetched.get(path);
+}
+
 /** The icon's markup and title. */
 export async function iconOf(id, variant = "rounded-left") {
-  const dir = local();
-  let index, svg;
-  if (dir) {
-    index = JSON.parse(readFileSync(join(dir, "index.json"), "utf8"));
-    const file = join(dir, "icons", id, `${variant}.svg`);
-    svg = existsSync(file) ? readFileSync(file, "utf8") : null;
-  } else {
-    const get = async (p) => { const r = await fetch(`${REMOTE}/${p}`); if (!r.ok) throw new Error(`${r.status} ${REMOTE}/${p}`); return r.text(); };
-    index = JSON.parse(await get("index.json"));
-    svg = await get(`icons/${id}/${variant}.svg`).catch(() => null);
-  }
+  const index = JSON.parse(await data("index.json"));
+  const svg = await data(`icons/${id}/${variant}.svg`);
   const meta = index.find((x) => x.id === id);
   if (!meta) throw new Error(`no icon "${id}": search data/index.json, or run node find.mjs <words>`);
   if (!svg) throw new Error(`icon "${id}" has no variant "${variant}"; it has ${meta.variants.join(", ")}`);

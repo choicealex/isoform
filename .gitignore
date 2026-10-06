@@ -5,3 +5,5 @@ node_modules/
 .next/
 dogfood/**/isoform-*
 dogfood/**/look.log
+# test output an agent or a person left inside the skill: never ship it
+skills/isoform-animate/isoform-*.*

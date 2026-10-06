@@ -14,7 +14,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { browser } from "./browser.mjs";
-import { iconOf } from "./build.mjs";
+import { data, iconOf } from "./build.mjs";
 import { axesOf, facing, walk } from "./geometry.mjs";
 
 const [id, variant = "rounded-left"] = process.argv.slice(2);
@@ -70,7 +70,7 @@ shapes.forEach((m, k) => {
 /* what the sweep of every icon in every view (scripts/sweep.mjs → data/sweep.json) knows about this one */
 {
   let sw = null;
-  try { sw = JSON.parse(readFileSync(new URL("../../data/sweep.json", import.meta.url), "utf8"))[icon.id]; } catch {}
+  try { sw = JSON.parse(await data("sweep.json"))[icon.id]; } catch {} // installed: fetched with the icons
   const here = sw?.[icon.variant];
   const NOTE = {
     axes: "one or both axes could not be measured from straight edges (the axes line says which): move freely on a measured axis, and check any move on the other against the corners",
