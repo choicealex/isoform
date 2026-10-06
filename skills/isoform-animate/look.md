@@ -38,7 +38,7 @@ By hand, keep the window at least 800 × 900 and wait 1.5 seconds before each pi
 
 ## What to see
 
-Answer each yes or no. A no is fixed before anything is handed over. `look.mjs` answers 3, 9 and 12 and part of 4; the rest are yours, from the sheet.
+Answer each yes or no. There is no "partly", "weak" or "mostly": a doubtful answer is a no, and a no is fixed before anything is handed over. `look.mjs` answers 3, 9 and 12, part of 4, and part of 8 (the answer must change the drawing itself, not only the read-out or the glow); the rest are yours, from the sheet. A figure without an effect answers 10 and 11 as one question: do the lines alone say what happens?
 
 1. **It is the icon at rest, and the story reads** (rule 05). The `rest` picture is the Isocons icon, recognisable, with one bright part. Read `story-25`, `story-50`, `story-75` in order: can you say what happens, without the read-out? `poster` is the telling moment, not the rest pose.
 2. **The silhouette reads at 240px.** In `small` and `small-answer` you can say what the object is and what is happening to it.
@@ -52,6 +52,8 @@ Answer each yes or no. A no is fixed before anything is handed over. `look.mjs` 
 10. **Both themes** (rule 12). In `dark` and `light` the effect neither vanishes nor glares; a white core on the white plate still reads.
 11. **The effect counts, and the figure stands without it.** In `effect` the material and its light are unmistakable, saturated, glowing, the one colour in the scene; in `no-effect` the drawing and its traces still say what happens. The effect never draws edges of its own.
 12. **The page is clean.** No error line under the stage, nothing on the console.
+
+Then the last question, which the twelve do not replace: **would you put this on the product's own site?** In a stress test, five of eight figures that passed `look.mjs` were not good enough: a glow that suited any icon, a "reader" that was a stray line, a story nobody could see. If you hesitate, go back to the concept, not the code.
 
 If you are unsure what good looks like, look at an example the same way: `node <skill folder>/look.mjs <skill folder>/examples/bolt.js --at 200,70 --edge 200,40`.
 

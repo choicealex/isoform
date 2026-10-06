@@ -18,7 +18,7 @@ If the person named an icon, find its id: `node find.mjs <words>`. If they gave 
 
 `node inspect.mjs <id> [variant]`
 
-Isocons draws every icon six ways: three sides (`left`, `top`, `right`) and two edges (`rounded`, `sharp`). They are different drawings with different faces, so a figure is built for one of them, the `variant`. Ask which view the person wants (default `rounded-left`, Hairline's soft corners); for another view, make another figure. Isocons' views are not all one projection (a top view can have a level edge, a right view a steep one), so read the `axes` line `inspect.mjs` prints: if it says they were not measured, or they disagree with the corners, pass the two edge directions yourself, `icon(svg, src, { u, v })`. Wide views (most top views) are placed 300 wide instead of 220 tall.
+Isocons draws every icon six ways: three sides (`left`, `top`, `right`) and two edges (`rounded`, `sharp`). They are different drawings with different faces, so a figure is built for one of them, the `variant`. Ask which view the person wants (default `rounded-left`, Hairline's soft corners); for another view, make another figure. Isocons' views are not all one projection (a top view can have a level edge, a right view a steep one), so read the `axes` line `inspect.mjs` prints: if it says they were not measured, or they disagree with the corners, pass the two edge directions yourself, `icon(svg, src, { u, v })`. Wide views (most top views) are placed 300 wide instead of 220 tall. `u` and `v` are unit screen directions: a move of 1 along `u` is one stage unit down-right. In the face list, `left` means the face looks toward the viewer's left (its long edges run down-right), `right` the other way, `top` up, `curved` a face of curves only.
 
 It prints every face in paint order with which way it looks, its box and its corners, in stage units, and writes `isoform-<id>-parts.png`: the faces numbered and tinted over a grid in stage units. Look at that picture to tell which face is which and to read points off it; do not read the `.html` it is made from. Variants are `rounded-left` (use a rounded one: Hairline's soft corners), `rounded-top`, `rounded-right`, and `sharp-left`, `sharp-top`, `sharp-right`.
 
@@ -28,7 +28,7 @@ Read `concepts.md`. Then offer two or three concepts, one line each:
 
 > **Name.** The object. Its story in beats (set up, act, hold, return). What hover does to it. What happens, as a trace and (optionally) an effect. Its job on a page. The poster frame.
 
-Say any cut it needs. Wait for the person to pick. Skip this only when they arrived with the gesture and the effect chosen; if there is nobody to ask, take the concept whose effect is most physical and say which you took.
+Say any cut it needs. Wait for the person to pick. Skip this only when they arrived with the gesture and the effect chosen. If there is nobody to ask, still write the three, strike every one that fails **A weak concept** in `concepts.md` (an effect that would suit any icon, a glow on something that does not glow, a gesture the real object never makes, a story too small to see at 240px), and take the strongest left. If none survives with an effect, make it without one: a plain figure that reads beats a decorated one that does not. Say which you took, and why the others fell.
 
 One figure, one idea. An effect that would suit any icon is not a concept yet.
 
@@ -42,6 +42,7 @@ One figure, one idea. An effect that would suit any icon is not a concept yet.
    - `means`: one sentence, at most 140 characters, saying what the figure shows.
    - `effect`: one sentence naming the physical thing the effect adds under the traces. Leave it out if there is no effect.
    - Draw what happens with `trace` / `part.trace` first; the effect sits under those lines and only when `fx.on`.
+   - The pointer takes over the story while it holds, so every channel the answer needs (the trace, the effect's strength) must be in `live` too, driven from the hand; a channel only the story moves is missing from every answering picture.
    - `rules`: the numbers of the rules it leans on most.
    - `range`: the one number the slider drives, at intensity 0, 0.5 and 1, moving one way. `mount`'s `value` and `set(value)` get this number. It is in whatever unit the figure uses it in (stage units of travel, a 0…1 share, arcs): `[2, 4, 7]` is fine.
 5. Assemble: `node build.mjs <name>.js` writes `isoform-<name>.html`.
@@ -74,6 +75,9 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | If you catch yourself | Do this instead |
 | --- | --- |
 | a part sliding off its own edges on a top or right view | the axes were mis-measured: check `inspect.mjs`'s `axes` line and pass `{ u, v }` to `icon` |
+| a part that hides another it should sit in front of (a body painting over its own stripe) | a part paints where its LAST face was; `{paint: "first"}` when it should paint where its first face was, `after(near, far)` when it changes during the story |
+| `part … : member … is not a face of the icon` for an `icon.face` copy | make the copy before the part and pass it in its faces; it then moves with the part |
+| the inspector warns of zero-size faces | put each in the part it sits on, so it moves with it; never a part of its own |
 | two parts passing each other draw in the wrong order | a part paints at its last face's place; call `after(near, far)` the moment the nearer one starts to overlap, and again when they swap back (ABC's sort does this at each crossing) |
 | moving a part and leaving an empty outline behind it | draw what it hid: `icon.face` or `icon.facet` (rule 06) |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |

@@ -22,7 +22,8 @@
  *   icon.cut(i, [x, y], axis)          cuts face i (an index or a path) along a line through the stage point, running along
  *                                      "u", "v" or "up"; returns [above, below] (left, right for "up"), in i's place in the paint
  *                                      order. Indices never shift: afterwards i means the first piece. Isocons draws coplanar faces as ONE path: a part that comes away needs a cut first
- *   icon.face(i, a, b, c, before)      a copy of face i moved by (a, b, c), painted just before `before` (a part or a path):
+ *   icon.face(i, a, b, c, before)      a copy of face i moved by (a, b, c), painted just before `before` (a part or a path); it
+ *                                      is a face like any other, so it can join a part (make it before the part):
  *                                      the surface a moving part was hiding, so the drawing never shows a hole (rule 06)
  *   icon.facet([[x, y], …], before)    a new face from stage corners: the broken surface a cut exposes. It can join a part
  *   icon.part(name, [faces], {paint})  faces (indices or paths) become one part: {name, g, paths, rest, move, tilt, hi, dim}
@@ -289,9 +290,10 @@ var IF = (() => {
     const a1 = peakIn(-4, 80, 12, 40);
     const level = a1 != null && (a1 <= 4 || a1 >= 176);
     const a2 = peakIn(100, level ? 175 : 184, 140, 168);
-    if (a1 == null || a2 == null) return { u: [0.866, 0.5], v: [-0.866, 0.5] };
+    /* one straight direction measured (a disc's side band) gives that axis; only the missing one falls back, as in
+       geometry.mjs, which must stay the same algorithm */
     const vec = (a) => [Math.cos(rad(a)), Math.sin(rad(a))];
-    let u = vec(a1), v = vec(a2);
+    let u = a1 == null ? [0.866, 0.5] : vec(a1), v = a2 == null ? [-0.866, 0.5] : vec(a2);
     if (u[0] < 0) u = [-u[0], -u[1]];
     if (v[0] > 0) v = [-v[0], -v[1]];
     return { u, v };
@@ -447,8 +449,9 @@ var IF = (() => {
         outline(pg, own);
         let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         for (const p of own) {
-          const b = ghostOf.get(p).getBBox();
-          x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.width); y1 = Math.max(y1, b.y + b.height);
+          const b = ghostOf.get(p).getBBox(), m = p.transform?.baseVal?.consolidate()?.matrix; // a face() copy is offset
+          const ox = m ? m.e : 0, oy = m ? m.f : 0;
+          x0 = Math.min(x0, b.x + ox); y0 = Math.min(y0, b.y + oy); x1 = Math.max(x1, b.x + b.width + ox); y1 = Math.max(y1, b.y + b.height + oy);
         }
         const [sx0, sy0] = toStage(x0, y0), [sx1, sy1] = toStage(x1, y1);
         const rest = { x0: sx0, y0: sy0, x1: sx1, y1: sy1, cx: (sx0 + sx1) / 2, cy: (sy0 + sy1) / 2 };
@@ -599,6 +602,10 @@ var IF = (() => {
         p.dataset.revealed = ""; // hidden at rest under the part it was copied for: the draw-in leaves it out
         const at = before?.g ?? before ?? null;
         if (at) at.before(p); else g.appendChild(p);
+        /* a face like any other, so it can join a part (a lid's underside that travels with the lid); two dogfood runs
+           tried that and hit "not a face of the icon" */
+        faces.add(p);
+        const gc = p.cloneNode(true); ghosts.appendChild(gc); ghostOf.set(p, gc);
         return p;
       },
       /*

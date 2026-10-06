@@ -47,7 +47,7 @@ for (const icon of index) {
     }
     const axes = axesOf(svg);
     const flags = [];
-    if (!axes) flags.push("axes");
+    if (!axes || axes.half) flags.push("axes"); // half: one axis measured, the other is the fallback
     if (tiny >= 4) flags.push("tiny");
     if (faces >= 30) flags.push("dense");
     if (dots >= 3) flags.push("dots");

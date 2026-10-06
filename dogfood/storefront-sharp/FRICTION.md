@@ -1,0 +1,11 @@
+# Friction log (storefront sharp-left)
+1. Concept step: nobody to ask; took the most physical one (awning drawn out on arms). concepts.md has no storefront/awning guidance; I had to guess what faces 0,1,4 are (awning scallops, 4 stripes) from the parts PNG alone.
+2. inspect.mjs: face 3 is the whole front (awning band + wall, one path); the parts picture tints don't show which face is the stripes. Had to guess a cut point (227,194) off a 2.4x-scaled PNG by eye; no tool to read exact coordinates.
+3. `ic.face(...)` returns a path that is NOT a face: putting it in `ic.part("shop",[wall, copy, 2, 6])` threw "part shop: member [object SVGPathElement] is not a face of the icon". SKILL.md/kernel index never says the copy must stay loose.
+4. A loose face copy has no bright silhouette (only inner edges), so the wall behind the awning has stray diagonal lines and no outline; rest picture also shows a diagonal line through the stripes that I could not explain. Not fixed.
+5. Paint order: part with faces [band,4,1,0] painted early (last face = index 0, drawn before the wall), so the wall covered the awning. Fixed with `after(awning, shop)` -- as the "What goes wrong" table says; `after` must be added to the destructure (not in bolt.js's), easy to miss.
+6. look.mjs: when the part constructor throws, the output is a wall of "console FAIL" per picture plus readout warnings ("still reads rest: does --at land on the part?"), misleading; the real error is only at the top. The --zoom png was stale after a failed run (showed old picture).
+7. `--edge` given twice with the same point is needed to avoid ambiguity; docs OK. No `--at` guidance for a figure whose hit area is a band; I used 182,150.
+8. axes line: "u 0.87, 0.48   v -0.88, 0.47 (measured...)" agreed with the corners; I did not pass {u,v}.
+9. No effect: concept had no honest colourful effect (a shadow is not an emissive colour). Skill allows omitting; look.mjs effect shots are then just the plain figure. Worked well: validator + sheet in one command, readout line, exit codes, examples as templates.
+10. Slider range [6,12,20]: at high (+20) awning clearly overlaps the wall top; fine visually but I did not check it for "passing through" with the cut wall.

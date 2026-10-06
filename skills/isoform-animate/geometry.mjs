@@ -76,11 +76,14 @@ export function axesOf(svg) {
   const a1 = peakIn(-4, 80, 12, 40);
   const level = a1 != null && (a1 <= 4 || a1 >= 176);
   const a2 = peakIn(100, level ? 175 : 184, 140, 168);
-  if (a1 == null || a2 == null) return null;
-  /* orient by side, not by "down": u points right, v points left (a level edge may tilt a hair either way) */
+  if (a1 == null && a2 == null) return null;
+  /* orient by side, not by "down": u points right, v points left (a level edge may tilt a hair either way). A drawing
+     with one straight direction (a disc's side band, a row of dots) gives that axis; only the other falls back to
+     true isometric, which is 3-8° closer than guessing both (radio-button-checked: v measures 153°, the fallback is 150°) */
   const vec = (a) => [Math.cos((a * Math.PI) / 180), Math.sin((a * Math.PI) / 180)];
-  let u = vec(a1), v = vec(a2);
+  let u = a1 == null ? [0.866, 0.5] : vec(a1), v = a2 == null ? [-0.866, 0.5] : vec(a2);
+  const half = a1 == null ? "v" : a2 == null ? "u" : null;
   if (u[0] < 0) u = [-u[0], -u[1]];
   if (v[0] > 0) v = [-v[0], -v[1]];
-  return u[0] > 0 && v[0] < 0 ? { u, v } : null;
+  return u[0] > 0 && v[0] < 0 ? { u, v, half } : null;
 }

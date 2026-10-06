@@ -56,8 +56,12 @@ shapes.forEach((m, k) => {
 {
   const ax = axesOf(icon.svg);
   const f = (w) => w.map((n) => n.toFixed(2)).join(", ");
-  console.log(ax ? `axes   u ${f(ax.u)}   v ${f(ax.v)}   (measured; check them against the corners above)`
-    : "axes   NOT measured: the kernel falls back to true isometric. Read two edge directions off the corners and pass icon(svg, src, { u: [x, y], v: [x, y] })");
+  /* u and v are unit screen directions: a move of 1 along u is 1 stage unit down-right */
+  console.log(!ax
+    ? "axes   none: no straight edges, so the kernel uses true isometric, u 0.87, 0.50  v -0.87, 0.50. Keep it; do not derive axes from an ellipse's shape"
+    : ax.half
+      ? `axes   u ${f(ax.u)}   v ${f(ax.v)}   (${ax.half} measured from the only straight edges; the other is true isometric. Move along ${ax.half} freely; check any move on the other axis against the corners)`
+      : `axes   u ${f(ax.u)}   v ${f(ax.v)}   (measured; check them against the corners above)`);
 }
 
 /* what the sweep of every icon in every view (scripts/sweep.mjs → data/sweep.json) knows about this one */
@@ -66,10 +70,10 @@ shapes.forEach((m, k) => {
   try { sw = JSON.parse(readFileSync(new URL("../../data/sweep.json", import.meta.url), "utf8"))[icon.id]; } catch {}
   const here = sw?.[icon.variant];
   const NOTE = {
-    axes: "the axes cannot be measured (true isometric is assumed): check them, and pass { u, v } if wrong",
+    axes: "one or both axes could not be measured from straight edges (the axes line says which): move freely on a measured axis, and check any move on the other against the corners",
     tiny: `${here?.tiny} faces are under 6 units: unreadable at 240px; move them with their neighbours, never alone`,
     dense: `${here?.faces} faces: group them into a few parts; animating each is noise`,
-    dots: `${here?.dots} zero-size faces: leave them out of parts`,
+    dots: `${here?.dots} zero-size faces: put each in the part it sits on, so it moves with it; never a part of their own`,
   };
   for (const f of here?.flags ?? []) console.log(`sweep  ${NOTE[f]}`);
   const better = sw && Object.entries(sw).filter(([v, x]) => v !== icon.variant && !x.flags.length).map(([v]) => v);

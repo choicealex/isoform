@@ -56,7 +56,7 @@ Isocons ships in six categories. Each is a kind of object and has stories that f
 Mostly symbols and interface hardware as solid blocks: arrows (`arrow-forward`, `arrow-up`, `chevron-down`), marks (`check`, `add-circle`, `cancel-circle`), controls (`toggle-on`, `checkbox`, `menu`), file moves (`download`, `upload`, `delete`, `refresh`), a few real objects (`key`, `bolt`, `terminal`).
 
 Stories that work:
-- **Slide and land.** A control's moving part runs along its track and settles (`toggle-on`: knob slides along u, track brightens). Hover nudges it toward the other state, a few units. Trace: a short line along the track. No effect.
+- **Slide and land.** A control's moving part runs along its track and settles (`toggle-on`: the knob slides along the track's long axis, which is `u` or `v` depending on the view: read it off the parts picture; the track brightens). Hover nudges it toward the other state, a few units. Trace: a short line along the track. No effect.
 - **Stamp.** A mark drops onto its plate with a short overshoot, holds, lifts (`check`, `done-all`). Hover presses it a hair. Trace: a ring on the plate at the strike. No effect.
 - **Carry.** An arrow block moves a payload one way and returns empty (`download`, `upload`, `open-in-new`). Hover leans the arrow toward its target. Trace: the path it travelled, drawn on and retracted. No effect.
 - **Stack.** Blocks arrive one by one and settle (`add-circle`, `library-add`, `stacks`). Hover lifts the top block. Trace: a drop line under each block. No effect.

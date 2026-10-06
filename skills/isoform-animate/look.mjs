@@ -94,23 +94,58 @@ const results = await Promise.all(SHOTS.map(async ([shot, o0]) => {
     return { read: document.getElementById("read").textContent, error: document.getElementById("error").textContent.trim(), box: [x0, y0, x1, y1] };
   });
   const png = await p.locator("main").screenshot();
+  /* the drawing alone (no page chrome), for the answer-vs-rest check below */
+  const lines = shot === "rest" || shot === "no-effect" ? await p.locator("#stage svg").first().screenshot() : null;
   const zoom = flag("--zoom").includes(shot) ? await p.locator("#stage").screenshot({ scale: "device" }) : null;
   await ctx.close();
-  return { shot, url: `isoform-${name}.html${q(o)}`, png, zoom, still, logs, ...info };
+  return { shot, url: `isoform-${name}.html${q(o)}`, png, zoom, lines, still, logs, ...info };
 }));
 
+const errsSeen = new Map(); // the same error in every picture (a mount that throws) is one error, said once
 for (const r of results) {
   const [x0, y0, x1, y1] = r.box;
   const out = x0 < 0 || y0 < 0 || x1 > 400 || y1 > 320;
   if (out) { failed = true; console.log(`frame     FAIL ${r.shot}: the drawing reaches ${x0.toFixed(0)},${y0.toFixed(0)} → ${x1.toFixed(0)},${y1.toFixed(0)}, outside 0,0 → 400,320`); }
-  if (r.logs.length || r.error) { failed = true; console.log(`console   FAIL ${r.shot}: ${[...r.logs, r.error].filter(Boolean).join(" | ").slice(0, 300)}`); }
+  if (r.logs.length || r.error) {
+    failed = true;
+    /* the first line of each: a stack carries the picture's own URL, which would make every copy look different */
+    const msg = [...new Set([...r.logs, r.error].filter(Boolean).map((m) => m.split("\n")[0].trim()))].join(" | ").slice(0, 300);
+    errsSeen.set(msg, [...(errsSeen.get(msg) ?? []), r.shot]);
+  }
   if (r.zoom) writeFileSync(resolve(`isoform-${name}-${r.shot}.png`), r.zoom);
 }
+for (const [msg, shots] of errsSeen) console.log(`console   FAIL ${shots.length === results.length ? "every picture" : shots.join(", ")}: ${msg}`);
+const crashed = errsSeen.size && [...errsSeen.values()].some((s) => s.length === results.length);
 const rest = results.find((r) => r.shot === "rest");
 if (rest.read !== "rest") { failed = true; console.log(`readout   FAIL rest reads "${rest.read}", not "rest"`); }
 for (const r of results) if (r.read === "drawing") { failed = true; console.log(`readout   FAIL ${r.shot} reads "drawing": the picture caught the intro half drawn; ?t= and the answering pictures must show the drawn figure`); }
-for (const r of results) if (["answer", "high", "dark", "light", "effect", "effect-dark"].includes(r.shot) && at && r.read === "rest") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
+for (const r of results) if (!crashed && ["answer", "high", "dark", "light", "effect", "effect-dark"].includes(r.shot) && at && r.read === "rest") console.log(`readout   warn ${r.shot} still reads "rest": does --at land on the part?`);
 console.log(`readout   ${results.map((r) => `${r.shot}=${r.read}`).join("  ")}`);
+/* the answer must change the drawing, not only the read-out or the glow: compare the answer with effects off against
+   the rest, in the lines alone. Three stress-test figures passed every other check while nothing visibly happened */
+{
+  const quiet = results.find((r) => r.shot === "no-effect");
+  if (quiet?.lines && rest.lines && quiet.read !== "rest") {
+    const ctx = await browser.newContext();
+    const pg = await ctx.newPage();
+    const share = await pg.evaluate(async ([a, b]) => {
+      const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = `data:image/png;base64,${s}`; });
+      const [A, B] = await Promise.all([load(a), load(b)]);
+      const w = Math.min(A.width, B.width), h = Math.min(A.height, B.height), cv = new OffscreenCanvas(w, h), x = cv.getContext("2d");
+      x.drawImage(A, 0, 0); const da = x.getImageData(0, 0, w, h).data;
+      x.clearRect(0, 0, w, h); x.drawImage(B, 0, 0); const db = x.getImageData(0, 0, w, h).data;
+      let n = 0;
+      for (let i = 0; i < da.length; i += 4) if (Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2]) > 24) n++;
+      return n / (w * h);
+    }, [rest.lines.toString("base64"), quiet.lines.toString("base64")]);
+    await ctx.close();
+    /* calibrated on 21 figures (2026-10-06): every approved one changes 0.17-4.3% (the cart's small box is the quietest);
+       the radio button whose dot never visibly left its ring changed 0.08% */
+    const pct = `${(share * 100).toFixed(2)}%`;
+    if (share < 0.0012) { failed = true; console.log(`answer    FAIL the answer reads "${quiet.read}" but its lines change only ${pct} of the stage from rest (effects off): what happens is in the read-out or the glow, not the drawing. Make the move or the trace bigger, or drive it from the hand (every channel the answer needs must be in live)`); }
+    else console.log(`answer    the lines change ${pct} of the stage between rest and the answer (effects off)`);
+  }
+}
 const moving = results.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");
 if (!moving.includes("rest") && moving.length) {} else if (moving.includes("rest")) { failed = true; console.log("still     FAIL the rest picture never holds still: rule 07"); }
