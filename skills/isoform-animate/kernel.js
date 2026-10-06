@@ -50,6 +50,8 @@
  *                                      depth re-extruded behind it. Needs icon.part(name, faces, {solid: {front, depth}}),
  *                                      front a face index, depth its thickness as a move along one axis ([0, -45, 0]). At 0°
  *                                      the Isocons faces come back untouched
+ *   part.grow(sa, sb, at)              a solid stretched within its front's plane (sa, sb along the plane's two axes, in the
+ *                                      order u, v, up), re-drawn like spin so its depth stays true: a bar growing longer
  *   part.hi(on)  part.dim(on)          the part's silhouette in the bright stroke, or the dim one: the whole palette.
  *                                      Every part (and every run of faces left out of parts) is drawn Hairline's way:
  *                                      a bright silhouette, dim inner edges. Make every part in mount, before the first frame
@@ -515,13 +517,13 @@ var IF = (() => {
           sg.style.display = "none"; sil.style.display = "none";
           return { poly, depth, plane: zero.join("-"), sg, sil, edge, body, face, crease };
         };
-        const drawSpin = (deg, at) => {
+        const drawSolid = (T, at) => {
           spun ??= spinRig();
-          const on = Math.abs(deg) > 0.05;
+          const on = Math.abs(T[0] - 1) + Math.abs(T[1]) + Math.abs(T[2]) + Math.abs(T[3] - 1) > 1e-3;
           for (const el of pg.children) if (el !== spun.sg && el !== spun.sil) el.style.visibility = on ? "hidden" : "";
           spun.sg.style.display = on ? "" : "none"; spun.sil.style.display = on ? "" : "none";
           if (!on) return;
-          const c = Math.cos(rad(deg)), sn = Math.sin(rad(deg)), m = inPlane(spun.plane, [c, sn, -sn, c], at);
+          const m = inPlane(spun.plane, T, at);
           const P = spun.poly.map(([x, y]) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]);
           const [dx, dy] = spun.depth, n = P.length;
           let area = 0;
@@ -594,7 +596,13 @@ var IF = (() => {
           },
           spin(deg, at = [rest.cx, rest.cy]) {
             if (!o.solid) throw new Error(`part ${name}: spin needs {solid: {front, depth}} when the part is made`);
-            drawSpin(deg, at); return part;
+            const c = Math.cos(rad(deg)), sn = Math.sin(rad(deg));
+            drawSolid(Math.abs(deg) < 0.05 ? [1, 0, 0, 1] : [c, sn, -sn, c], at); return part;
+          },
+          /* a solid growing within its front's plane, re-drawn like spin: the front stretched, the depth kept */
+          grow(sa = 1, sb = sa, at = [rest.cx, rest.cy]) {
+            if (!o.solid) throw new Error(`part ${name}: grow needs {solid: {front, depth}} when the part is made`);
+            drawSolid([sa, 0, 0, sb], at); return part;
           },
         };
         parts.push(part);

@@ -35,3 +35,8 @@ guess), icon.morph (with hide: an opening's wall steps aside, out of the outline
 subheader; dialog/dropdown/fullscreen-portrait show their opening's inner wall lines inside the grown window.
 - Owner: the boomerangs "reveal a threadlike line" while moving → it was the flight trail (a short detached trace);
   removed from the pilot and both generated boomerangs (zoomed frames confirm the body is clean). 24 hov: leave static.
+- 16 maximize / 17 minimize (owner said "continue" to the proposals): the bar stretches long / draws in short as a
+  solid (new part.grow, re-drawn like spin). First build modelled the bar wrong (took the band for the front): looked
+  broken though look.mjs passed. Face 0 is the profile with the rounded ends, swept 65.1 / 68.4 along -v (measured as
+  how far the band reaches past the profile). Same measure: stat-0-double's depth is 41.7, not the pilot's 44.7.
+- 23 capture: the frame snaps shut like a shutter toward its centre and reopens. 23 of 24 done; 24 hov stays as drawn.
