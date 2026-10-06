@@ -88,3 +88,11 @@ Regression: all 13 approved figures pass look.mjs on the new skill.
   red. Calibrated on 23 figures: 0 on 17; storefronts ~1,950; but also bolt 481, water 134, padlock 1,111, delete 1,256
   (legitimate seams / a rest trace) → a WARN with a red picture, not a FAIL: only the eye tells a real edge from a cut.
 - kernel: face()/facet() `before` accepts a face index (agent hit "at.before is not a function").
+
+## Cold run after the skill caught up (2026-10-06, `dogfood/cold-checkbox`)
+checkbox-blank, fresh agent: found the opening from inspect's new line, learned the abilities from the kernel index +
+radio.js, axes measured right, three concepts with honest strikes, judged its own figure "not for a product site".
+Found a real kernel bug: icon.hole filled the freed opening, so a see-through window went opaque (invisible in line
+style, where the face colour equals the plate). Fixed: the face is cut by a mask whose hole follows the opening part;
+the opening is an unfilled outline; morph updates the cut too. Verified in colour style at rest, growing, mid-morph;
+7 hole/morph figures + radio.js pass. Open: no recipe for a blank symbol (an empty box has nothing to do).

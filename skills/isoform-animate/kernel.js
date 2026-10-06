@@ -388,7 +388,7 @@ var IF = (() => {
       morph.setAttribute("radius", String(r2(((w * 0.5 + 0.35) / ppu) * 100) / 100));
     };
     let masks = 0;
-    const silOf = new Map(), maskOf = new Map(); // the copies of a face in its outline, which a morph must update too
+    const silOf = new Map(), maskOf = new Map(), holeOf = new Map(); // holeOf: an opening's cut in its face's mask // the copies of a face in its outline, which a morph must update too
     const outline = (grp, own) => {
       const id = `${uid}-m${masks++}`;
       const mask = mk("mask", { id, maskUnits: "userSpaceOnUse", x: "-9999", y: "-9999", width: "19998", height: "19998" }, defs);
@@ -496,7 +496,10 @@ var IF = (() => {
           const f = sAff && tAff ? mul(tAff, sAff) : sAff ?? tAff;
           const form = f ? ` matrix(${f.map((n) => r4(n)).join(" ")})` : "";
           const t = `translate(${r2(off[0] / scale)} ${r2(off[1] / scale)})${form}${turn}`;
-          if (t !== last) { pg.setAttribute("transform", t); last = t; }
+          if (t !== last) {
+            pg.setAttribute("transform", t); last = t;
+            for (const p of own) holeOf.get(p)?.setAttribute("transform", t); // the cut follows the opening
+          }
         };
         /* an affine in icon units for a 2×2 map T, in the plane of two of the icon's axes, about a stage point: B·T·B⁻¹.
            Because the map is drawn in the plane's own directions, a disc grows as a disc and a dial turns as a dial */
@@ -769,14 +772,23 @@ var IF = (() => {
         const subs = starts.map((k, j) => d.slice(k, starts[j + 1] ?? d.length).trim());
         el.setAttribute("d", subs[0]);
         ghostOf.get(el)?.setAttribute("d", subs[0]);
+        /* the face stays see-through where the opening is: it is cut by a mask whose hole follows the opening part (a cold
+           run found a filled opening hid what the window shows). The face with the opening should not move itself */
+        const id = `${uid}-hole${masks++}`;
+        const mask = mk("mask", { id, maskUnits: "userSpaceOnUse", x: "-9999", y: "-9999", width: "19998", height: "19998" }, defs);
+        mk("rect", { x: "-9999", y: "-9999", width: "19998", height: "19998", fill: "white" }, mask);
+        el.setAttribute("mask", `url(#${id})`);
         let after = el;
         return subs.slice(1).map((sd) => {
           const p = el.cloneNode(false);
-          p.removeAttribute("class");
+          p.removeAttribute("class"); p.removeAttribute("mask");
           p.setAttribute("d", sd);
+          p.style.fill = "none"; // an opening is an outline, not a surface
           after.after(p); after = p;
           faces.add(p);
           const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);
+          const cut = mk("path", { d: sd, fill: "black" }, mask);
+          holeOf.set(p, cut);
           return p;
         });
       },
@@ -804,7 +816,7 @@ var IF = (() => {
         let best = 0, bestD = Infinity;
         for (let k = 0; k < N; k += 2) { let dd = 0; for (let i = 0; i < N; i += 6) dd += Math.hypot(A[i][0] - B[(i + k) % N][0], A[i][1] - B[(i + k) % N][1]); if (dd < bestD) { bestD = dd; best = k; } }
         B = B.map((_, i) => B[(i + best) % N]);
-        const copies = () => [el, silOf.get(el), maskOf.get(el)].filter(Boolean);
+        const copies = () => [el, silOf.get(el), maskOf.get(el), holeOf.get(el)].filter(Boolean);
         /* faces that belong to this outline only (an opening's inner wall) step aside while it is another's */
         const hid = (o.hide ?? []).map((h) => (typeof h === "number" ? paths[h] : h));
         const aside = hid.flatMap((h) => [h, silOf.get(h)]).filter(Boolean), masks = hid.map((h) => maskOf.get(h)).filter(Boolean);
