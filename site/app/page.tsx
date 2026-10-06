@@ -50,10 +50,10 @@ export default function Home() {
               Isoform<span className="text-accent">.</span>
             </h1>
             <p className="mt-8 max-w-[26rem] text-[clamp(1.25rem,1.7vw,1.6rem)] leading-[1.2] font-medium tracking-[-0.02em] text-balance">
-              Isometric icons that draw themselves, then do what the object does.
+              Turn isometric icons into animated illustrations.
             </p>
             <p className="mt-4 max-w-[26rem] text-[15px] text-pretty text-muted">
-              An agent skill. Name one of the 1,007 Isocons; it is taken apart along its own edges and handed back as one HTML file that plays.
+              An agent skill for the 1,007 free Isocons. Name an icon, get one HTML file that plays.
             </p>
           </div>
           <div className="grid gap-3">
