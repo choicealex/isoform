@@ -44,7 +44,7 @@ for (const f of FIGURES) {
   manifest.push({
     name, icon: id, variant: icon.variant, title: icon.title, category: icon.category,
     means: field(src, "means"), effect: field(src, "effect"), range: list(src, "range"), rules: list(src, "rules"),
-    prompt: f.prompt, job: f.job, group: f.group ?? "object", lines: src.split("\n").length, svg: icon.svg,
+    prompt: f.prompt, job: f.job, lines: src.split("\n").length, svg: icon.svg,
   });
 }
 writeFileSync(out("lib/figures.json"), `${JSON.stringify(manifest, null, 1)}\n`);

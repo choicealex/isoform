@@ -40,3 +40,4 @@ subheader; dialog/dropdown/fullscreen-portrait show their opening's inner wall l
   broken though look.mjs passed. Face 0 is the profile with the rounded ends, swept 65.1 / 68.4 along -v (measured as
   how far the band reaches past the profile). Same measure: stat-0-double's depth is 41.7, not the pilot's 44.7.
 - 23 capture: the frame snaps shut like a shutter toward its centre and reopens. 23 of 24 done; 24 hov stays as drawn.
+- Owner: none of the 23 go on the website; they stay in dogfood/ only. Site back to the 8 earlier samples (key still off).

@@ -96,15 +96,11 @@ export default function Home() {
         <Sheet />
       </Section>
 
-      <Section n="04" title="The wall" note="Every object, playing. Hover for the file and the prompt; open one to inspect it.">
-        <Wall group="object" />
+      <Section n="04" title="The wall" note="Every figure, playing. Hover for the file and the prompt; open one to inspect it.">
+        <Wall />
       </Section>
 
-      <Section n="05" title="Interface" note="Twenty-three icons that stand for a layout or a state, not a thing: windows that grow, a dial that turns, a chevron thrown like a boomerang. Each grows or turns only within its own plane.">
-        <Wall group="ui" />
-      </Section>
-
-      <Section n="06" title="Inspect" note="One figure on its construction grid, solid or in parts, with its controls and its code.">
+      <Section n="05" title="Inspect" note="One figure on its construction grid, solid or in parts, with its controls and its code.">
         <Inspector name="house" />
       </Section>
     </>

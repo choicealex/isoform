@@ -9,7 +9,7 @@ export default function FiguresPage() {
           Figures<span className="text-accent">.</span>
         </h1>
         <p className="max-w-sm text-[15px] text-pretty text-muted">
-          {FIGURES.length} figures, each an Isocons icon taken apart and made to act: objects that do what they are, and interface icons that do what they mean. Open one to inspect it on its lines.
+          {FIGURES.length} figures, each an Isocons icon taken apart and made to act. Open one to inspect it on its lines.
         </p>
       </div>
       <Wall filters />

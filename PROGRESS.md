@@ -25,8 +25,8 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 Nothing mid-edit; everything pushed.
 
 ## State (2026-10-06)
-- Site: 31 figures = 8 objects + 23 interface icons (group field; Figures pills All/Objects/Interface; home has The
-  wall + 05 Interface). Key/padlock removed from the site (owner, 603ebb6); its dogfood file stays. Docs: "Grow, turn,
+- Site: 8 figures (the earlier samples; key removed 603ebb6). The 23 interface icons are NOT on the site (owner), only in
+  dogfood/. Docs keeps "Grow, turn,
   spin". Production build verified (48 pages). Not deployed; repo private.
 - Rule 09 opened (owner): grow/turn only within a plane of the icon's axes. Kernel: stretch, turn, spin, grow, hole,
   morph, extent. Hard icons: `dogfood/HARD.md` + `dogfood/hard/generate.py` (5 family templates from measure.json).

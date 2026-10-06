@@ -42,12 +42,6 @@ const STEPS = [
     fig: "house",
   },
   {
-    t: "Icons with no object",
-    b: "Twenty-four Isocons stand for a layout or a state, not a thing. The owner gave them stories: a window that grows, a half-moon that turns, a chevron thrown like a boomerang. Rule 09 opened for them, and only so far: a part may grow or turn within its own plane, never as a flat spin on the screen.",
-    quote: "stats can act like bomerangs in motion",
-    fig: "boomerang",
-  },
-  {
     t: "What I'd keep",
     b: "A second round of strangers got the mechanics right every time and the taste right one time in three. A script can tell you the figure works. Only looking tells you it reads. That is why every figure here was looked at by a person before it went up.",
     fig: "toast",

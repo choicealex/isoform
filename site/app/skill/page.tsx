@@ -3,7 +3,7 @@ import { CopyButton } from "@/components/Copy";
 import { Figure } from "@/components/Figure";
 import { Bracket } from "@/components/spec/Parts";
 import { LABEL, figNo } from "@/lib/spec";
-import { EXAMPLE_NOTE, OBJECTS, UI } from "@/lib/iso";
+import { EXAMPLE_NOTE, FIGURES } from "@/lib/iso";
 
 export const metadata: Metadata = { title: "Skill", description: "Install the isoform-animate skill and ask your agent for a figure." };
 
@@ -66,11 +66,11 @@ export default function SkillPage() {
           What came back<span className="text-accent">.</span>
         </h2>
         <p className="hidden max-w-sm text-right text-[15px] text-pretty text-muted md:block">
-          The skill&apos;s three examples, then figures agents made from one prompt, with what was asked next. The {UI.length} interface icons are on the Figures page.
+          The skill&apos;s three examples, then figures agents made from one prompt, with what was asked next.
         </p>
       </div>
       <div className="grid gap-px border-y border-rule bg-rule md:grid-cols-2">
-        {OBJECTS.map((f) => (
+        {FIGURES.map((f) => (
           <div key={f.name} className="grid bg-ground sm:grid-cols-[1fr_1.15fr]">
             <div className="flex flex-col gap-3 p-6">
               <p className={LABEL}>{figNo(f.name)} · {f.title}</p>
