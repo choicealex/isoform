@@ -90,7 +90,8 @@
  *   register(stage, tick)              joins the one frame loop; tick(dt seconds, now ms) returns true while anything moves;
  *                                      gives {wake, unregister}. The loop sleeps offscreen and when every tick returns false
  *                                      (a host may set stage.dataset.speed: dt is scaled by it; a figure never needs to)
- *   pointer(stage, {move, down, leave}) points in stage units; returns its disposer
+ *   pointer(stage, {move, down, leave}) points in stage units; returns its disposer. Touch works the same way with no extra
+ *                                      code: a tap answers and holds for 1.6s, a sideways drag follows the finger
  *   disposer()                         {add, on, dispose}: collects tear-down, so destroy is bag.dispose
  * Traces: what happens, drawn in the figure's own hairline. Every figure draws its phenomenon this way first
  *   trace(svg, {tone, dash, under, solid}) a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
@@ -246,9 +247,18 @@ var IF = (() => {
       return [((ev.clientX - r.left) / r.width) * W, ((ev.clientY - r.top) / r.height) * H];
     };
     const bag = disposer();
-    bag.on(stage, "pointermove", (ev) => h.move?.(at(ev)));
-    bag.on(stage, "pointerdown", (ev) => (h.down ?? h.move)?.(at(ev)));
-    bag.on(stage, "pointerleave", () => h.leave?.());
+    /* touch has no hover: a tap answers at the finger and holds the answer a moment before the story resumes; a drag
+       sideways follows the finger (vertical drags still scroll the page, and a scroll lets go) */
+    const HOLD = 1600;
+    let timer = 0;
+    const release = (ms) => { clearTimeout(timer); timer = setTimeout(() => h.leave?.(), ms); };
+    stage.style.touchAction = "pan-y";
+    bag.on(stage, "pointermove", (ev) => { if (ev.pointerType !== "touch" || ev.buttons) { clearTimeout(timer); h.move?.(at(ev)); } });
+    bag.on(stage, "pointerdown", (ev) => { clearTimeout(timer); (h.down ?? h.move)?.(at(ev)); });
+    bag.on(stage, "pointerup", (ev) => { if (ev.pointerType === "touch") release(HOLD); });
+    bag.on(stage, "pointercancel", () => release(0));
+    bag.on(stage, "pointerleave", (ev) => { if (ev.pointerType !== "touch") h.leave?.(); });
+    bag.add(() => clearTimeout(timer));
     /* the bench's ?at= and the look script drive the figure through this, never through the DOM */
     bag.on(stage, "isoform:at", (ev) => (ev.detail ? h.move?.(ev.detail) : h.leave?.()));
     return bag.dispose;
