@@ -1,7 +1,7 @@
 # Session Checkpoint — 2026-10-05 (Isoform: skill dogfooded by four stranger runs)
 
 Isoform works end to end locally: the `isoform-animate` skill, its engine and checks, and three example
-illustrations that draw themselves in and loop a story. Tree clean. On GitHub (private), not deployed.
+illustrations that draw themselves in and loop a story. Repo public; site live (see State).
 
 > **What this file is for.** Only what `git log` can't tell you — what shipped and why is in the commit
 > bodies (`git show <sha>`). When work is committed, its prose here collapses to its SHA.
@@ -27,7 +27,7 @@ Nothing mid-edit; everything pushed.
 ## State (2026-10-06)
 - Site: 8 figures (the earlier samples; key removed 603ebb6). The 23 interface icons are NOT on the site (owner), only in
   dogfood/. Docs keeps "Grow, turn,
-  spin". Not deployed; repo private.
+  spin". LIVE https://isoform-skill.vercel.app (CLI deploy, recipe in project memory); repo PUBLIC.
 - Rule 09 opened (owner): grow/turn only within a plane of the icon's axes. Kernel: stretch, turn, spin, grow, hole,
   morph, extent. Hard icons: `dogfood/HARD.md` + `dogfood/hard/generate.py` (5 family templates from measure.json).
 - Stress test: `dogfood/STRESS.md`. Engine holds on every view; taste is the weak point. 3× this session a figure passed
@@ -36,10 +36,8 @@ Nothing mid-edit; everything pushed.
 ## Next
 1. Real-phone check (touch takeover is tested with CDP touch only, cfc330c). 2. Unchecked by any script: an effect
    smothering the lines, cut points read by eye, gaps on coplanar faces. 3. No concept recipe for a blank symbol (an
-   empty checkbox has nothing to do). 4. LIVE https://isoform-skill.vercel.app (2026-10-06), repo PUBLIC. Install path TESTED (e144a97): `npx skills add choicealex/isoform` finds and
-   installs isoform-animate like hairline-create; the installed copy runs find → inspect → look end to end once it can
-   fetch data/ (served locally as a stand-in). While private it stops with a clear message. After going public: rerun
-   the install test with no override.
+   empty checkbox has nothing to do). 4. Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
+   find → inspect → build → validate → look (exit 0) on data fetched from raw.githubusercontent.
 Live 0244a96 (2026-10-06): hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
 sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 

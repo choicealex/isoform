@@ -5,5 +5,9 @@ node_modules/
 .next/
 dogfood/**/isoform-*
 dogfood/**/look.log
+dogfood/**/look.out
+dogfood/**/build.err
 # test output an agent or a person left inside the skill: never ship it
 skills/isoform-animate/isoform-*.*
+dogfood/**/out.txt
+dogfood/hard/pts.txt
