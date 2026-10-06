@@ -119,7 +119,7 @@ export function Specimen() {
         {/* specimen: three figures on dotted ground lines, a loupe on what each one does */}
         {[
           ["bolt", [0.47, 0.42], "Arc in the gap"],
-          ["padlock", [0.73, 0.73], "Mark on the rim"],
+          ["house", [0.73, 0.73], "Mark on the rim"],
           ["car", [0.3, 0.62], "Cone from the lamp"],
         ].map(([name, at, what], i) => (
           <div key={name as string} className={`relative border-t border-[var(--rule)] px-6 pt-16 pb-12 ${i < 2 ? "border-r" : ""}`}>

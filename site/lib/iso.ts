@@ -7,6 +7,9 @@ export const figureByName = (name: string) => FIGURES.find((f) => f.name === nam
 /* the skill's own examples have no prompt: they were written with it, not by it */
 export const EXAMPLE_NOTE = "Written by hand alongside the skill: one of the three examples its agent reads before it builds.";
 export const CATEGORIES = [...new Set(FIGURES.map((f) => f.category))];
+/* the figures an agent made from one prompt (and the skill's examples), and the 23 interface icons from the owner's stories */
+export const OBJECTS = FIGURES.filter((f) => f.group === "object");
+export const UI = FIGURES.filter((f) => f.group === "ui");
 
 export type IsoHandle = {
   decl: { name: string; means: string; effect?: string; range: number[] };

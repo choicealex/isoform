@@ -34,12 +34,23 @@ const STEPS = [
     t: "Dots and planks",
     b: "Review caught what the checks could not. The key turned by tilting the whole drawing, which bent every edge. Now it slides square and the lock's rim shows the turn. The beams became cones, and the cart's scuffs became a box that drops in.",
     quote: "the key has a moving dots and the lines dont look straight",
-    fig: "padlock",
+    fig: "car",
+  },
+  {
+    t: "Eight more strangers",
+    b: "Fresh agents ran the skill on what had never been tried: four new views, round icons, thirty-three faces, dots, tiny parts. The engine held on seven of eight views; the figures did not, and every one had passed its checks. What came out: an axis measured from the one straight edge a disc has, a check that fails when nothing visibly happens, and one that marks in red any line the original drawing never had.",
+    fig: "house",
+  },
+  {
+    t: "Icons with no object",
+    b: "Twenty-four Isocons stand for a layout or a state, not a thing. The owner gave them stories: a window that grows, a half-moon that turns, a chevron thrown like a boomerang. Rule 09 opened for them, and only so far: a part may grow or turn within its own plane, never as a flat spin on the screen.",
+    quote: "stats can act like bomerangs in motion",
+    fig: "boomerang",
   },
   {
     t: "What I'd keep",
     b: "A second round of strangers got the mechanics right every time and the taste right one time in three. A script can tell you the figure works. Only looking tells you it reads. That is why every figure here was looked at by a person before it went up.",
-    fig: "car",
+    fig: "toast",
   },
 ];
 

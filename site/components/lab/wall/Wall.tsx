@@ -56,7 +56,7 @@ export function Wall() {
               </div>
               <div className="flex items-center justify-between border-t border-white/10 px-4 py-2 text-[11px] opacity-70"><span>one HTML file out</span><CopyButton text={CMD} label="Copy command" className="!text-white hover:!bg-white/15" /></div>
             </div>
-            <div className="pointer-events-none absolute right-0 bottom-0 w-[min(520px,70%)]"><Figure name="padlock" quiet className="w-full" /></div>
+            <div className="pointer-events-none absolute right-0 bottom-0 w-[min(520px,70%)]"><Figure name="house" quiet className="w-full" /></div>
             <span className="absolute bottom-4 left-4 font-mono text-[11px] tracking-[0.12em] uppercase opacity-70">Install the skill</span>
           </div>
         )}

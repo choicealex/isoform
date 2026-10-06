@@ -125,7 +125,7 @@ function Header() {
 
 const POS: { name: string; l: number; t: number; w: number; dim: boolean; bob: number; del: number }[] = [
   { name: "rocket", l: 9, t: 40, w: 230, dim: true, bob: 6.2, del: -1.5 },
-  { name: "padlock", l: 23, t: 70, w: 190, dim: false, bob: 5.6, del: -3.2 },
+  { name: "house", l: 23, t: 70, w: 190, dim: false, bob: 5.6, del: -3.2 },
   { name: "water-bottle", l: 36, t: 32, w: 220, dim: true, bob: 7, del: -4.4 },
   { name: "car", l: 50, t: 66, w: 260, dim: false, bob: 6.5, del: -2.1 },
   { name: "bolt", l: 64, t: 30, w: 210, dim: true, bob: 5.4, del: -0.8 },

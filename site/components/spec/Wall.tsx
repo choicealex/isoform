@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CopyButton } from "@/components/Copy";
 import { Figure } from "@/components/Figure";
-import { CATEGORIES, FIGURES } from "@/lib/iso";
+import { FIGURES } from "@/lib/iso";
 import { LABEL, figNo } from "@/lib/spec";
 import { LOOK, type Look, LookControls, lookProps } from "./Look";
 
@@ -13,22 +13,23 @@ const inverted = (i: number) => i % 4 === 2;
 
 /**
  * The wall: edge-to-edge ruled tiles, each playing its figure. Meta top right, name bottom left (Fontshare); hover
- * brings up the actions. `filters`: show the category pills and search (the /figures page).
+ * brings up the actions. `filters`: show the group pills and search (the /figures page). `group`: only one group.
  */
-export function Wall({ filters = false }: { filters?: boolean }) {
-  const [cat, setCat] = useState<string | null>(null);
+const GROUPS = [[null, "All"], ["object", "Objects"], ["ui", "Interface"]] as const;
+export function Wall({ filters = false, group }: { filters?: boolean; group?: "object" | "ui" }) {
+  const [cat, setCat] = useState<string | null>(group ?? null);
   const [q, setQ] = useState("");
   const [look, setLook] = useState<Look>(LOOK);
   const lp = lookProps(look);
-  const shown = FIGURES.filter((f) => (!cat || f.category === cat) && (!q || `${f.name} ${f.title} ${f.job} ${f.means}`.toLowerCase().includes(q.toLowerCase())));
+  const shown = FIGURES.filter((f) => (!cat || f.group === cat) && (!q || `${f.name} ${f.title} ${f.job} ${f.means}`.toLowerCase().includes(q.toLowerCase())));
 
   return (
     <div>
       {filters && (
         <div className="sticky top-[68px] z-20 flex flex-wrap items-center gap-2 border-y border-rule bg-ground px-4 py-2.5 sm:px-8">
-          {[null, ...CATEGORIES].map((c) => (
-            <button key={c ?? "all"} type="button" onClick={() => setCat(c)} aria-pressed={cat === c} className="rounded-full border border-rule px-3 py-1 font-mono text-[11px] tracking-[0.04em] text-muted uppercase aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground">
-              {c ?? "All"} <span className="opacity-60">{c ? FIGURES.filter((f) => f.category === c).length : FIGURES.length}</span>
+          {GROUPS.map(([c, label]) => (
+            <button key={label} type="button" onClick={() => setCat(c)} aria-pressed={cat === c} className="rounded-full border border-rule px-3 py-1 font-mono text-[11px] tracking-[0.04em] text-muted uppercase aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground">
+              {label} <span className="opacity-60">{c ? FIGURES.filter((f) => f.group === c).length : FIGURES.length}</span>
             </button>
           ))}
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search figures" aria-label="Search figures" className="ml-auto w-full rounded-full border border-rule bg-transparent px-4 py-1.5 text-[14px] outline-none placeholder:text-faint focus:border-ink sm:w-60" />

@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Docs", description: "Install, the fi
 const TOC = [
   { id: "start", t: "Getting started" },
   { id: "file", t: "The figure file" },
+  { id: "planes", t: "Grow, turn, spin" },
   { id: "options", t: "Page options" },
   { id: "intensity", t: "Intensity per figure" },
   { id: "tokens", t: "Theme tokens" },
@@ -100,8 +101,20 @@ export default function DocsPage() {
 
         <H id="file">The figure file</H>
         <p className="mt-3 text-muted">A figure is one script that ends by declaring itself:</p>
-        <Code title="padlock.js">{"isoform({\n  name: \"padlock\",\n  icon: \"key\",\n  variant: \"rounded-left\",\n  means: \"A key slides into its lock, turns the plug to the stop with a click, and withdraws.\",\n  rules: [1, 3, 5, 6],\n  range: [45, 70, 90],\n  mount,\n});"}</Code>
+        <Code title="house.js">{"isoform({\n  name: \"house\",\n  icon: \"house\",\n  variant: \"sharp-top\",\n  means: \"A house, seen from the top: the lights come on and spill out of the doorway.\",\n  effect: \"warm lamplight lights the doorway's walls and pools on the ground in front of it\",\n  rules: [1, 3, 4, 11],\n  range: [30, 55, 80],\n  mount,\n});"}</Code>
         <Table rows={DECL} />
+
+        <H id="planes">Grow, turn, spin</H>
+        <p className="mt-3 text-pretty text-muted">
+          A part moves along the icon&apos;s own edges. It may also grow or turn, but only within a plane of those edges, the way the real object would: a
+          disc swells as a disc, a dial turns as a dial. Never a flat zoom or spin on the screen, which makes a solid read as a sticker (rule 09).
+        </p>
+        <ul className="mt-3 grid list-disc gap-2 pl-5 text-muted">
+          <li><code className="font-mono text-[13px]">part.stretch</code> and <code className="font-mono text-[13px]">part.turn</code> for a flat face: a screen&apos;s window growing, a half-moon turning in its dial.</li>
+          <li><code className="font-mono text-[13px]">part.spin</code> and <code className="font-mono text-[13px]">part.grow</code> for a solid: it is drawn again each frame, its front turned or stretched and its depth extruded behind it, so the thickness stays true. At rest the Isocons faces come back untouched.</li>
+          <li><code className="font-mono text-[13px]">icon.hole</code> frees an opening (Isocons draws a window or a bore as an inner outline of one face), and <code className="font-mono text-[13px]">icon.morph</code> flows it into another Isocons drawing&apos;s outline and back.</li>
+          <li><code className="font-mono text-[13px]">part.extent</code> measures a part in its own plane, so a figure grows or slides by measure, never by points read off a picture.</li>
+        </ul>
 
         <H id="options">Page options</H>
         <p className="mt-3 text-muted">The built page reads these from its address, so a figure can be framed, held still or photographed without touching code.</p>
