@@ -34,14 +34,14 @@ Nothing mid-edit; everything pushed.
   every check and was still wrong — the look/review step is not optional.
 
 ## Next
-1. Real-phone check (touch takeover is tested with CDP touch only, cfc330c). 2. Still unchecked by script: an empty
-   outline or far edge left by a moving part (look.mjs sees see-through gaps only). 3. No concept recipe for a blank symbol (an
-   empty checkbox has nothing to do). 4. Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
+1. Still unchecked by script: an empty outline or far edge left by a moving part (look.mjs sees see-through gaps only).
+   Done 2026-10-06: real-phone check of the touch takeover (owner, on their phone). Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
    find → inspect → build → validate → look (exit 0) on data fetched from raw.githubusercontent.
 Live 0244a96 (2026-10-06): hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
 sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
 
 ## Decisions that constrain future work
+- **No concept recipe for blank symbols** (an empty checkbox with nothing to do): dropped by the owner 2026-10-06.
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
   hands back. Model: pocketit `web/components/marketing/ModeArt.tsx`, voxflow-site `src/components/bento-art.tsx`.
 - **Isocons blue `#229eff` is the default accent** (`--iso-hi`); the drawing is neutral ink.
