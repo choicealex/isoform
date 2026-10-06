@@ -4,7 +4,7 @@
  * Bring the pointer near and you hold the throttle: the nearer, the harder it
  * burns. In a product: a launch, a deploy, a send.
  */
-const { icon, spring, stepS, register, pointer, disposer, gl, story, clamp, smooth, SPRING } = IF;
+const { icon, spring, stepS, register, pointer, disposer, gl, trace, story, clamp, smooth, SPRING } = IF;
 
 function mount({ stage, svg, read, src }, climb) {
   const bag = disposer();
@@ -18,10 +18,10 @@ function mount({ stage, svg, read, src }, climb) {
   const all = [hull, win, finR, finL];
   win.hi(true);
 
-  /* the burn, in the figure's own hairline: the flame's edge and its hot core, inside the hull's paint so the fins
-     stay in front of it */
-  const flame = hull.trace();
-  const core = hull.trace({ tone: "hi" });
+  /* the burn, in the figure's own hairline: the flame's edge and its hot core, behind the whole drawing. It leaves the
+     middle of the rocket's underside, so its top is hidden by the hull and the fins stay in front of it */
+  const flame = trace(svg, { under: true });
+  const core = trace(svg, { tone: "hi", under: true });
 
   const flight = story(stage, {
     rest: { thrust: 0, lift: 0, ink: 1 },
@@ -41,9 +41,10 @@ function mount({ stage, svg, read, src }, climb) {
 
   const hand = spring(0, SPRING.hand);
   let max = climb, label = "";
-  /* the hull's lowest point, measured off the drawing (getPointAtLength through the part's own transform): the flame
-     starts a hair inside it so the two touch */
-  const nozzle = [201.2, 237.2], ground = 282; // the ground the plume hits: where the traced flame ends, below the fins
+  /* the middle of the rocket's base, measured off the drawing: the base is the hull's flat underside, a rectangle from
+     its lowest corner back across the width and through the thickness (base.cjs); the lowest corner itself put the
+     flame in front of the base (owner). The ground the plume hits is where the traced flame ends, below the fins */
+  const nozzle = [192.3, 220.7], ground = 282;
 
   const fx = gl(stage, {
     layer: "under",
