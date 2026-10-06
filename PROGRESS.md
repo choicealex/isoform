@@ -27,7 +27,7 @@ Nothing mid-edit; everything pushed.
 ## State (2026-10-06)
 - Site: 8 figures (the earlier samples; key removed 603ebb6). The 23 interface icons are NOT on the site (owner), only in
   dogfood/. Docs keeps "Grow, turn,
-  spin". Production build verified (48 pages). Not deployed; repo private.
+  spin". Not deployed; repo private.
 - Rule 09 opened (owner): grow/turn only within a plane of the icon's axes. Kernel: stretch, turn, spin, grow, hole,
   morph, extent. Hard icons: `dogfood/HARD.md` + `dogfood/hard/generate.py` (5 family templates from measure.json).
 - Stress test: `dogfood/STRESS.md`. Engine holds on every view; taste is the weak point. 3× this session a figure passed
