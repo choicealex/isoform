@@ -1,0 +1,23 @@
+# Hard-to-animate icons: the owner's stories (2026-10-06)
+
+24 Isocons that are one solid standing for a screen layout or UI state (≤3 faces, no physical object). Only
+radio-button-checked is confirmed storyless by test (stress run); the rest were judged from the drawings. Scratch page:
+`site/public/_hard.html` (not committed).
+
+Owner's stories, refined (decision: change rule 09 to allow in-plane stretch, in-plane turn and outline morph between
+Isocons' own drawings; never a flat screen zoom or spin. Pilot 3 first, owner judges, then the other 21):
+
+| # | Icons | Story |
+|---|---|---|
+| 1 | radio-button-checked | the ring swells in its own plane (soft overshoot) and returns |
+| 2 | radio-button-partial | swell, then the half-moon makes a full turn in the dial's plane and settles — PILOT |
+| 3 | indeterminate-checkbox | the inner opening starts as a square and flattens into the bar (morph) |
+| 4–12 | dialog, toast, tab, chips, subheader, dropdown, float-desktop, float-landscape-2, fullscreen-portrait | the inner panel grows toward the screen's edges and settles back — toast is the PILOT |
+| 13–15 | position-bottom-left/-right, position-top-right | the window glides between the three spots Isocons draws and comes home |
+| 16–17 | maximize, minimize | (no story suggested yet) |
+| 18–20 | stat-0-double, stat-1, stat-minus-1 | boomerang: thrown out on an arc, spinning, curves back and lands — stat-1 is the PILOT |
+| 21–22 | magnification-large/-small | the inner shape morphs into the other icon's, holds, morphs back |
+| 23–24 | capture, hov | (no story suggested yet) |
+
+Faces (inspect, rounded-left): in every screen icon the inner shape is a separate face (face 1); radio-partial's
+half-moon is face 2.

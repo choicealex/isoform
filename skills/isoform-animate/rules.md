@@ -68,10 +68,10 @@ A story moves on beats eased in-out (`(.65, 0, .35, 1)`), 300ms–2s each, a who
 
 ## 09 · faces: move them, never redraw them
 
-The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes. The kernel draws every part Hairline's way, a bright silhouette and lighter inner edges, so nothing reads first by accident; the inner edges stay clearly drawn, as in the Isocons set, a step down from the outline and never close to the ground; use the `rounded-*` variants, which round every corner.
+The faces are Isocons' drawing, and they stay Isocons' drawing. A figure groups them, moves them along the icon's own axes, and cuts them only along those axes. A part may also grow or turn, but only **within a plane of its own axes**, the way the real object would (`part.stretch`, `part.turn` for a flat face; `part.spin` for a solid, which re-extrudes its depth as it turns): a disc swells as a disc, a dial turns as a dial. Never a flat screen zoom or spin, which makes a solid read as a sticker. The kernel draws every part Hairline's way, a bright silhouette and lighter inner edges, so nothing reads first by accident; the inner edges stay clearly drawn, as in the Isocons set, a step down from the outline and never close to the ground; use the `rounded-*` variants, which round every corner.
 
-- **Keep it:** `part.move(a, b, c)` moves along `u`, `v` and up as `IF.icon` measured them; `icon.cut(i, point, axis)` with axis `"u"`, `"v"` or `"up"`; `part.tilt` stays under 15°, because a flat drawing turned further stops being a solid.
-- **Sent back when:** the figure edits a face's path, draws a face freehand off the axes, scales a part, or turns one far enough to read as a flat shape.
+- **Keep it:** `part.move(a, b, c)` moves along `u`, `v` and up as `IF.icon` measured them; `part.stretch` / `part.turn` / `part.spin` grow and turn only in a plane of those axes; `icon.cut(i, point, axis)` with axis `"u"`, `"v"` or `"up"`; `part.tilt` stays under 15°, because a flat drawing turned further stops being a solid.
+- **Sent back when:** the figure edits a face's path, draws a face freehand off the axes, scales or rotates a part on the screen (CSS, `transform`, or `tilt` past 15°) instead of within its own plane, or turns a solid with `turn` so its depth swings.
 
 ## 10 · quiet: no words in the drawing
 

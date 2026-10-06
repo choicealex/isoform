@@ -84,9 +84,14 @@ const results = await Promise.all(SHOTS.map(async ([shot, o0]) => {
     const inv = svg.getScreenCTM().inverse();
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const el of g.querySelectorAll(":scope > g[data-part] *, :scope > path")) {
-      if (el.closest(".ghost") || typeof el.getBBox !== "function") continue;
+      if (el.closest(".ghost") || typeof el.getBBox !== "function" || el.tagName === "g") continue; // a group's shapes are measured one by one
       const b = el.getBBox(), m = inv.multiply(el.getScreenCTM());
-      for (const [x, y] of [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]) {
+      /* points on the outline itself: a box's corners, mapped through a part's in-plane stretch or turn (a shear),
+         land far outside the shape it holds */
+      const L = typeof el.getTotalLength === "function" && el.tagName === "path" ? el.getTotalLength() : 0;
+      const pts = L > 0 ? Array.from({ length: 97 }, (_, k) => { const q = el.getPointAtLength((L * k) / 96); return [q.x, q.y]; })
+        : [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]];
+      for (const [x, y] of pts) {
         const X = m.a * x + m.c * y + m.e, Y = m.b * x + m.d * y + m.f;
         x0 = Math.min(x0, X); y0 = Math.min(y0, Y); x1 = Math.max(x1, X); y1 = Math.max(y1, Y);
       }

@@ -27,11 +27,23 @@
  *                                      is a face like any other, so it can join a part (make it before the part):
  *                                      the surface a moving part was hiding, so the drawing never shows a hole (rule 06)
  *   icon.facet([[x, y], …], before)    a new face from stage corners: the broken surface a cut exposes. It can join a part
+ *   icon.hole(i)                       the openings in face i (a screen's window, a ring's bore: inner outlines of the same
+ *                                      path) as faces of their own, returned in a list: they can join a part, grow, turn.
+ *                                      The face keeps its outer outline. Call it before making parts; rest is unchanged
  *   icon.part(name, [faces], {paint})  faces (indices or paths) become one part: {name, g, paths, rest, move, tilt, hi, dim}
  *                                      the part paints where its last face did ({paint: "first"}: its first)
  *   part.rest                          {cx, cy, x0, y0, x1, y1}: its box at rest, in stage units, measured once
  *   part.move(a, b, c)                 places the part at that offset from rest; the same offset again does nothing
  *   part.tilt(deg, [px, py])           a small screen-plane turn about a stage point, for a wobble or a hinge; keep it under 15°
+ *   part.stretch(sa, sb, plane, at)    grows the part within a plane of its own axes ("u-up", "u-v", "v-up"), sa along the
+ *                                      first, sb along the second, about a stage point (default its rest centre). Exact for a
+ *                                      flat face (an inner panel growing); for a solid, only a uniform swell (sa = sb) is honest
+ *   part.turn(deg, plane, at)          turns the part within a plane of its own axes: a flat face turning like a dial. Not for
+ *                                      a solid with visible depth (its depth would swing): use spin
+ *   part.spin(deg, at)                 a solid turning in its front's plane, re-drawn each frame: the front face turned, the
+ *                                      depth re-extruded behind it. Needs icon.part(name, faces, {solid: {front, depth}}),
+ *                                      front a face index, depth its thickness as a move along one axis ([0, -45, 0]). At 0°
+ *                                      the Isocons faces come back untouched
  *   part.hi(on)  part.dim(on)          the part's silhouette in the bright stroke, or the dim one: the whole palette.
  *                                      Every part (and every run of faces left out of parts) is drawn Hairline's way:
  *                                      a bright silhouette, dim inner edges. Make every part in mount, before the first frame
@@ -394,6 +406,8 @@ var IF = (() => {
     const faces = new Set(paths);
     let inkPlan = null, inkDone = false, hiddenInk = [];
     const r4 = (n) => Math.round(n * 10000) / 10000;
+    /* two SVG affines [a b c d e f]: m1 after m2 */
+    const mul = (m1, m2) => [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
     /* the pen's route over every drawn face, in stage units, measured once at rest */
     function planInk() {
       const inv = svg.getScreenCTM().inverse();
@@ -456,10 +470,73 @@ var IF = (() => {
         }
         const [sx0, sy0] = toStage(x0, y0), [sx1, sy1] = toStage(x1, y1);
         const rest = { x0: sx0, y0: sy0, x1: sx1, y1: sy1, cx: (sx0 + sx1) / 2, cy: (sy0 + sy1) / 2 };
-        let last = "", off = [0, 0], turn = "";
+        let last = "", off = [0, 0], turn = "", sAff = null, tAff = null;
         const apply = () => {
-          const t = `translate(${r2(off[0] / scale)} ${r2(off[1] / scale)})${turn}`;
+          const f = sAff && tAff ? mul(tAff, sAff) : sAff ?? tAff;
+          const form = f ? ` matrix(${f.map((n) => r4(n)).join(" ")})` : "";
+          const t = `translate(${r2(off[0] / scale)} ${r2(off[1] / scale)})${form}${turn}`;
           if (t !== last) { pg.setAttribute("transform", t); last = t; }
+        };
+        /* an affine in icon units for a 2×2 map T, in the plane of two of the icon's axes, about a stage point: B·T·B⁻¹.
+           Because the map is drawn in the plane's own directions, a disc grows as a disc and a dial turns as a dial */
+        const AX = { u: () => ax.u, v: () => ax.v, up: () => [0, -1] };
+        const inPlane = (plane, T, at) => {
+          const [pa, pb] = plane.split("-");
+          if (!AX[pa] || !AX[pb]) throw new Error(`part ${name}: plane "${plane}" must be two of u, v, up (as "u-up")`);
+          const A = AX[pa](), Bv = AX[pb](), det = A[0] * Bv[1] - Bv[0] * A[1];
+          const inv = [Bv[1] / det, -A[1] / det, -Bv[0] / det, A[0] / det]; // B⁻¹ (column-major a b c d)
+          const BT = [A[0] * T[0] + Bv[0] * T[1], A[1] * T[0] + Bv[1] * T[1], A[0] * T[2] + Bv[0] * T[3], A[1] * T[2] + Bv[1] * T[3]];
+          const M = [BT[0] * inv[0] + BT[2] * inv[1], BT[1] * inv[0] + BT[3] * inv[1], BT[0] * inv[2] + BT[2] * inv[3], BT[1] * inv[2] + BT[3] * inv[3]];
+          const [cx, cy] = toIcon(at[0], at[1]);
+          return [M[0], M[1], M[2], M[3], cx - M[0] * cx - M[2] * cy, cy - M[1] * cx - M[3] * cy];
+        };
+        /* the solid re-drawn while it spins: its front face turned in its own plane, the depth re-extruded behind it */
+        let spun = null;
+        const spinRig = () => {
+          const so = o.solid, front = typeof so.front === "number" ? paths[so.front] : so.front;
+          const depth = api.iso(...so.depth).map((n) => n / scale);
+          const zero = ["u", "v", "up"].filter((k, i) => Math.abs(so.depth[i]) < 1e-9);
+          if (zero.length !== 2) throw new Error(`part ${name}: solid.depth runs along one axis, as [0, -40, 0]`);
+          const L = front.getTotalLength(), N = 160, poly = [];
+          for (let i = 0; i < N; i++) { const q = front.getPointAtLength((L * i) / N); poly.push([q.x, q.y]); }
+          /* the outline is a direct child of the part, so the part's bright or dim stroke reaches it */
+          const sil = mk("g", { class: "sil", "aria-hidden": "true" }, pg);
+          const sg = mk("g", { class: "spin", "aria-hidden": "true" }, pg);
+          const edge = mk("path", { style: "stroke-width: calc(var(--iso-stroke) * 2)" }, sil);
+          const body = mk("path", { style: "stroke: none" }, sg);
+          const face = mk("path", {}, sg);
+          const crease = mk("path", { style: "fill: none" }, sg);
+          sg.style.display = "none"; sil.style.display = "none";
+          return { poly, depth, plane: zero.join("-"), sg, sil, edge, body, face, crease };
+        };
+        const drawSpin = (deg, at) => {
+          spun ??= spinRig();
+          const on = Math.abs(deg) > 0.05;
+          for (const el of pg.children) if (el !== spun.sg && el !== spun.sil) el.style.visibility = on ? "hidden" : "";
+          spun.sg.style.display = on ? "" : "none"; spun.sil.style.display = on ? "" : "none";
+          if (!on) return;
+          const c = Math.cos(rad(deg)), sn = Math.sin(rad(deg)), m = inPlane(spun.plane, [c, sn, -sn, c], at);
+          const P = spun.poly.map(([x, y]) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]);
+          const [dx, dy] = spun.depth, n = P.length;
+          let area = 0;
+          for (let i = 0; i < n; i++) { const a = P[i], b = P[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+          const f = (q) => `${r2(q[0])} ${r2(q[1])}`, sgn = Math.sign(area) || 1;
+          let d = `M${P.map(f).join("L")}Z M${P.map((q) => f([q[0] + dx, q[1] + dy])).join("L")}Z`, cr = "";
+          for (let i = 0; i < n; i++) {
+            const a = P[i], b = P[(i + 1) % n], q = [b[0] + dx, b[1] + dy], r = [a[0] + dx, a[1] + dy];
+            /* every side as a quad wound one way, so the union fills with no holes */
+            const quad = (a[0] - r[0]) * (b[1] - r[1]) - (b[0] - r[0]) * (a[1] - r[1]) > 0 === sgn > 0 ? [a, b, q, r] : [a, r, q, b];
+            d += ` M${quad.map(f).join("L")}Z`;
+            /* a crease where the outline turns sharply and both sides there show (they face along the depth) */
+            const z = P[(i + n - 1) % n], e1 = [a[0] - z[0], a[1] - z[1]], e2 = [b[0] - a[0], b[1] - a[1]];
+            const out = (e) => [e[1] * sgn, -e[0] * sgn]; // outward normal of an edge
+            const turnA = Math.abs(Math.atan2(e1[0] * e2[1] - e1[1] * e2[0], e1[0] * e2[0] + e1[1] * e2[1]));
+            const seen = (e) => { const o2 = out(e); return o2[0] * dx + o2[1] * dy > 0; };
+            if (turnA > 0.45 && seen(e1) && seen(e2)) cr += `M${f(a)}L${f(r)}`;
+          }
+          spun.edge.setAttribute("d", d); spun.body.setAttribute("d", d);
+          spun.face.setAttribute("d", `M${P.map(f).join("L")}Z`);
+          spun.crease.setAttribute("d", cr || "M0 0");
         };
         const part = {
           name, g: pg, paths: own, rest,
@@ -484,6 +561,20 @@ var IF = (() => {
           },
           hi(on) { pg.classList.toggle("hi", !!on); return part; },
           dim(on) { pg.classList.toggle("dim", !!on); return part; },
+          /* rule 09: a part may grow or turn only within a plane of its own axes, never as a flat screen zoom or spin */
+          stretch(sa = 1, sb = sa, plane = "u-up", at = [rest.cx, rest.cy]) {
+            sAff = Math.abs(sa - 1) < 1e-4 && Math.abs(sb - 1) < 1e-4 ? null : inPlane(plane, [sa, 0, 0, sb], at);
+            apply(); return part;
+          },
+          turn(deg, plane = "u-up", at = [rest.cx, rest.cy]) {
+            const c = Math.cos(rad(deg)), sn = Math.sin(rad(deg));
+            tAff = Math.abs(deg) < 0.01 ? null : inPlane(plane, [c, sn, -sn, c], at);
+            apply(); return part;
+          },
+          spin(deg, at = [rest.cx, rest.cy]) {
+            if (!o.solid) throw new Error(`part ${name}: spin needs {solid: {front, depth}} when the part is made`);
+            drawSpin(deg, at); return part;
+          },
         };
         parts.push(part);
         return part;
@@ -622,6 +713,30 @@ var IF = (() => {
         faces.add(p);
         const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);
         return p;
+      },
+      /*
+       * The openings in face `which` (a screen's window, a ring's bore) as faces of their own, so they can move, grow or
+       * turn: the face keeps its outer outline, now solid, and each opening becomes a path just after it, filled like a
+       * face. Isocons draws an opening as an inner outline of the same path; at rest the drawing does not change.
+       */
+      hole(which) {
+        const el = typeof which === "number" ? paths[which] : which;
+        const d = el.getAttribute("d"), starts = [...d.matchAll(/[Mm]/g)].map((m) => m.index);
+        if (starts.length < 2) throw new Error(`hole: face ${which} has no opening (one outline)`);
+        if (starts.slice(1).some((k) => d[k] === "m")) throw new Error(`hole: face ${which} starts an opening with a relative "m"`);
+        const subs = starts.map((k, j) => d.slice(k, starts[j + 1] ?? d.length).trim());
+        el.setAttribute("d", subs[0]);
+        ghostOf.get(el)?.setAttribute("d", subs[0]);
+        let after = el;
+        return subs.slice(1).map((sd) => {
+          const p = el.cloneNode(false);
+          p.removeAttribute("class");
+          p.setAttribute("d", sd);
+          after.after(p); after = p;
+          faces.add(p);
+          const c = p.cloneNode(true); ghosts.appendChild(c); ghostOf.set(p, c);
+          return p;
+        });
       },
       /*
        * The illustration drawing itself, the way a hand draws it (Morph's Draw On, re-paced): ONE pen, at a constant
