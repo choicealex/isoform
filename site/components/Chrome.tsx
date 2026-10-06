@@ -6,13 +6,13 @@ import { Key } from "./spec/Parts";
 import { FxToggle } from "./FxToggle";
 import { ThemeToggle } from "./ThemeToggle";
 
-/* numbered sections, after Commit Mono's header; the active one is inverted, after vercel.com/font's switcher */
+/* the sections; the active one is inverted, after vercel.com/font's switcher */
 const NAV = [
-  { href: "/figures", label: "Figures", n: "01" },
-  { href: "/icons", label: "Icons", n: "02" },
-  { href: "/skill", label: "Skill", n: "03" },
-  { href: "/docs", label: "Docs", n: "04" },
-  { href: "/inspo", label: "Inspo", n: "05" },
+  { href: "/figures", label: "Showcase" },
+  { href: "/icons", label: "Icons" },
+  { href: "/skill", label: "Skill" },
+  { href: "/docs", label: "Docs" },
+  { href: "/inspo", label: "Inspo" },
 ];
 
 export function Header() {
@@ -29,8 +29,7 @@ export function Header() {
           {NAV.map((n) => {
             const on = path.startsWith(n.href);
             return (
-              <Link key={n.href} href={n.href} className={`flex items-baseline gap-1.5 rounded-full px-3.5 py-1.5 transition-colors ${on ? "bg-ink text-ground" : "text-muted hover:text-ink"}`}>
-                <span className={`font-mono text-[10px] ${on ? "text-ground/60" : "text-faint"}`}>{n.n}</span>
+              <Link key={n.href} href={n.href} className={`rounded-full px-3.5 py-1.5 transition-colors ${on ? "bg-ink text-ground" : "text-muted hover:text-ink"}`}>
                 {n.label}
               </Link>
             );
