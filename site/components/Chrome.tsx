@@ -73,7 +73,9 @@ export function Footer() {
           <a href="https://x.com/leyeConnect" className="hover:text-ink">@leyeConnect</a> and{" "}
           <a href="https://x.com/meandchimso" className="hover:text-ink">@meandchimso</a>, licensed{" "}
           <a href="https://creativecommons.org/licenses/by/4.0/" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">CC BY 4.0</a>
-          , split into parts and animated. Isocons does not endorse Isoform.
+          , split into parts and animated. Isocons does not endorse Isoform. The skill's method follows{" "}
+          <a href="https://hairline.lucasmarkes.com" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">Hairline</a> by
+          Lucas Marques (MIT).
         </p>
         <div className="grid gap-1 font-mono text-[12px] sm:text-right">
           <p>
