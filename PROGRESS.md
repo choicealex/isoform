@@ -25,16 +25,16 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 Nothing mid-edit; everything pushed.
 
 ## State (2026-10-06)
-- Site (`site/`, dark default, Specimen + Wall): / · /figures · /icons (all 1,007 with prompts + sweep notes) · /skill ·
-  /docs · /inspo · llms.txt. Header: FX (bold/subtle/off, E), theme (M). 8 figures incl. ABC (dogfood, owner's pick
-  "Sort") is NOT on the site yet; Cart: push is.
-- Skill: styles (line/plain/colour/glass/heavy/isocons, granular stroke, fill), effects on by default at bold/subtle,
-  reduced motion holds still, all six Isocons views (axes banded + overridable), sweep warnings in inspect.mjs,
-  concepts per category. `node scripts/sweep.mjs` re-sweeps all 6,041 drawings in ~1.5s.
+- Site (`site/`): / (new 02 Six views) · /figures (9: + house sharp-top, Fig. 06) · /icons (1,007 × 6 views, view
+  switch, prompts, sweep notes) · /skill · /docs · /inspo. FX bold/subtle/off (E). ABC not on the site.
+- Skill proven: all 6,041 drawings render through the kernel (0 errors); 9 figures + 10 stress figures animated.
+- Stress test (`dogfood/STRESS.md`, 48efe9a + 3972fa7): 8 cold agents + 2 re-runs. Engine holds on every view;
+  quality is the weak point (judgement, not mechanics). Fixed: one-axis measuring, face copies join parts,
+  "nothing happens" FAIL (<0.12%), rest-extra-lines WARN with red picture, find.mjs everyday words, weak-concept strike.
 
 ## Next
-1. Owner: ABC onto the site? its speed? 2. Touch takeover (hover-only) + 390px real-device check.
-3. Repo public (needed for `npx skills add`) — owner's call. Deploy only when asked.
+1. Not covered by any check: an effect smothering the lines (F16), cut points read by eye (F6), holes on coplanar
+   faces (F9). 2. Owner: ABC onto the site? 3. Touch takeover + 390px device check. 4. Repo public / deploy: owner's call.
 
 ## Decisions that constrain future work
 - **Isocons are illustrations, not UI icons** (owner): every figure plays a story on its own; hover takes over and
