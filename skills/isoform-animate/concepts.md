@@ -69,7 +69,7 @@ Traps:
 - Chevrons and arrows are angled blocks: move along their own axis, or spin them as solids; a 45° arm can fool the axis measure (see inspect's warning).
 - Read the parts picture before you promise a part: a screen's window and a ring's bore are openings in one face (`icon.hole`), and some symbols have nothing that comes apart. If nothing can honestly move, say so and offer a nearby icon.
 
-Five story families the owner approved for interface symbols (dogfood/HARD.md has 23 built this way):
+Five story families the owner approved for interface symbols (23 hard icons were built this way):
 - **Grow.** A window, a toast, a dropdown: the opening (freed with `hole`) grows toward the screen's edges within its plane, holds, settles (`part.stretch`, sized by `part.extent`).
 - **Slide.** Window positions: the opening glides to each spot Isocons draws it in and comes home (`part.move` within the screen's plane).
 - **Swell and turn.** A radio: the ring swells uniformly (a true 3D swell), a half-moon turns once within the dial (`stretch`, `turn`). `radio.js` is the example.
@@ -79,7 +79,7 @@ Five story families the owner approved for interface symbols (dogfood/HARD.md ha
 Worked examples:
 - **Toggle on.** The switch, `toggle-on`. Beats: the knob rests left, slides along u to the right end (1s), the track takes the bright stroke, hold (1.2s), slides back (0.8s). Hover: nearness pushes the knob a few units past its seat and it settles back. Trace: a short line along the track behind the knob; no effect. Job: a setting that takes effect. Poster: the knob at the far end, track bright.
 - **Download.** The tray with its arrow, `download`. Beats: the arrow block rises clear of the tray (0.8s), drops into it (0.7s, short overshoot), the tray lip brightens, hold, the arrow returns (0.9s). Hover: nearness lowers the arrow toward the tray. Trace: a vertical line drawn on above the arrow showing its path. No effect. Job: a file saving. Poster: arrow just entering the tray.
-- **Delete.** The bin, `delete`. Beats: the lid lifts about its hinge (tilt under 15° plus move), a slip of paper drops in, the lid closes, hold. Hover: nearness lifts the lid a few units. Trace: the paper's fall line, drawn on and retracted. No effect. Job: removing an item. Poster: paper half inside the open bin.
+- **Delete.** The bin, `delete`. In rounded-left the lid is faces 0, 1, 9 and 10 on top and the X on the front is faces 3 to 7: a cold run read the X as the whole icon and missed the lid, so check the parts picture. Beats: the lid lifts about its hinge (tilt under 15° plus move), a slip of paper drops in, the lid closes, hold. Hover: nearness lifts the lid a few units. Trace: the paper's fall line, drawn on and retracted. No effect. Job: removing an item. Poster: paper half inside the open bin.
 
 ### Social (316)
 
@@ -201,6 +201,6 @@ Arrows, plus, minus, check, close, letters, numbers, shapes: `arrow-forward`, `a
 - **Letters and numbers (`abc`, `123`).** They are separate blocks: sort them, stack them or slide them into a row. Never morph a glyph or draw its strokes on.
 - **Shapes (`stat-3`, `radio-button-checked`).** Levels step one by one; a ring swells within its plane. Check what the drawing really has: `radio-button-checked` is one ring with a hole and no separate dot, so a story about a dot has nothing to move (two stress-test agents built one and animated the hole's wall). A symbol with nothing that comes apart may have no good story: say so, and offer a nearby icon that has one.
 
-Trace: a path line (the travel, drawn on and retracted) or a seat ring where a block lands. Nothing else.
+Trace: a path line (the travel, drawn on and retracted) or a seat ring where a block lands. Nothing else. Land both ends of a path line, or `lines` fails it: start at a corner of the block's seat, a point the drawing still has, and end at the same corner of the block where it is now (rest corner plus `icon.iso` of its move). A line that runs along the block's own edge hides in it: take a corner the edge does not pass through.
 
 When to use no effect: always, for abstract symbols. If you cannot name a material an object has, the figure needs no effect: say so in the concept. The gesture, the trace and the bright part carry the whole idea; the figure must still read with effects off, and here it is the only way it reads.

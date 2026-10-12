@@ -5,7 +5,8 @@
  *
  * Prints one line per path, in paint order: its index, which way the face looks
  * (top, left, right, or curved), its box in stage units at the default placement
- * (h 220, centred on 200,166), and its centre. Writes isoform-<id>-parts.png
+ * (h 220, centred on 200,166), and its centre. Writes isoform-<id>-parts.png (isoform-<id>-<variant>-parts.png for
+ * any view but rounded-left)
  * (and the .html it is taken from): the icon with every path numbered and tinted
  * over a grid in stage units, to look at when the lines are not enough. Paths that touch and paint one after another usually belong to
  * one part; a part is always a run of consecutive indices.
@@ -133,7 +134,9 @@ for (let x = 0; x < 400; x += 50) grid += `<text x="${x + 1}" y="7" fill="#999" 
 for (let y = 50; y < 320; y += 50) grid += `<text x="1" y="${y - 1}" fill="#999" style="font:5px ui-monospace,monospace">${y}</text>`;
 const html = `<!doctype html><meta charset="utf-8"><title>${icon.id} parts</title><body style="margin:0;display:grid;place-items:center;min-height:100vh;background:#fff">
 <svg viewBox="0 0 400 320" style="width:min(100vw,960px);border:1px solid #eee">${grid}${g}${labels}</svg>`;
-const file = resolve(`isoform-${icon.id}-parts.html`);
+/* the default view keeps the plain name the docs use; any other view carries its variant, so inspecting a second view
+   never overwrites the first */
+const file = resolve(`isoform-${icon.id}${icon.variant === "rounded-left" ? "" : `-${icon.variant}`}-parts.html`);
 writeFileSync(file, html);
 /* the picture to look at: an agent's browser often cannot open a file: page, and the page is long to read as text */
 const b = await browser("inspect");
