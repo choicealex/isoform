@@ -23,8 +23,8 @@ function mount({ stage, svg, read, src }, reach) {
 
   /* the light on the ground, in line: its two edges from the jambs, and its far edge in the quietest tone (light has
      no hard end). They lie on the ground, behind the house */
-  const edges = trace(svg, { tone: "hi", under: true });
-  const rim = trace(svg, { tone: "lo", under: true });
+  const edges = trace(svg, { tone: "hi", under: true, fallback: true }); // the spill's outline is the version without the effect
+  const rim = trace(svg, { tone: "lo", under: true, fallback: true });
 
   const lights = story(stage, {
     rest: { light: 0, ink: 1 },
@@ -53,7 +53,10 @@ function mount({ stage, svg, read, src }, reach) {
         float det = u_U.x * u_V.y - u_U.y * u_V.x;
         float x = (g.x * u_V.y - g.y * u_V.x) / det, d = (u_U.x * g.y - u_U.y * g.x) / det;
         float w = u_h + u_s * max(d, 0.0);
-        float across = 1.0 - smoothstep(w * 0.7, w * 1.2, abs(x));             // soft sides that spill past the trace
+        /* soft sides that spill past the doorway's line on a dark plate; on paper a firmer side with a saturated band
+           just inside it, so the spill keeps its shape once its outline steps aside */
+        float across = 1.0 - smoothstep(w * mix(0.9, 0.7, u_dark), w * mix(1.04, 1.2, u_dark), abs(x));
+        across += (1.0 - u_dark) * exp(-pow((abs(x) - w * 0.95) / (w * 0.07 + 0.4), 2.0)) * 0.5;
         float ahead = smoothstep(-1.0, 3.0, d) * (1.0 - smoothstep(u_L * 0.65, u_L * 1.15, d));
         float fall = exp(-max(d, 0.0) / (u_L * 0.55 + 1.0));                     // light thins as it spreads
         float haze = 0.75 + 0.5 * fbm(vec2(x * 0.05 + u_time * 0.15, d * 0.05 - u_time * 0.08));

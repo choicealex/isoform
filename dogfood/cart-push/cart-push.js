@@ -24,7 +24,9 @@ function mount({ stage, svg, read, src }, reach) {
   const bl = Math.hypot(back[0], back[1]);
   const dir = [back[0] / bl, back[1] / bl];
 
-  const dust = trace(svg, { tone: "edge", under: true }); // scuff lines on the ground behind the wheels
+  /* scuff lines on the ground behind the wheels: each starts under its wheel, so it comes out from beneath the tyre,
+     and its tail trails off into the grit (free: that end stops in the air on purpose) */
+  const dust = trace(svg, { tone: "edge", under: true, free: true });
 
   const roll = story(stage, {
     rest: { roll: 0, dust: 0, ink: 1 },
@@ -73,8 +75,8 @@ function mount({ stage, svg, read, src }, reach) {
     /* scuff lines behind each wheel, solid, drawing on and retracting with the speed */
     const lead = ic.iso(x, 0, 0), sgn = Math.sign(v.dust) || 1;
     dust.draw(sp < 0.03 ? [] : feet.flatMap(([fx0, fy0]) => [0, 1].map((r) => {
-      const o = 6 + r * 5, l = 8 + 12 * sp;
-      const s = [fx0 + lead[0] + dir[0] * o * sgn, fy0 + lead[1] + dir[1] * o * sgn + 1 + r * 2];
+      const o = -4 + r * 3, l = 12 + 12 * sp; // starts under the wheel (behind the icon, so hidden until it leaves the tyre)
+      const s = [fx0 + lead[0] + dir[0] * o * sgn, fy0 + lead[1] + dir[1] * o * sgn - r * 2.5];
       return [s, [s[0] + dir[0] * l * sgn, s[1] + dir[1] * l * sgn]];
     })), smooth(0.03, 0.4, sp));
     const shown = v.ink < 1 ? "drawing" : Math.abs(x) < 0.3 && sp < 0.03 ? "rest" : `roll ${Math.round(x)}`;

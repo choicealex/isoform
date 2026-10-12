@@ -23,8 +23,8 @@ function mount({ stage, svg, read, src }, reach) {
      measure r 12.5), carried out along the front normal (v), dipping a little toward the road and spreading as it
      goes. Drawn as its two silhouette edges, lamp rim to far rim, and the far rim in the quietest tone: light has no
      hard end */
-  const edges = trace(svg, { tone: "hi" });
-  const mouth = trace(svg, { tone: "lo" });
+  const edges = trace(svg, { tone: "hi", fallback: true }); // the beam's outline is the version without the effect
+  const mouth = trace(svg, { tone: "lo", fallback: true });
   const R0 = 12, DIP = 0.12, SPREAD = 0.2;
   const ring = (c, L, r) => Array.from({ length: 49 }, (_, i) => {
     const a = (i / 48) * Math.PI * 2, o = ic.iso(r * Math.cos(a), L, -L * DIP + r * Math.sin(a));
@@ -65,11 +65,14 @@ function mount({ stage, svg, read, src }, reach) {
         float s = dot(p - c, u_d) / dot(u_d, u_d);
         float r = length(p - c - u_d * s);
         float w = mix(u_w.x, u_w.y, clamp(s, 0.0, 1.2));
-        float body = 1.0 - smoothstep(w * 0.45, w * 1.25, r);               // soft walls that spill a little past the trace
+        /* on a dark plate the walls are soft and spill past the cone. On paper light cannot glow, so the cone holds
+           its shape the way ink does: a firmer wall and a saturated band just inside it (its outline steps aside) */
+        float body = 1.0 - smoothstep(w * mix(0.8, 0.45, u_dark), w * mix(1.04, 1.25, u_dark), r);
         float fall = 1.0 / (1.0 + 1.8 * max(s, 0.0));                        // light thins as it spreads
         float reach = smoothstep(-0.12, 0.08, s) * (1.0 - smoothstep(0.8, 1.35, s));
         float axis = exp(-r * r / (w * w * 0.12)) * (1.0 - smoothstep(0.0, 0.7, s)); // the hot shaft along the axis
-        return (body * fall + axis * 0.6) * reach;
+        float rim = (1.0 - u_dark) * exp(-pow((r - w * 0.93) / (w * 0.09), 2.0)) * 0.55;
+        return (body * fall + axis * 0.6 + rim * fall) * reach;
       }
       vec4 effect(vec2 p) {
         if (u_n < 0.02) return vec4(0.0);

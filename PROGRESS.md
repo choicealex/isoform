@@ -34,7 +34,7 @@ Nothing mid-edit; everything pushed.
   every check and was still wrong — the look/review step is not optional.
 
 ## Next
-1. Still unchecked by script: an empty outline or far edge left by a moving part (look.mjs sees see-through gaps only).
+1. DONE 2026-10-12: `lines.mjs` (run by look.mjs) checks every line ends on the drawing through the whole story; all 10 site figures pass. Research behind it (Anatomy skill) in research/anatomy-*.md (local).
    Done 2026-10-06: real-phone check of the touch takeover (owner, on their phone). Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
    find → inspect → build → validate → look (exit 0) on data fetched from raw.githubusercontent.
 Live 61f3c3b (2026-10-06, 4th deploy): plain hero copy, Hairline credit in the footer; research/ untracked (local only). 3rd deploy b3a5f75: link preview card (OG + Twitter). Before that, 0244a96: hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
@@ -48,6 +48,7 @@ sweep, radio.js example), touch takeover, hole() see-through fix from a cold run
 - **No dashed lines, no stream lines** (owner): additions draw on as solid lines or are left out; the bottle's
   refill/pour is told by the water level alone.
 - **WebGL is opt-in** (`?gl=1` / Effect button) and only adds material under traced lines; both versions look alike.
+- **Phenomenon traces fade out as their effect comes in** (owner, 2026-10-12, after Anatomy's "hollow outlined flame"): the trace is the fallback, drawn in full with effects off; with the effect on, the effect carries it. Supersedes "both versions look alike" for the phenomenon only — the icon's own lines never fade.
 - **Every figure draws itself in** (`icon.ink`, linear, 5–7s) — owner approved the hand-drawn look after the fixes.
 - Rounded-* variants by default; motion small (a few units at the default intensity); one idea per figure.
 - Isocons is CC BY 4.0: the credit line on every bench page stays; never imply Isocons endorses Isoform.

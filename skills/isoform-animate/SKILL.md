@@ -41,7 +41,7 @@ One figure, one idea. An effect that would suit any icon is not a concept yet.
    - `icon`, `variant`: the Isocons id and variant. `build.mjs` inlines that SVG.
    - `means`: one sentence, at most 140 characters, saying what the figure shows.
    - `effect`: one sentence naming the physical thing the effect adds under the traces. Leave it out if there is no effect.
-   - Draw what happens with `trace` / `part.trace` first; the effect sits under those lines and only when `fx.on`.
+   - Draw what happens with `trace` / `part.trace` first; the effect sits under those lines and only when `fx.on`. A trace that only outlines the effect takes `{fallback: true}` and steps aside while it runs (rule 11).
    - The pointer takes over the story while it holds, so every channel the answer needs (the trace, the effect's strength) must be in `live` too, driven from the hand; a channel only the story moves is missing from every answering picture.
    - `rules`: the numbers of the rules it leans on most.
    - `range`: the one number the slider drives, at intensity 0, 0.5 and 1, moving one way. `mount`'s `value` and `set(value)` get this number. It is in whatever unit the figure uses it in (stage units of travel, a 0…1 share, arcs): `[2, 4, 7]` is fine.
@@ -84,6 +84,7 @@ For a change, edit only `<name>.js`, then run `look.mjs` again and read the new 
 | the inspector warns of zero-size faces | put each in the part it sits on, so it moves with it; never a part of its own |
 | two parts passing each other draw in the wrong order | a part paints at its last face's place; call `after(near, far)` the moment the nearer one starts to overlap, and again when they swap back (ABC's sort does this at each crossing) |
 | moving a part and leaving an empty outline behind it, or `look.mjs` warns of a hole | draw what it hid: `icon.face(i, 0, 0, 0, part)` copies the face into its seat, `icon.facet` draws an exposed surface (rule 06) |
+| `lines` fails: a trace ends in the air, or a built face's corner overshoots | measure, don't guess: take a facet's depth and corners from `part.extent` or `inspect.mjs`, end a trace on a point of the drawing (`icon.pt`), and mark a line that truly ends in the air (a flame's tip) `{free: true}` |
 | `look.mjs` fails with "the effect repaints N% of the drawing" | the effect is a wash over the whole object: keep it to the part the phenomenon happens in (water in the bottle), or outside it (a flame under the rocket) |
 | reading a cut point off the parts picture by eye, on a face with curves | `node inspect.mjs <id> [variant] --near x,y` prints the exact points and edges around it: cut through one of those |
 | a part that takes half of a neighbour's face with it | cut the face first: `icon.cut(i, icon.pt(x, y), "u")` (rule 09) |

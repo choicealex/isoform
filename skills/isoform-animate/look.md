@@ -15,6 +15,8 @@ It builds `isoform-<name>.html`, validates it (and stops there if the validator 
 - `--zoom <shot>` also writes that picture's stage at full resolution, for a crease or a thin arc. The sheet shrinks every picture: for a figure with an effect, always add `--zoom effect` and judge the traces there.
 - In place of `<name>.js` it takes a built page.
 
+Last it runs `lines.mjs`: the story held at rest and at twelve moments, effect off, and every line must end on another line. It fails on a trace that stops in the air (a scuff mark on nothing, a beam that stops short of its lamp) and on a corner of a face you built (`facet`, `face`) that overshoots the edge it should meet. It rings the worst moment in `isoform-<name>-lines.png`. A trace that really ends in the air, a flame's tip, takes `{free: true}`. A moving part's own corners are the solid's and are not judged.
+
 The first run installs `playwright-core` once into a cache folder of yours, never into the skill or the working directory. It drives your Chrome, or Playwright's Chromium.
 
 ## The pictures

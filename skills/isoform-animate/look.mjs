@@ -8,15 +8,17 @@
  * pictures hold the pointer at; --edge the point for the slider's two ends.
  * Prints each picture's read-out and the checks it can make: rest says "rest",
  * nothing leaves the frame, the console is clean, the drawing comes to rest,
- * the effect is not a wash over the whole drawing, no moving part leaves a hole.
+ * the effect is not a wash over the whole drawing, no moving part leaves a hole, and (lines.mjs) every
+ * line ends on something through the whole story.
  * Some checks take extra pictures that never go on the sheet.
  * Exits 0, 1 when a check fails, 2 when it cannot run a browser.
  *
  * The browser comes from browser.mjs (playwright-core, installed once into a cache folder).
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
+import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { browser as openBrowser } from "./browser.mjs";
 import { build } from "./build.mjs";
 import { check } from "./validate.mjs";
@@ -381,4 +383,11 @@ const out = resolve(`isoform-${name}-look.png`);
 await sp.screenshot({ path: out, fullPage: true });
 await browser.close();
 console.log(out);
+
+/* every line ends on something, through the whole story: lines.mjs, in its own browser */
+{
+  const r = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "lines.mjs"), page], { encoding: "utf8" });
+  process.stdout.write(r.stdout);
+  if (r.status === 1) failed = true;
+}
 process.exit(failed ? 1 : 0);

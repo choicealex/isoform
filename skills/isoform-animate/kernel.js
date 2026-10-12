@@ -66,6 +66,11 @@
  *   after(a, b)                        paints part a just after part b, for a part that comes forward
  * Maths
  *   clamp(v, a, b)  lerp(a, b, t)  smooth(e0, e1, x)  rad(deg)  r2(n)
+ * Envelopes, for an effect's strength: nothing an effect shows may switch on or off in one frame
+ *   burst(age, rise, fall)             a one-shot event (a flash, a spark, a snap): 0 before, a smooth rise over `rise` s that
+ *                                      starts flat, then an exponential fall with time constant `fall` s. age in seconds
+ *   settle(st, target, dt, secs)       a level that follows its target critically damped, no overshoot: st = {x, v}; returns
+ *                                      whether it still moves. For a colour or a brightness that must glide, not jump
  * The continuous clock: one spring per moving number
  *   spring(x, opts)                    at rest on x; write .t to retarget; opts {k, c, m, eps}, default k 100, c 18, m 1
  *   stepS(sp, dt)                      advances by dt seconds; returns whether it is still moving
@@ -94,11 +99,14 @@
  *                                      code: a tap answers and holds for 1.6s, a sideways drag follows the finger
  *   disposer()                         {add, on, dispose}: collects tear-down, so destroy is bag.dispose
  * Traces: what happens, drawn in the figure's own hairline. Every figure draws its phenomenon this way first
- *   trace(svg, {tone, dash, under, solid}) a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
+ *   trace(svg, {tone, dash, under, solid, free, fallback}) a hairline over the stage; tone "edge" (default), "hi" or "lo"; dash for a guide;
  *                                      under puts it behind the icon (dust on the ground, a wake); solid fills each closed
  *                                      outline with the face colour, so a traced object hides what is behind it (a box
- *                                      falling past a rim): draw its seen faces back to front, one closed outline each
- *   part.trace({tone, dash, clip})     a hairline in the part's layer: it paints with the part, and clip keeps it inside the
+ *                                      falling past a rim): draw its seen faces back to front, one closed outline each;
+ *                                      free: its ends may stop in the air (a flame's tip): every other line must end on the drawing;
+ *                                      fallback: the phenomenon's outline (a flame's edge, a beam's sides): drawn when the effect is
+ *                                      off, it steps aside while the effect runs, so a glow is never boxed in by its own outline
+ *   part.trace({tone, dash, clip, free, fallback}) a hairline in the part's layer: it paints with the part, and clip keeps it inside the
  *                                      part's faces. Its points are stage points where the line is NOW: it does not follow
  *                                      part.move, so add the part's offset yourself (icon.iso(a, b, c), as rocket.js does);
  *                                      that is what lets a water line stay level while its bottle tilts
@@ -107,10 +115,12 @@
  *   t.tone(tone)                       changes its tone
  * The effect layer: WebGL, on by default (the reader can turn it off), one per figure at most. It adds the
  * material under the traces, never replaces them: the figure looks the same with it off, only flatter
- *   gl(stage, {layer, frag, uniforms}) layer "under" (behind the faces: plumes, dust, arcs in the open) or "over" (on top,
+ *   gl(stage, {layer, frag, uniforms, blend}) layer "under" (behind the faces: plumes, dust, arcs in the open) or "over" (on top,
  *                                      masked to parts: liquid behind glass, heat in metal); uniforms {name: "float"|"vec2"|"vec3"}
  *                                      returns {on, set(name, value), mask(parts), draw(now), dispose}
- *                                      on is false when the reader turned effects off or WebGL is missing: the figure must still work
+ *                                      on is false when the reader turned effects off or WebGL is missing: the figure must still work.
+ *                                      blend: on a dark plate the effect is screen-blended (light only adds); "normal" for one that
+ *                                      must also darken. The kernel rolls off a hot core on a dark plate and dithers soft falloffs
  *   frag                               GLSL defining  vec4 effect(vec2 p)  : p is the stage point, y down; return premultiplied rgba
  *                                      given: u_time (s), u_ptr (stage point, or -1), u_dark (0|1), u_bold (0 subtle, 1 bold: the
  *                                      kernel already scales the output; use it to also narrow a halo or calm a flicker),
@@ -130,6 +140,15 @@ var IF = (() => {
   const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
   const rad = (d) => (d * Math.PI) / 180;
   const r2 = (n) => Math.round(n * 100) / 100;
+  /* envelopes (after Anatomy's kit/gl.mjs, MIT): an event rises from a flat start and decays; a level glides */
+  const burst = (age, rise, fall) => (age > 0 ? smooth(0, rise, age) * Math.exp(-Math.max(0, age - rise) / fall) : 0);
+  function settle(st, target, dt, secs) {
+    if (reduced) { st.x = target; st.v = 0; return false; }
+    const w = 1 / secs;
+    for (let i = 0; i < 4; i++) { const h = dt / 4; st.v += (w * w * (target - st.x) - 2 * w * st.v) * h; st.x += st.v * h; }
+    if (Math.abs(target - st.x) < 1e-4 && Math.abs(st.v) < 1e-4) { st.x = target; st.v = 0; return false; }
+    return true;
+  }
   /*
    * A path's length ON SCREEN, in CSS px. Every line here is vector-effect: non-scaling-stroke, which makes the browser
    * lay dashes out in screen space and ignore pathLength, so a draw-on dash must be measured in screen px: with a
@@ -881,7 +900,8 @@ var IF = (() => {
    * a flame's edge) in the figure's own line. lines is a polyline [[x, y], …] or a list of them; [] hides it.
    */
   function makeTrace(parent, o = {}) {
-    const el = mk("path", { class: `trace ${o.tone ?? "edge"}${o.dash ? " dash" : ""}${o.solid ? " solid" : ""}`, d: "M0 0" }, parent);
+    const extra = `${o.dash ? " dash" : ""}${o.solid ? " solid" : ""}${o.free ? " free" : ""}${o.fallback ? " fallback" : ""}`;
+    const el = mk("path", { class: `trace ${o.tone ?? "edge"}${extra}`, d: "M0 0" }, parent);
     el.style.display = "none";
     let last = "";
     return {
@@ -913,7 +933,7 @@ var IF = (() => {
         }
         if (d && !o.dash) dashTo(el, rv);
       },
-      tone(t) { el.setAttribute("class", `trace ${t}${o.dash ? " dash" : ""}`); },
+      tone(t) { el.setAttribute("class", `trace ${t}${extra}`); },
     };
   }
   /* a trace over the whole stage, not tied to a part */
@@ -1028,8 +1048,22 @@ float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a *
 float seg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h); }
 `;
   const MAIN = `
-/* subtle draws the same effect at under half strength (premultiplied, so colour and alpha scale together) */
-void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 400.0, (1.0 - f.y) * 320.0)) * mix(0.42, 1.0, u_bold); }`;
+/* a soft knee, for light on a dark plate: below 0.6 the effect is exactly as written, above it the core rolls off toward 1
+   instead of clipping flat. Not on paper, where the effect is ink and its palest part is its hottest */
+vec3 knee(vec3 c){ vec3 k = vec3(0.6); return mix(c, k + 0.4 * (1.0 - exp(-(c - k) / 0.4)), step(k, c)); }
+/* subtle draws the same effect at under half strength (premultiplied, so colour and alpha scale together). Then the
+   knee, and about one 8-bit step of moving noise so a wide soft glow does not band into rings; pixels with nothing in
+   them stay exactly empty */
+void main(){
+  vec2 f = gl_FragCoord.xy / u_res;
+  vec4 c = effect(vec2(f.x * 400.0, (1.0 - f.y) * 320.0)) * mix(0.42, 1.0, u_bold);
+  c.rgb = mix(max(c.rgb, 0.0), knee(max(c.rgb, 0.0)), u_dark); // light only: on paper a pale core rolled off reads as grey ink
+  float m = max(c.a, max(c.r, max(c.g, c.b)));
+  float n = (hash(gl_FragCoord.xy + fract(u_time * 0.61) * 91.0) + hash(gl_FragCoord.yx * 1.37 + fract(u_time * 0.37) * 57.0) - 1.0) / 255.0;
+  c = max(c + n * smoothstep(0.0, 1.5 / 255.0, m), 0.0);
+  c.a = clamp(max(c.a, max(c.r, max(c.g, c.b))), 0.0, 1.0);
+  gl_FragColor = c;
+}`;
 
   function gl(stage, o) {
     const canvas = stage.querySelector(`canvas.${o.layer === "over" ? "over" : "under"}`);
@@ -1069,12 +1103,21 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
     mcan.width = 400; mcan.height = 320;
     const bag = disposer();
     const size = () => {
-      const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+      const r = canvas.getBoundingClientRect(), dpr = Math.min(1.5, devicePixelRatio || 1); // soft light needs no more
       const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     };
     if (typeof ResizeObserver === "function") { const ro = new ResizeObserver(size); ro.observe(canvas); bag.add(() => ro.disconnect()); }
-    bag.on(stage, "isoform:theme", () => { pal = palette(stage); });
+    /* on a dark plate an effect is light: screen-blended, it can only brighten what it covers, never lay a grey veil.
+       {blend: "normal"} for one that must also darken (smoke that hides, deep water). On paper it is ink: normal */
+    const blend = () => { canvas.style.mixBlendMode = pal.dark && o.blend !== "normal" ? "screen" : "normal"; };
+    blend();
+    bag.on(stage, "isoform:theme", () => { pal = palette(stage); blend(); });
+    /* the effect carries the phenomenon now: traces made {fallback: true} step aside (they are the version without it) */
+    const svgEl = stage.querySelector("svg");
+    if (svgEl && !svgEl.querySelector("style.if-fx")) mk("style", { class: "if-fx" }, svgEl).textContent = ".fx-on .trace.fallback { visibility: hidden; }";
+    svgEl?.classList.add("fx-on");
+    bag.add(() => svgEl?.classList.remove("fx-on"));
     bag.on(stage, "pointermove", (ev) => {
       const r = canvas.getBoundingClientRect();
       ptr = [((ev.clientX - r.left) / r.width) * W, ((ev.clientY - r.top) / r.height) * H];
@@ -1137,7 +1180,7 @@ void main(){ vec2 f = gl_FragCoord.xy / u_res; gl_FragColor = effect(vec2(f.x * 
   }
 
   return {
-    clamp, lerp, smooth, rad, r2,
+    clamp, lerp, smooth, rad, r2, burst, settle,
     spring, stepS, tween, tset, tval, tdone, bezier, EASE, EASES, SPRING, reducedMotion, story,
     disposer, register, pointer,
     icon, after, mk, segments, axes, trace,

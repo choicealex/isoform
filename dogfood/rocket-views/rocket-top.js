@@ -19,8 +19,8 @@ function mount({ stage, svg, read, src }, reach) {
   win.hi(true);
 
   /* the exhaust in the figure's own hairline, inside the hull's paint so the near fin stays in front of it */
-  const flame = hull.trace();
-  const core = hull.trace({ tone: "hi" });
+  const flame = hull.trace({ fallback: true }); // the outline is the flame without the effect; with it, the plume carries it
+  const core = hull.trace({ tone: "hi", fallback: true });
 
   const flight = story(stage, {
     rest: { thrust: 0, fly: 0, ink: 1 },
@@ -95,8 +95,11 @@ function mount({ stage, svg, read, src }, reach) {
       const s = i / 12, w = (2.5 + wide * Math.sqrt(s)) * (1 - s ** 2.5) * scale;
       return [n[0] + back[0] * s * l + side[0] * k * w, n[1] + back[1] * s * l + side[1] * k * w];
     });
-    flame.draw([edge(-1, 1, len).concat(edge(1, 1, len).reverse())], smooth(0, 0.35, t));
-    core.draw([edge(-1, 0.38, len * 0.45).concat(edge(1, 0.38, len * 0.45).reverse())], smooth(0.15, 0.5, t));
+    /* closed across the nozzle's mouth: seen from the top, no part covers the flame's root, so an open outline left
+       two ends standing on the bare base face */
+    const lobe = (scale, l) => { const o = edge(-1, scale, l).concat(edge(1, scale, l).reverse()); return o.concat([o[0]]); };
+    flame.draw([lobe(1, len)], smooth(0, 0.35, t));
+    core.draw([lobe(0.38, len * 0.45)], smooth(0.15, 0.5, t));
   }
 
   /* hover takes over: nearness to the rocket's rest centre is the throttle (rule 01) */

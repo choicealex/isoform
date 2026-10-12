@@ -14,8 +14,10 @@ function mount({ stage, svg, read, src }, reach) {
   const seam = [201, 168];
   const [front, foot] = ic.cut(2, seam, "u");
   /* the surface the break exposes: its front edge is the cut itself, run back along u to where the cut leaves the
-     face, then pushed back along v by the bolt's thickness */
-  const back = ic.iso(0, -46, 0), run = (seam[0] - 140) / ic.u[0];
+     face's left edge (117,157 -> 185,84), then pushed back by the bolt's thickness. The depth is not along v here:
+     it runs along the step's own top edge (face 0: 199,168 -> 241,148), so the far corner lands on 241,148, measured
+     off inspect.mjs. A guessed depth overshot that corner and drew a loose edge as the halves parted */
+  const back = [241 - seam[0], 148 - seam[1]], run = (seam[0] - 138.7) / ic.u[0];
   const left = [seam[0] - ic.u[0] * run, seam[1] - ic.u[1] * run];
   const broken = ic.facet([left, seam, [seam[0] + back[0], seam[1] + back[1]], [left[0] + back[0], left[1] + back[1]]], foot);
   const low = ic.part("low", [foot, broken, 0, 1]);
@@ -23,7 +25,7 @@ function mount({ stage, svg, read, src }, reach) {
   high.hi(true); // the eye starts at the upper half
 
   /* the arcs, in the figure's own hairline: up to three, re-struck nine times a second while the gap is open */
-  const arcs = trace(svg, { tone: "hi" });
+  const arcs = trace(svg, { tone: "hi", fallback: true }); // the shader strikes the same arcs: these are the version without it
   const rnd = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
   const strike = (hop, n, g) => Array.from({ length: n }, (_, i) => {
     const t = 0.15 + 0.7 * rnd(hop, i * 7.3);
@@ -82,7 +84,7 @@ function mount({ stage, svg, read, src }, reach) {
           air += exp(-along * along * 2.0 - across * across * 4.0);
         }
         float core = exp(-d * d / 1.3);
-        float glow = exp(-d / (3.0 + 2.0 * flash)) * 0.6 + exp(-d * d / 150.0) * 0.25;
+        float glow = exp(-d / (3.0 + 2.0 * flash)) * 0.6 + exp(-d * d / 150.0) * 0.25 * mix(0.3, 1.0, u_dark); // on paper the wide halo stains: keep it near the arc
         float lit = mask(p) * min(face, 1.0) * (0.45 + 0.5 * flash);
         air = (1.0 - mask(p)) * min(air, 1.0) * (0.12 + 0.3 * flash); // the ionised air in the gap
         float hot = core * (0.8 + 0.3 * flash) * flick;

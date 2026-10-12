@@ -20,8 +20,8 @@ function mount({ stage, svg, read, src }, climb) {
 
   /* the burn, in the figure's own hairline: the flame's edge and its hot core, behind the whole drawing. It leaves the
      middle of the rocket's underside, so its top is hidden by the hull and the fins stay in front of it */
-  const flame = trace(svg, { under: true });
-  const core = trace(svg, { tone: "hi", under: true });
+  const flame = trace(svg, { under: true, fallback: true }); // the outline is the flame without the effect; with it, the plume carries it
+  const core = trace(svg, { tone: "hi", under: true, fallback: true });
 
   const flight = story(stage, {
     rest: { thrust: 0, lift: 0, ink: 1 },
