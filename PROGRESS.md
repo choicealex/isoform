@@ -1,4 +1,4 @@
-# Session Checkpoint — 2026-10-05 (Isoform: skill dogfooded by four stranger runs)
+# Session Checkpoint — 2026-10-12 (Isoform: line check, cleaner effects, cold run, 6th deploy)
 
 Isoform works end to end locally: the `isoform-animate` skill, its engine and checks, and three example
 illustrations that draw themselves in and loop a story. Repo public; site live (see State).
@@ -21,24 +21,32 @@ illustrations that draw themselves in and loop a story. Repo public; site live (
 Checks: `node skills/isoform-animate/validate.mjs <page>` → ok for all three · `look.mjs` → exit 0 for all
 three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mobile or touch.
 
+### 2026-10-12 — after studying wheresryan22/anatomy (MIT)
+| What | Commits |
+|---|---|
+| `lines.mjs` line-end check (run by look.mjs); bolt facet measured, cart scuffs land, rocket-top flame closed; kernel: dark-only soft knee, gated dither, screen blend, DPR 1.5, `burst`/`settle`, `{fallback}`/`{free}` traces; light-theme ink for car/house/bolt | `14165bb` |
+| Cold run of the published skill on apps/delete/token + doc fixes (`dogfood/cold-2026-10-12/FINDINGS.md`) | `dcf641a` |
+| Site: /skill names the line check; /inspo step 8 "Every line lands"; /inspo's empty `toast` plate → local-gas-station | `373194b` |
+
 ## In Progress
 Nothing mid-edit; everything pushed.
 
-## State (2026-10-06)
-- Site: 8 figures (the earlier samples; key removed 603ebb6). The 23 interface icons are NOT on the site (owner), only in
-  dogfood/. Docs keeps "Grow, turn,
-  spin". LIVE https://isoform-skill.vercel.app (CLI deploy, recipe in project memory); repo PUBLIC.
-- Rule 09 opened (owner): grow/turn only within a plane of the icon's axes. Kernel: stretch, turn, spin, grow, hole,
-  morph, extent. Hard icons: `dogfood/HARD.md` + `dogfood/hard/generate.py` (5 family templates from measure.json).
-- Stress test: `dogfood/STRESS.md`. Engine holds on every view; taste is the weak point. 3× this session a figure passed
-  every check and was still wrong — the look/review step is not optional.
+## State (2026-10-12)
+- LIVE https://isoform-skill.vercel.app = `373194b` (6th deploy, isoform-skill-qtv3gcijt). Repo PUBLIC, pushed.
+  10 figure files feed the site (8 listed + rocket-top/right for the hero). The 23 interface icons stay OFF the site.
+- Deploy only from a clean worktree (the guard hook blocks `vercel` while ANY file is untracked, e.g. dogfood/open-in-new/):
+  recipe in project memory (5th-deploy line). /inspo renders per request: verify on the live page, not in .vercel/output.
+- Verified 2026-10-12: look.mjs exit 0 on all 10 (desktop, light + dark); live site at 390px has no sideways scroll on
+  7 pages; real touch events on the live rocket page (tap takes over, holds, hands back; sideway drag; vertical swipe scrolls).
+- Kernel (engine) API: stretch, turn, spin, grow, hole, morph, extent; traces {fallback, free}; gl {blend}; burst, settle.
+- Taste is still the weak point: 4 cold rounds now, every figure passed every check and some still read weakly.
+  The look/review step is not optional. Don't call occlusion faults by eye on flat drawings (apps was correct).
 
 ## Next
-1. DONE 2026-10-12: `lines.mjs` (run by look.mjs) checks every line ends on the drawing through the whole story; all 10 site figures pass. Research behind it (Anatomy skill) in research/anatomy-*.md (local).
-   Done 2026-10-06: real-phone check of the touch takeover (owner, on their phone). Install path DONE (2026-10-06, public repo, no override): `npx skills add choicealex/isoform` → installed copy runs
-   find → inspect → build → validate → look (exit 0) on data fetched from raw.githubusercontent.
-Live 61f3c3b (2026-10-06, 4th deploy): plain hero copy, Hairline credit in the footer; research/ untracked (local only). 3rd deploy b3a5f75: link preview card (OG + Twitter). Before that, 0244a96: hero direction switch (left/top/right rockets), flames from the base centre, mobile fixes, footer credit. Done this session: skill caught up (b9182d0: docs for the new abilities, axis-band fix on 904 views, whole-story frame
-sweep, radio.js example), touch takeover, hole() see-through fix from a cold run (8fe7f11). Nav reads Showcase.
+1. Nothing open from 2026-10-12. Candidates: an effect figure in a cold run (no stranger has used `fallback` yet);
+   from `research/anatomy-plan.md` (local): mobile shots in look.mjs (A3), tests + CI (B5), evals (B6),
+   per-figure OG images (C9), sitemap/robots (C12).
+2. `dogfood/open-in-new/` stays untracked by choice (owner, 2026-10-12: generated dogfood files stay out of git).
 
 ## Decisions that constrain future work
 - **No concept recipe for blank symbols** (an empty checkbox with nothing to do): dropped by the owner 2026-10-06.
@@ -54,6 +62,8 @@ sweep, radio.js example), touch takeover, hole() see-through fix from a cold run
 - Isocons is CC BY 4.0: the credit line on every bench page stays; never imply Isocons endorses Isoform.
 
 ## Dead ends — tried, didn't work
+- A paint-order check from part motion (2026-10-12): flat drawings carry no depth, and it would have failed apps, which was correct physics (parallel drums sliding on their own axis) — `dcf641a` body.
+- A `1-exp(-c)` tonemap on the effect layer: dims tuned effects ~30%, and on paper greys pale cores — dark-only soft knee instead (`14165bb`).
 - Eval'ing the Isocons page bundle to extract icons — blocked as running external code — parse it as data (`scripts/extract-isocons.mjs`, `8020bc3`).
 - Under-stroke silhouettes (2× then 3× width) — always thicker than inner edges — masked on-top outline (`4015f9d`).
 - Normalised `pathLength` draw-on — breaks under `non-scaling-stroke` (scattered pieces) — screen-px dashes (`9be528c`; skill `.claude/skills/web/animation-interaction.md`, workspace `df0c9ee`).
