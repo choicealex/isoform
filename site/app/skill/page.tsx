@@ -11,7 +11,7 @@ const STEPS = [
   { t: "Find the icon", b: "It searches the 1,007 Isocons by word, then prints every face of the one it picked and draws a numbered parts picture on a grid, so it can tell the lid from the body before it cuts anything." },
   { t: "Offer a concept", b: "Two or three one-line stories: what the real object does, what hover changes, what gets traced. It waits for you to pick. Nobody around? It takes the most physical one and says so." },
   { t: "Write one file", b: "The figure is a single script on a fixed engine. The agent groups faces into parts, writes the story in beats, and never edits the engine or the page around it." },
-  { t: "Look at it", b: "A script validates the file and photographs it at rest, answering, small, in both themes, with the effect on and at moments of its story. Then twelve yes-or-no questions, answered from the pictures." },
+  { t: "Look at it", b: "A script validates the file and photographs it at rest, answering, small, in both themes, with the effect on and at moments of its story. It also holds the story still at a dozen moments and fails any line that ends in the air. Then twelve yes-or-no questions, answered from the pictures." },
   { t: "Hand it over", b: "One HTML file with the engine and the icon inside it, and the Isocons credit with them. Plus the metaphor in a line, the rules it leans on, and anything it could not check." },
   { t: "Adjust", b: "Ask for a change and it edits only the figure, then looks again. The tenth version is held to the same bar as the first." },
 ];

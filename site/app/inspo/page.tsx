@@ -42,9 +42,15 @@ const STEPS = [
     fig: "house",
   },
   {
+    t: "Every line lands",
+    quote: "for some of our icons we have randome loosed lines. that veers off when the animations starts",
+    b: "Ryan's anatomy skill holds a rule we only kept by eye: every line ends on something. Isoform now checks it through the whole story. It found a broken surface pushed along the wrong axis on the bolt, scuffs floating behind the cart's wheels, and a flame left open at its root. The same study changed the effects: an outline steps aside while its glow runs, light only brightens a dark plate, and on paper a beam holds its shape the way ink does.",
+    fig: "bolt",
+  },
+  {
     t: "What I'd keep",
     b: "A second round of strangers got the mechanics right every time and the taste right one time in three. A script can tell you the figure works. Only looking tells you it reads. That is why every figure here was looked at by a person before it went up.",
-    fig: "toast",
+    fig: "local-gas-station", // a stranger's figure, approved; toast left the site with the 23 interface icons (21ad2b0)
   },
 ];
 
@@ -54,7 +60,7 @@ export default function InspoPage() {
       <section className="pt-14 pb-12">
         <p className="mb-4 font-mono text-[12px] text-muted">The making of</p>
         <h1 className="text-[clamp(3rem,8vw,7rem)] leading-[0.85] font-semibold tracking-[-0.06em]">Inspo<span className="text-accent">.</span></h1>
-        <p className="mt-6 max-w-xl text-[17px] text-pretty text-muted">Seven steps, and the pushback that shaped them.</p>
+        <p className="mt-6 max-w-xl text-[17px] text-pretty text-muted">Nine steps, and the pushback that shaped them.</p>
       </section>
       <ol className="relative grid gap-12 border-l border-rule pl-8">
         {STEPS.map((s, i) => (
