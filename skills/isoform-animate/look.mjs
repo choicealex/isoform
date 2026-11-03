@@ -8,8 +8,10 @@
  * pictures hold the pointer at; --edge the point for the slider's two ends.
  * Prints each picture's read-out and the checks it can make: rest says "rest",
  * nothing leaves the frame, the console is clean, the drawing comes to rest,
- * the effect is not a wash over the whole drawing, no moving part leaves a hole, and (lines.mjs) every
- * line ends on something through the whole story.
+ * the effect is not a wash over the whole drawing, no moving part leaves a hole, rest adds no line to the
+ * Isocons drawing and loses none (the untouched icon sits beside rest on the sheet), the answer moves without
+ * a one-frame jump (a twelve-picture strip of the pointer arriving), and (lines.mjs) every line ends on
+ * something through the whole story.
  * Some checks take extra pictures that never go on the sheet.
  * Exits 0, 1 when a check fails, 2 when it cannot run a browser.
  *
@@ -32,6 +34,15 @@ const page = src.endsWith(".html") ? resolve(src) : await build(src);
 const errs = check(readFileSync(page, "utf8"));
 if (errs.length) { for (const e of errs) console.log(e); console.log("validate  fix these first; no pictures taken"); process.exit(1); }
 const name = basename(page).replace(/^isoform-|\.html$/g, "");
+/* weight: the engine and bench are fixed, so the figure's own code is the share an author controls. The site's figures
+   are 4.6-8.7KB (2026-11-03); past 12KB a figure is usually doing the engine's work by hand */
+{
+  const html = readFileSync(page, "utf8");
+  const fig = /<script type="module" id="if-figure">\n?([\s\S]*?)\n?<\/script>/.exec(html)?.[1] ?? "";
+  const kb = (n) => `${(n / 1024).toFixed(1)}KB`;
+  const fb = Buffer.byteLength(fig);
+  console.log(`${fb > 12 * 1024 ? "size      warn" : "size     "} the page is ${kb(Buffer.byteLength(html))}, the figure's own code ${kb(fb)}${fb > 12 * 1024 ? ": past 12KB, look for hand-rolled work an IF helper already does" : ""}`);
+}
 
 const at = flag("--at")[0];
 const edges = flag("--edge");
@@ -200,7 +211,7 @@ console.log(`readout   ${shown.map((r) => `${r.shot}=${r.read}`).join("  ")}`);
 if (rest.lines && rest.plain) {
   const ctx = await browser.newContext();
   const pg = await ctx.newPage();
-  const [extra, marked] = await pg.evaluate(async ([a, b]) => {
+  const [extra, lost, marked] = await pg.evaluate(async ([a, b]) => {
     const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = `data:image/png;base64,${s}`; });
     const [A, B] = await Promise.all([load(a), load(b)]);
     const w = Math.min(A.width, B.width), h = Math.min(A.height, B.height), cv = document.createElement("canvas");
@@ -213,24 +224,36 @@ if (rest.lines && rest.plain) {
       return m;
     };
     const fig = mask(A), base = mask(B), R = 5; // a few pixels of tolerance: a bright stroke is a hair wider
-    const near = new Uint8Array(w * h);
-    for (let y = 0; y < h; y++) for (let q = 0; q < w; q++) if (base[y * w + q])
-      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const yy = y + dy, xx = q + dx; if (yy >= 0 && yy < h && xx >= 0 && xx < w) near[yy * w + xx] = 1; }
+    const grow = (m) => {
+      const out = new Uint8Array(w * h);
+      for (let y = 0; y < h; y++) for (let q = 0; q < w; q++) if (m[y * w + q])
+        for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const yy = y + dy, xx = q + dx; if (yy >= 0 && yy < h && xx >= 0 && xx < w) out[yy * w + xx] = 1; }
+      return out;
+    };
+    const near = grow(base), kept = grow(fig);
     x.clearRect(0, 0, w, h); x.drawImage(B, 0, 0);
     const img = x.getImageData(0, 0, w, h);
-    let n = 0;
-    for (let i = 0; i < w * h; i++) if (fig[i] && !near[i]) { n++; img.data.set([255, 0, 0, 255], i * 4); }
+    let n = 0, lost = 0;
+    for (let i = 0; i < w * h; i++) {
+      if (fig[i] && !near[i]) { n++; img.data.set([255, 0, 0, 255], i * 4); }
+      else if (base[i] && !kept[i]) { lost++; img.data.set([0, 110, 255, 255], i * 4); }
+    }
     x.putImageData(img, 0, 0);
-    return [n, cv.toDataURL("image/png").split(",")[1]];
+    return [n, lost, cv.toDataURL("image/png").split(",")[1]];
   }, [rest.lines.toString("base64"), rest.plain.toString("base64")]);
   await ctx.close();
   /* not a FAIL: a seam on an edge the real object has (a lid's rim, the bolt's break) is allowed; a cut through a
      surface (a straight seam under a scalloped awning) is not, and only the eye can tell them apart */
-  if (extra > 40) {
+  if (extra > 40 || lost > 40) {
     const file = `isoform-${name}-rest-extra.png`;
     writeFileSync(resolve(file), Buffer.from(marked, "base64"));
-    console.log(`rest      warn ${extra} line pixels at rest that the Isocons drawing does not have, in red in ${file}: each must be an edge the real object has (a lid's rim), never a cut through a surface or a trace left showing`);
-  } else console.log("rest      the rest picture adds no line to the Isocons drawing");
+    if (extra > 40) console.log(`rest      warn ${extra} line pixels at rest that the Isocons drawing does not have, in red in ${file}: each must be an edge the real object has (a lid's rim), never a cut through a surface or a trace left showing`);
+    else console.log("rest      the rest picture adds no line to the Isocons drawing");
+    /* the other way round (after Hairline 0.5's source-beside-rest): an edge the icon has that rest dropped, a face a
+       cut left unpainted, an inner line a part's mask swallowed. Calibrated 2026-11-03 on the 10 site figures */
+    if (lost > 40) console.log(`rest      warn ${lost} line pixels of the Isocons drawing missing at rest, in blue in ${file}: every edge the icon draws must still be drawn (rule 05)`);
+    else console.log("rest      the rest picture keeps every line of the Isocons drawing");
+  } else console.log("rest      the rest picture is the Isocons drawing: no line added, none lost");
 }
 /* rule 03 through the whole story: the pictures above are a handful of moments, and a part that swings or flies (a
    spinning solid) can leave the frame between them. Every 150ms of the loop at intensity 1, the outlines themselves */
@@ -372,10 +395,49 @@ const moving = shown.filter((r) => !r.still).map((r) => r.shot);
 console.log(moving.length ? `still     moving: ${moving.join(", ")} (an effect that runs while held is expected; a loop at rest is not)` : "still     every picture came to rest");
 if (!moving.includes("rest") && moving.length) {} else if (moving.includes("rest")) { failed = true; console.log("still     FAIL the rest picture never holds still: rule 07"); }
 
+/* the answer as it happens (after Hairline 0.5's motion film): a real pointer arrives at --at and twelve pictures 50ms
+   apart show the way there. A pair of pictures can't show an overshoot, a face that pops for one frame, or a seam that
+   flashes during a cut; a strip can. The largest step between neighbours is printed: one step far larger than the rest
+   is a jump, not motion */
+let strip = [];
+if (at) {
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 1 });
+  const p = await ctx.newPage();
+  await p.goto(pathToFileURL(page).href + q({ t: 0, gl: 0 }));
+  await p.waitForTimeout(1500);
+  const [sx, sy] = at.split(",").map(Number);
+  const pt = await p.evaluate(([x, y]) => { const m = document.querySelector("#stage svg").getScreenCTM(); return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; }, [sx, sy]);
+  const box = await p.locator("#stage svg").first().boundingBox();
+  await p.mouse.move(box.x + box.width + 40, box.y + box.height / 2);
+  await p.waitForTimeout(200);
+  const svgShot = () => p.screenshot({ clip: box });
+  strip.push(await svgShot());
+  await p.mouse.move(pt[0], pt[1], { steps: 4 });
+  for (let k = 1; k < 12; k++) { await p.waitForTimeout(50); strip.push(await svgShot()); }
+  await ctx.close();
+  const steps = [];
+  for (let k = 1; k < strip.length; k++) {
+    const r = await pixels([strip[k - 1], strip[k]], `const [A, B] = imgs; let n = 0;
+for (let i = 0; i < A.length; i += 4) if (Math.abs(A[i] - B[i]) + Math.abs(A[i + 1] - B[i + 1]) + Math.abs(A[i + 2] - B[i + 2]) > 24) n++;
+return { share: n / (w * h) };`);
+    steps.push(r.share);
+  }
+  const moved = steps.filter((x) => x > 0.0005);
+  const big = Math.max(...steps), med = moved.length ? [...moved].sort((a, b) => a - b)[moved.length >> 1] : 0;
+  const fmt = (x) => `${(x * 100).toFixed(2)}%`;
+  if (!moved.length) console.log("motion    the strip shows no motion in the first 550ms after the pointer arrives: is --at on the part?");
+  else if (moved.length > 2 && big > 4 * med && big > 0.01) console.log(`motion    warn one step changes ${fmt(big)} of the stage against a typical ${fmt(med)}: a jump (a face popping in, a seam flashing), not motion; see the strip on the sheet`);
+  else console.log(`motion    the answer moves in ${moved.length} of 11 steps, largest ${fmt(big)} of the stage (strip on the sheet)`);
+}
+
 /* the sheet */
-const cards = shown.map((r) => `<figure class="${r.shot.startsWith("small") ? "s" : r.shot === "rest" || r.shot === "answer" ? "l" : "m"}"><img src="data:image/png;base64,${r.png.toString("base64")}"><figcaption>${r.shot} · ${r.read}<br><span>${r.url}</span></figcaption></figure>`).join("");
+const cardList = shown.map((r) => `<figure class="${r.shot.startsWith("small") ? "s" : r.shot === "rest" || r.shot === "answer" ? "l" : "m"}"><img src="data:image/png;base64,${r.png.toString("base64")}"><figcaption>${r.shot} · ${r.read}<br><span>${r.url}</span></figcaption></figure>`);
+const source = rest.plain ? `<figure class="m"><img src="data:image/png;base64,${rest.plain.toString("base64")}"><figcaption>source · the Isocons drawing, untouched<br><span>rest must read as this</span></figcaption></figure>` : "";
+/* the source sits right after rest, so the two read side by side */
+const cards = [cardList[0], "/*SOURCE*/", ...cardList.slice(1)].join("");
+const film = strip.length ? `<figure class="w"><div class="strip">${strip.map((b) => `<img src="data:image/png;base64,${b.toString("base64")}">`).join("")}</div><figcaption>motion · the pointer arrives at ${at}, 50ms per picture</figcaption></figure>` : "";
 const sheet = `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:24px;background:#f4f5f7;font:12px ui-monospace,Menlo,monospace;color:#333;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;width:1840px}
-figure{margin:0;background:#fff;border:1px solid #dde;border-radius:10px;padding:10px}figure.l{width:880px}figure.m{width:430px}figure.s{width:280px}img{width:100%;display:block}figcaption{margin-top:6px}span{color:#889;font-size:10px}</style>${cards}`;
+figure{margin:0;background:#fff;border:1px solid #dde;border-radius:10px;padding:10px}figure.l{width:880px}figure.m{width:430px}figure.s{width:280px}figure.w{width:1786px}.strip{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}img{width:100%;display:block}figcaption{margin-top:6px}span{color:#889;font-size:10px}</style>${cards.replace("/*SOURCE*/", () => source)}${film}`;
 const ctx = await browser.newContext({ viewport: { width: 1888, height: 800 } });
 const sp = await ctx.newPage();
 await sp.setContent(sheet);

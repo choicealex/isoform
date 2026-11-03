@@ -2,7 +2,7 @@
 /**
  * Copies the engine and the figures into the site: `node scripts/sync-figures.mjs` (runs before dev and build).
  *
- * public/iso/kernel.js          the engine, as the skill ships it
+ * public/iso/kernel.js          the engine, as the skill ships it, without its index comment (lib/kernel-index.txt)
  * public/iso/figures/<name>.js  each figure, as written by the skill
  * public/iso/html/isoform-<name>.html  each figure's standalone page (build.mjs), for copy and download
  * public/iso/icons/<id>/<view>.svg    the icon's six Isocons views, as drawn
@@ -26,7 +26,8 @@ const list = (src, k) => {
 };
 
 const kernel = readFileSync(join(site, "../skills/isoform-animate/kernel.js"), "utf8");
-writeFileSync(out("public/iso/kernel.js"), kernel);
+/* the site serves the engine without its index comment (it goes to /docs below instead), as build.mjs does */
+writeFileSync(out("public/iso/kernel.js"), kernel.slice(kernel.indexOf("var IF")));
 /* the engine's own index (the comment above var IF), for /docs: the docs never drift from the code */
 const index = kernel.slice(kernel.indexOf("/*"), kernel.indexOf("var IF")).replace(/^\/\*\s*|\s*\*\/\s*$/g, "").split("\n").map((l) => l.replace(/^ \* ?/, "")).join("\n");
 writeFileSync(out("lib/kernel-index.txt"), `${index.trim().replace(/^\* /, "")}\n`);

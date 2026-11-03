@@ -1,8 +1,8 @@
 /*
- * Car. It draws itself in, then switches its headlights on: the beams reach out
- * low, lift to high beam, and go out. Bring the pointer near the lamps and you
- * hold the beam: the nearer, the further it reaches. In a product: a
- * "drive mode" / dark-mode switch, the lights on.
+ * Car: pulls up. It draws itself in, then rolls a short step forward along its own long axis (toward the lower left),
+ * its nose dipping as it brakes, settles back on its suspension with a little rebound, and its headlights come on as
+ * it stops: low, then high, then out, and it backs home. Bring the pointer near the lamps and it pulls up further and
+ * the beam brightens; leave and it carries on. In a product: arriving, "you are here", a drive-mode switch.
  */
 const { icon, spring, stepS, register, pointer, disposer, gl, trace, story, clamp, smooth, SPRING } = IF;
 
@@ -11,7 +11,7 @@ function mount({ stage, svg, read, src }, reach) {
   const ic = icon(svg, src);
 
   /* paint order as Isocons drew it: body, the two lamps on it, the windshield, the roof's side */
-  const body = ic.part("body", [0]);
+  const body = ic.part("body", [0, 6], { paint: "first" }); // 6: the small notch face under the left lamp travels with the body
   const lamps = ic.part("lamps", [2, 3]);
   const glass = ic.part("glass", [1, 4]);
   const side = ic.part("side", [5]);
@@ -39,23 +39,29 @@ function mount({ stage, svg, read, src }, reach) {
     return { sides: [[near[lo], far[lo]], [near[hi], far[hi]]], end: far };
   };
 
+  /* roll: the step forward along the car's long axis (v, toward the viewer's lower left); dip: the nose going down as it
+     brakes (+) and the rebound (-), a move down the icon's up axis: nothing is tilted on the screen, so no edge bends */
   const lights = story(stage, {
-    rest: { beam: 0, ink: 1 },
-    poster: { beam: 1, ink: 1 },
+    rest: { roll: 0, dip: 0, beam: 0, ink: 1 },
+    poster: { roll: 1, dip: 0, beam: 0.6, ink: 1 },
     intro: { dur: 4500, from: { ink: 0 }, ease: "linear" }, // it draws itself in, once, the first time it is seen
     beats: [
+      { dur: 700 },
+      { dur: 1100, to: { roll: 1, dip: [0, 0.5, 1] }, ease: "out" }, // rolls up and brakes: the nose goes down
+      { dur: 500, to: { dip: -0.45, beam: 0.3 }, ease: "out" },       // rebounds on its springs, lamps coming on
+      { dur: 500, to: { dip: 0, beam: 0.55 }, ease: "out" },          // settles: low beam
       { dur: 900 },
-      { dur: 800, to: { beam: 0.55 }, ease: "out" },   // low beam
+      { dur: 600, to: { beam: 1 } },                                  // high beam
       { dur: 1000 },
-      { dur: 700, to: { beam: 1 } },                    // high beam
-      { dur: 1300 },
-      { dur: 700, to: { beam: 0 }, ease: "out" },      // out
-      { dur: 800 },
+      { dur: 500, to: { beam: 0 }, ease: "out" },                     // lights out
+      { dur: 1200, to: { roll: 0 } },                                 // backs home
+      { dur: 600 },
     ],
   });
   const hand = spring(0, SPRING.hand);
   let max = reach, label = "";
 
+  const all = [body, lamps, glass, side];
   const fx = gl(stage, {
     layer: "over",
     uniforms: { u_a: "vec2", u_b: "vec2", u_d: "vec2", u_w: "vec2", u_n: "float", u_pool: "vec2", u_U: "vec2", u_V: "vec2", u_L: "float" },
@@ -102,27 +108,32 @@ function mount({ stage, svg, read, src }, reach) {
         return vec4(col * a, a);
       }`,
   });
-  if (fx.on) { fx.set("u_a", lampPts[0]); fx.set("u_b", lampPts[1]); fx.set("u_U", ic.u); fx.set("u_V", ic.v); fx.mask([lamps]); }
+  if (fx.on) { fx.set("u_U", ic.u); fx.set("u_V", ic.v); fx.mask([lamps]); }
 
   const loop = register(stage, (dt, now) => {
     const a = lights.step(dt), b = stepS(hand, dt);
-    const v = lights.values(lights.held ? { beam: hand.x } : {});
+    const v = lights.values(lights.held ? { roll: hand.x, beam: hand.x, dip: 0.9 * smooth(0.1, 0.7, hand.x) * (1 - smooth(0.7, 1, hand.x)) } : {});
     ic.ink(v.ink);
-    const L = v.beam * max;
+    /* the whole car moves as one: forward along v, down by the nose dip (a squat of a few units, never a tilt) */
+    const fwd = v.roll * max, drop = -v.dip * max * 0.22;
+    for (const p of all) p.move(0, fwd, drop);
+    const off = ic.iso(0, fwd, drop);
+    const L = v.beam * max * 8;
     if (v.beam < 0.02) { edges.draw([]); mouth.draw([]); }
     else {
-      const cs = lampPts.map((c) => cone(c, L));
+      const cs = lampPts.map((c) => cone([c[0] + off[0], c[1] + off[1]], L));
       edges.draw(cs.flatMap((k) => k.sides));
       mouth.draw(cs.map((k) => k.end));
     }
-    const shown = v.ink < 1 ? "drawing" : v.beam < 0.02 ? "rest" : v.beam < 0.8 ? "low beam" : "high beam";
+    const shown = v.ink < 1 ? "drawing" : v.beam < 0.02 && fwd < 0.3 ? "rest" : v.beam < 0.02 ? "pulling up" : v.beam < 0.8 ? "low beam" : "high beam";
     if (shown !== label) { read.textContent = shown; label = shown; }
     if (fx.on) {
       const o = ic.iso(0, L, -L * DIP), w = ic.iso(R0, 0, 0), far = Math.hypot(...w) * (R0 + L * SPREAD) / R0;
       /* the pool lies on the road under the far half of the beams: the lamps sit 40 above it */
       const m = ic.iso(0, L * 0.75, -40);
+      fx.set("u_a", [lampPts[0][0] + off[0], lampPts[0][1] + off[1]]); fx.set("u_b", [lampPts[1][0] + off[0], lampPts[1][1] + off[1]]);
       fx.set("u_d", o); fx.set("u_w", [Math.hypot(...w), far]); fx.set("u_n", v.beam); fx.set("u_L", L);
-      fx.set("u_pool", [(lampPts[0][0] + lampPts[1][0]) / 2 + m[0], (lampPts[0][1] + lampPts[1][1]) / 2 + m[1]]); fx.draw(now);
+      fx.set("u_pool", [(lampPts[0][0] + lampPts[1][0]) / 2 + m[0] + off[0], (lampPts[0][1] + lampPts[1][1]) / 2 + m[1] + off[1]]); fx.draw(now);
     }
     return a || b || (fx.on && v.beam > 0.02);
   });
@@ -142,16 +153,16 @@ function mount({ stage, svg, read, src }, reach) {
   }));
 
   bag.add(() => { loop.unregister(); fx.dispose(); while (svg.firstChild) svg.firstChild.remove(); });
-  return { set(v) { max = clamp(v, 0, 100); loop.wake(); }, destroy: bag.dispose };
+  return { set(v) { max = clamp(v, 0, 14); loop.wake(); }, destroy: bag.dispose };
 }
 
 isoform({
   name: "car",
   icon: "directions-car",
   variant: "rounded-left",
-  means: "A car switches its headlights on: low beam, high beam, out. Bring the pointer near the lamps to hold the beam.",
+  means: "A car pulls up: rolls forward, nose dipping, settles and switches its lights on. Come near the lamps and it pulls up further.",
   effect: "the lamp glass glows white-hot and throws warm cones of light, dust drifting through them, onto a pool on the road",
   rules: [1, 3, 4, 11],
-  range: [45, 70, 95],
+  range: [4, 7, 12],
   mount,
 });

@@ -60,9 +60,16 @@ export async function iconOf(id, variant = "rounded-left") {
   return { id, variant, title: meta.title, category: meta.categoryName, svg: svg.trim() };
 }
 
+/** The engine as a page carries it: kernel.js without its index comment (the agent's API doc, ~15KB no browser reads). */
+export function engine() {
+  const k = readFileSync(here("./kernel.js"), "utf8").replace(/\r\n/g, "\n").trimEnd();
+  const at = k.indexOf("var IF");
+  return at > 0 ? k.slice(at) : k;
+}
+
 /** The page for a figure and its icon. Replacements are functions so `$&` in any of the three is pasted as it is. */
 export function assemble(figure, icon) {
-  const kernel = readFileSync(here("./kernel.js"), "utf8").replace(/\r\n/g, "\n").trimEnd();
+  const kernel = engine();
   const data = `const ISOFORM_ICON = ${JSON.stringify(icon).replace(/<\//g, "<\\/")};`;
   return readFileSync(here("./bench.html"), "utf8").replace(/\r\n/g, "\n")
     .replace("/*ICON*/", () => data)

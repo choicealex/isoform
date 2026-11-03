@@ -223,9 +223,13 @@ var IF = (() => {
   /* the one frame loop */
   const entries = new Set();
   let raf = 0, last = 0;
-  function frame(now) {
+  function frame() {
     raf = 0;
-    const dt = last ? (now - last) / 1000 : 1 / 60;
+    /* one clock for everything: rAF's own stamp can trail performance.now() (a late frame, an iframe), which the effect's
+       u_time and pointer events use. A step is at most 50ms, so a tab that comes back after a minute away resumes where it
+       was instead of jumping its springs and story a minute ahead */
+    const now = performance.now();
+    const dt = last ? Math.min(0.05, Math.max(0, (now - last) / 1000)) : 1 / 60;
     last = now;
     let more = false;
     for (const e of entries) {
@@ -240,21 +244,36 @@ var IF = (() => {
     if (more) raf = requestAnimationFrame(frame); else last = 0;
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  /* one observer for every figure on the page, waking each a little before it scrolls in, so it is already moving when
+     it arrives instead of showing its rest pose and then starting */
+  let io = null;
+  const watched = new Map(); // stage → its entries (a figure and its effect can share one stage)
+  const watch = (e) => {
+    if (typeof IntersectionObserver !== "function") return;
+    io ??= new IntersectionObserver((list) => {
+      for (const it of list) for (const x of watched.get(it.target) ?? []) { x.visible = it.isIntersecting; if (x.visible) kick(); }
+    }, { rootMargin: "120px 0px" });
+    let set = watched.get(e.stage);
+    if (!set) { watched.set(e.stage, (set = new Set())); io.observe(e.stage); }
+    set.add(e);
+  };
+  const unwatch = (e) => {
+    const set = watched.get(e.stage);
+    if (!set) return;
+    set.delete(e);
+    if (!set.size) { watched.delete(e.stage); io?.unobserve(e.stage); }
+  };
   function register(stage, tick) {
     const e = { tick, stage, awake: true, visible: true };
     entries.add(e);
-    let io = null;
-    if (typeof IntersectionObserver === "function") {
-      io = new IntersectionObserver((list) => { e.visible = list[list.length - 1].isIntersecting; if (e.visible) kick(); });
-      io.observe(stage);
-    }
+    watch(e);
     /* a new theme changes the effect's colours, so every figure draws once more */
     const theme = () => { e.awake = true; kick(); };
     stage.addEventListener("isoform:theme", theme);
     kick();
     return {
       wake() { e.awake = true; kick(); },
-      unregister() { entries.delete(e); io?.disconnect(); stage.removeEventListener("isoform:theme", theme); },
+      unregister() { entries.delete(e); unwatch(e); stage.removeEventListener("isoform:theme", theme); },
     };
   }
 
