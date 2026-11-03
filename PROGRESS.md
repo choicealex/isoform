@@ -1,4 +1,4 @@
-# Session Checkpoint — 2026-10-12 (Isoform: line check, cleaner effects, cold run, 6th deploy)
+# Session Checkpoint — 2026-11-04 (Isoform: car rework, one engine clock, richer look sheet, 7th deploy)
 
 Isoform works end to end locally: the `isoform-animate` skill, its engine and checks, and three example
 illustrations that draw themselves in and loop a story. Repo public; site live (see State).
@@ -28,11 +28,21 @@ three (tier 2: desktop Chrome, light + dark, effect on/off). Never tested on mob
 | Cold run of the published skill on apps/delete/token + doc fixes (`dogfood/cold-2026-10-12/FINDINGS.md`) | `dcf641a` |
 | Site: /skill names the line check; /inspo step 8 "Every line lands"; /inspo's empty `toast` plate → local-gas-station | `373194b` |
 
+### 2026-11-04 — after Hairline 0.5.1 + Anatomy's October updates
+| What | Commits |
+|---|---|
+| Car pulls up (rolls, dips, beams); one frame clock + one shared IntersectionObserver; engine ships without its index comment (75→62KB); look.mjs: source card, lost lines (blue), motion strip jump check, code size | `c5868ac` |
+Reworks of house (door swing), cart (stacking boxes) and gas station (nozzle lift) were built and REJECTED by the owner, who kept the originals; don't re-propose them. Notes: `research/hairline-0.5-adoptions.md`, `research/anatomy-oct-adoptions.md` (local).
+
 ## In Progress
 Nothing mid-edit; everything pushed.
 
-## State (2026-10-12)
-- LIVE https://isoform-skill.vercel.app = `373194b` (6th deploy, isoform-skill-qtv3gcijt). Repo PUBLIC, pushed.
+## State (2026-11-04)
+- LIVE https://isoform-skill.vercel.app = `c5868ac` (7th deploy, dpl_96WrJ4bAKh2sdR6MeMdudomGNdZL; the owner runs the
+  deploy line, the classifier blocks Claude's).
+- Verified 2026-11-04: 390px touch on local (tap holds ~1.5s then hands back; scroll-in wakes figures); live desktop
+  console clean; live kernel/car byte-identical to the build.
+- Previous: `373194b` (6th deploy, isoform-skill-qtv3gcijt). Repo PUBLIC, pushed.
   10 figure files feed the site (8 listed + rocket-top/right for the hero). The 23 interface icons stay OFF the site.
 - Deploy only from a clean worktree (the guard hook blocks `vercel` while ANY file is untracked, e.g. dogfood/open-in-new/):
   recipe in project memory (5th-deploy line). /inspo renders per request: verify on the live page, not in .vercel/output.
@@ -43,7 +53,9 @@ Nothing mid-edit; everything pushed.
   The look/review step is not optional. Don't call occlusion faults by eye on flat drawings (apps was correct).
 
 ## Next
-1. Nothing open from 2026-10-12. Candidates: an effect figure in a cold run (no stranger has used `fallback` yet);
+0. Check gap found 2026-11-04: a face assigned to no part stays at rest while its neighbours move and tears a seam
+   (the car's face 6). No check catches it; caught by eye only. Candidate check in look.mjs.
+1. Older candidates (2026-10-12). Candidates: an effect figure in a cold run (no stranger has used `fallback` yet);
    from `research/anatomy-plan.md` (local): mobile shots in look.mjs (A3), tests + CI (B5), evals (B6),
    per-figure OG images (C9), sitemap/robots (C12).
 2. `dogfood/open-in-new/` stays untracked by choice (owner, 2026-10-12: generated dogfood files stay out of git).
